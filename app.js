@@ -81,11 +81,7 @@
 // // Routes
 // app.use('/signup', router);
 
-
-
-
-
-
+ 
 
 const { ApolloServer } = require('apollo-server-express');
 const express = require('express');
@@ -95,7 +91,6 @@ const mongoose = require('mongoose');
 const cron = require('node-cron');
 const moment = require('moment');
 const { graphqlUploadExpress } = require('graphql-upload');
-
 const typeDefs = require('./src/typeDefs');
 const { typeDefss } = require('./src/graphqlschema/authgraphqlschema');
 const resolvers = require('./src/resolvers');
@@ -169,7 +164,7 @@ const startServer = async () => {
 startServer();
 
 // Routes
-app.use('/signup', router);
+app.use('/auth', router);
 
 
 
