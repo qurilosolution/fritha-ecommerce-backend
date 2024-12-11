@@ -12,7 +12,7 @@ const { graphqlUploadExpress } = require('graphql-upload');
 
 
 require('dotenv').config(); 
-
+ 
 const app = express();
 
 connectDB();
@@ -67,7 +67,7 @@ const startServer = async () => {
    
     await server.start();
   
-    app.use(graphqlUploadExpress());
+    app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
     server.applyMiddleware({ app });
   
     

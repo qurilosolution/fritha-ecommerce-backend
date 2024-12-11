@@ -59,8 +59,8 @@ const createProduct = async (input) => {
     // Handle image upload
     if (imageUrl && imageUrl.length > 0) {
       const uploadedImages = await Promise.all(
-        imageUrl.map(async (image) => {
-          const uploadedImage = await uploadImageToCloudinary(image);
+        imageUrl.map(async (file) => {
+          const uploadedImage = await uploadImageToCloudinary(file);
           return uploadedImage.url;
         })
       );
