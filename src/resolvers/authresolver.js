@@ -392,6 +392,6 @@ const authResolvers = {
   },
 };
 
-module.exports = { authResolvers };
+module.exports = authResolvers;
 
  

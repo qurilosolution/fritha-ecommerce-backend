@@ -4,6 +4,7 @@ const categoryType = require('./categoryType');
 const subcategoryType = require('./subcategoryType');
 const productType = require('./productType');
 const reviewType = require("./reviewType")
+const authType = require("./authType")
 
 const typeDefs = gql`
   ${baseType}
@@ -11,6 +12,7 @@ const typeDefs = gql`
   ${subcategoryType}
   ${productType}
   ${reviewType}
+  ${authType}
 `;
 
 module.exports = typeDefs;

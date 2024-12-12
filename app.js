@@ -54,8 +54,8 @@ cron.schedule('* * * * *', async () => {
 });
 
 // Merge typeDefs and resolvers
-const mergedTypeDefs = mergeTypeDefs([typeDefs, typeDefss]);
-const mergedResolvers = mergeResolvers([resolvers, authResolvers]);
+const mergedTypeDefs = mergeTypeDefs([typeDefs]);
+const mergedResolvers = mergeResolvers([resolvers]);
 
 // Apollo Server
 const server = new ApolloServer({

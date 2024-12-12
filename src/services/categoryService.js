@@ -11,22 +11,44 @@ const getCategoryById = async (id) => {
   return await Category.findById(id).populate('subcategories products');
 };
 
-const createCategory = async (_, { name, description, image }) => {
+// const createCategory = async (_, { name, description, image }) => {
+//   try {
+//     // If image is provided, upload to Cloudinary
+//     let imageUrl = null;
+//     if (image) { 
+//       imageUrl = await uploadImageToCloudinary(image);
+//     }
+
+//     // Create the category with the image URL
+//     const newCategory = new Category({
+//       name,
+//       description,
+//       imageUrl,
+//     });
+
+//     // Save the category and return the result
+//     return await newCategory.save();
+//   } catch (error) {
+//     console.error("Error creating category:", error);
+//     throw new Error("Failed to create category.");
+//   }
+// };
+
+
+const createCategory = async (_, { name, description, image, userId }) => {
   try {
-    // If image is provided, upload to Cloudinary
     let imageUrl = null;
-    if (image) { 
+    if (image) {
       imageUrl = await uploadImageToCloudinary(image);
     }
 
-    // Create the category with the image URL
     const newCategory = new Category({
       name,
       description,
       imageUrl,
+      userId,
     });
 
-    // Save the category and return the result
     return await newCategory.save();
   } catch (error) {
     console.error("Error creating category:", error);
@@ -34,18 +56,41 @@ const createCategory = async (_, { name, description, image }) => {
   }
 };
 
-const updateCategory = async (_, { id, name, description, imageUrl }) => {
+
+
+// const updateCategory = async (_, { id, name, description, imageUrl }) => {
+//   try {
+//     // If imageUrl is provided, upload the new image to Cloudinary
+//     let updatedImageUrl = null;
+//     if (imageUrl) {
+//       updatedImageUrl = await uploadImageToCloudinary(imageUrl);
+//     }
+
+//     // Update the category with the new details, including imageUrl if provided
+//     const updatedCategory = await Category.findByIdAndUpdate(
+//       id,
+//       { name, description, imageUrl: updatedImageUrl || undefined },
+//       { new: true }
+//     );
+
+//     return updatedCategory;
+//   } catch (error) {
+//     console.error("Error updating category:", error);
+//     throw new Error("Failed to update category.");
+//   }
+// };
+
+
+const updateCategory = async (_, { id, name, description, imageUrl, userId }) => {
   try {
-    // If imageUrl is provided, upload the new image to Cloudinary
     let updatedImageUrl = null;
     if (imageUrl) {
       updatedImageUrl = await uploadImageToCloudinary(imageUrl);
     }
 
-    // Update the category with the new details, including imageUrl if provided
     const updatedCategory = await Category.findByIdAndUpdate(
       id,
-      { name, description, imageUrl: updatedImageUrl || undefined },
+      { name, description, imageUrl: updatedImageUrl || undefined, userId },
       { new: true }
     );
 
@@ -55,6 +100,8 @@ const updateCategory = async (_, { id, name, description, imageUrl }) => {
     throw new Error("Failed to update category.");
   }
 };
+
+
 
 
 const deleteCategory = async (id) => {

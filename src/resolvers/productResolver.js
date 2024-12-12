@@ -7,7 +7,7 @@ const productResolvers = {
 
   Query: {
     // Fetch all products
-    getProducts: async () => {
+    getProducts: async () =>   {
       try {
         return await productService.getProducts();
       } catch (error) {
