@@ -8,7 +8,7 @@ scalar Upload
     description: String
     subcategories: [Subcategory]
     products: [Product]
-    imageUrl: String!
+    imageUrl: [String]
   }
 
   extend type Query {
@@ -17,8 +17,8 @@ scalar Upload
   }
   
   extend type Mutation {
-    createCategory(name: String!, description: String, imageUrl: Upload!): Category
-    updateCategory(id: ID!, name: String, description: String, imageUrl: Upload!): Category
+    createCategory(name: String!, description: String, imageUrl: Upload): Category
+    updateCategory(id: ID!, name: String, description: String, imageUrl: Upload): Category
     deleteCategory(id: ID!): Boolean
   }
 `;

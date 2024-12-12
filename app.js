@@ -61,13 +61,13 @@ cron.schedule('* * * * * *', async () => {
 });
 
 
-const server = new ApolloServer({ typeDefs, resolvers ,uploads :false });
+const server = new ApolloServer({ typeDefs, resolvers ,uploads :true});
 const startServer = async () => {
  
    
     await server.start();
   
-    app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
+    app.use(graphqlUploadExpress());
     server.applyMiddleware({ app });
   
     

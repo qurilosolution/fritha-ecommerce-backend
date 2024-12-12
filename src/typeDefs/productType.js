@@ -51,14 +51,13 @@ const productType = gql`
     getProductById(id: ID!): Product
     getBestSellers: [Product]
   }
-
+  scalar Upload
   input CreateProductInput {
   name: String!
   category: ID!
   description: String
   keyBenefits: [String]
   reviews: Int
-  
   netContent: String
   priceDetails: PriceDetailsInput
   variants: [VariantInput]
@@ -69,10 +68,11 @@ const productType = gql`
   totalReviews: Int
   averageRating: Float
   isBestSeller: Boolean
+  imageUrl: Upload
 }
-
-extend type Mutation {
-  createProduct(input: CreateProductInput! ,imageUrl: Upload!): Product
+  scalar Upload
+  extend type Mutation {
+  createProduct(input: CreateProductInput! ,imageUrl: Upload): Product
   updateProduct(
     id: ID!
     name: String!
@@ -80,7 +80,7 @@ extend type Mutation {
     subcategory: ID!
     description: String
     keyBenefits: [String!]
-    imageUrl: [Upload!]
+    imageUrl:Upload
     netContent: String
     priceDetails: PriceDetailsInput
     variants: [ID!]!
@@ -126,7 +126,7 @@ extend type Mutation {
     pricePerUnitDiscount: Float
     combo: String
     isOutOfStock: Boolean
-    imageUrl: [Upload!]
+    imageUrl: Upload
     netContent: String
     salePrice: Float
     saleStartDate: Date

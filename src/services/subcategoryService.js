@@ -17,7 +17,7 @@ const createSubcategory = async (_, {  name, description, image , categoryId }) 
   try {
     let imageUrl = null;
 
-    console.log('Received categoryId:', categoryId);
+    
     
 
     // If image is provided, upload it to Cloudinary

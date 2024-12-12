@@ -44,26 +44,36 @@ const productResolvers = {
           throw new Error("Input is required for creating a product.");
         }
     
-        const { input } = args;  // Destructure input from args after confirming args exists
-    
+        const { input, imageUrl } = args;
         console.log("Received input for product:", input);
     
-        // Check if all required fields in the input are present (optional, based on your validation)
-        if (!input.name || !input.category) {
-          throw new Error("Product name and category are required.");
+        // Resolve imageUrl if provided
+        let resolvedImageUrl = null;
+        if (imageUrl) {
+          resolvedImageUrl = await imageUrl;
+          console.log("Resolved imageUrl:", resolvedImageUrl);
         }
     
-        // Call the service to create the product
-        const product = await productService.createProduct(input);
+        // Prepare product data
+        const productData = {
+          ...input,
+          imageUrl: resolvedImageUrl ? [resolvedImageUrl] : [],
+        };
+    
+        
+     
+        // Create the product
+        const product = await productService.createProduct(productData);
+        console.log("Product successfully created:", product);
         return product;
       } catch (error) {
-        console.error("Error creating product:", error);
+        console.error("Error creating product:", error.message);
         throw new Error(`Controller error while creating product: ${error.message}`);
       }
     },
     
-    
-    
+  
+  
 
     // Update a product, including image update
     updateProduct: async (_, { id, input, publicId, newImage }) => {

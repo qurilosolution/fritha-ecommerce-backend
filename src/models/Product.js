@@ -2,15 +2,15 @@ const mongoose = require('mongoose');
 
 const variantSchema = new mongoose.Schema({
   size: {
-    type: Number, // Example: 50 (denoting 50ml)
+    type: Number,
     required: false,
   },
   pack: {
-    type: Number, // Example : 2
+    type: Number, 
     required: false, 
   },
   discountPrice: {
-    type: Number, // Example: Calculated based on the discount 
+    type: Number,
   },
   mrp: {
     type: Number, // Example: 269 (before discount) 
@@ -34,7 +34,7 @@ const variantSchema = new mongoose.Schema({
   },
   imageUrl: {
     type: [String], // Array of image URLs
-    required: false,
+    default: [],
   },
   netContent: {
     type: String,
@@ -117,7 +117,7 @@ const productSchema = new mongoose.Schema({
     },
   ],
   
-  imageUrl: [String],
+  imageUrl: { type: [String], default: [] },
   netContent: {
     type: String, // Example: "100ml"
   },

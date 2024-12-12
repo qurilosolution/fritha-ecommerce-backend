@@ -1,23 +1,19 @@
-const Product = require('../models/Product');
+const Product = require("../models/Product");
 
-const cloudinary = require('../config/cloudinary');
+const cloudinary = require("../config/cloudinary");
 
 const uploadImageToCloudinary = require("../utils/fileUpload");
 
 const createProduct = async (input) => {
-  
   try {
-
     if (!input || Object.keys(input).length === 0) {
       throw new Error("Input data is missing.");
     }
-
     const {
       name,
       category,
       description,
       keyBenefits,
-      reviews,
       imageUrl,
       netContent,
       priceDetails,
@@ -42,7 +38,6 @@ const createProduct = async (input) => {
       category,
       description,
       keyBenefits,
-      reviews,
       imageUrl,
       netContent,
       priceDetails,
@@ -56,15 +51,51 @@ const createProduct = async (input) => {
       isBestSeller,
     };
 
-    // Handle image upload
-    if (imageUrl && imageUrl.length > 0) {
-      const uploadedImages = await Promise.all(
-        imageUrl.map(async (file) => {
-          const uploadedImage = await uploadImageToCloudinary(file);
-          return uploadedImage.url;
-        })
-      );
-      productData.imageUrl = uploadedImages;
+    if (imageUrl) {
+      
+
+      // Ensure `imageUrl` is an array (in case of a single file)
+      const imageUrls = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
+      
+      
+      const uploadedImages = [];
+      for (const image of imageUrls) {
+        try {
+          // Upload the resolved image
+          const uploadedImage = await uploadImageToCloudinary(image); // Ensure this function handles `createReadStream`
+          console.log("Uploaded Image:", uploadedImage);
+
+          if (!uploadedImage) {
+            throw new Error("Uploaded image does not contain a URL");
+          }
+
+          // Store the URL in the array
+          uploadedImages.push(uploadedImage);
+          // Process variant images
+         
+        } catch (error) {
+          console.error("Error uploading image:", error.message);
+          throw new Error("Image upload failed.");
+        }
+      }
+      
+
+      productData.imageUrl = uploadedImages.length ? uploadedImages : []; // Set resolved URLs in the product data
+    } else {
+      productData.imageUrl = []; // Default to an empty array if no images are provided
+    }
+
+    console.log("Final Product Data:", productData);
+
+    // Process variants
+    if (input.variants) {
+      console.log("Variants before processing:", input.variants);
+      try {
+        productData.variants = await uploadImagesForVariants(input.variants);
+      } catch (error) {
+        console.error("Error processing variants:", error.message);
+        throw new Error("Error processing product variants.");
+      }
     }
 
     // Create the product
@@ -74,17 +105,48 @@ const createProduct = async (input) => {
     return product;
   } catch (error) {
     console.error("Error creating product:", error.message);
-    throw new Error(`Error creating product: ${error.message}`);
+    throw new Error(`Service error while creating product: ${error.message}`);
   }
 };
 
 
+const uploadImagesForVariants = async (variants) => {
+  if (!Array.isArray(variants)) {
+    throw new Error("Variants should be an array.");
+  }
+
+  return Promise.all(
+    variants.map(async (variant) => {
+      try {
+        let uploadedImages = [];
+        if (variant.imageUrl && Array.isArray(variant.imageUrl) && variant.imageUrl.length > 0) {
+          // Upload images for this variant
+          uploadedImages = await Promise.all(
+            variant.imageUrl.map((image) => uploadImageToCloudinary(image))
+          );
+          console.log(`Uploaded images for variant ${variant.size}:`, uploadedImages);
+        }
+
+        // Return a new variant object with updated imageUrl
+        return {
+          ...variant,
+          imageUrl: uploadedImages.length ? uploadedImages : [], // Ensure it is always an array
+        };
+      } catch (error) {
+        console.error(
+          `Error uploading images for variant with size ${variant.size}:`,
+          error.message
+        );
+        throw new Error(`Variant image upload failed for size ${variant.size}.`);
+      }
+    })
+  );
+};
+
 
 const getProducts = async () => {
   try {
-    return await Product.find()
-      .populate('category')
-      .populate('Subcategory'); // Populate both fields
+    return await Product.find().populate("category").populate("Subcategory"); // Populate both fields
   } catch (error) {
     throw new Error(`Error fetching products: ${error.message}`);
   }
@@ -93,8 +155,8 @@ const getProducts = async () => {
 const getProductById = async (id) => {
   try {
     return await Product.findById(id)
-      .populate('category')
-      .populate('Subcategory');
+      .populate("category")
+      .populate("Subcategory");
   } catch (error) {
     throw new Error(`Error fetching product by ID: ${error.message}`);
   }
@@ -105,15 +167,19 @@ const updateProduct = async (id, productData) => {
     // If image URLs are provided and they are an array, upload the images
     if (productData.imageUrl && productData.imageUrl.length > 0) {
       const uploadedImages = await Promise.all(
-        productData.imageUrl.map(async (image) => await uploadImageToCloudinary(image))
+        productData.imageUrl.map(
+          async (image) => await uploadImageToCloudinary(image)
+        )
       );
       productData.imageUrl = uploadedImages; // Set the new image URLs
     }
 
     // Find and update the product with the provided data
-    const updatedProduct = await Product.findByIdAndUpdate(id, productData, { new: true })
-      .populate('category')
-      .populate('subcategory'); // Populate category and subcategory for the updated product
+    const updatedProduct = await Product.findByIdAndUpdate(id, productData, {
+      new: true,
+    })
+      .populate("category")
+      .populate("subcategory"); // Populate category and subcategory for the updated product
 
     return updatedProduct; // Return the updated product
   } catch (error) {
@@ -134,7 +200,7 @@ async function getBestSellers() {
   try {
     return await Product.find({ isBestSeller: true });
   } catch (err) {
-    console.error('Error fetching best sellers:', err);
+    console.error("Error fetching best sellers:", err);
     throw err;
   }
 }
@@ -149,9 +215,8 @@ async function updateBestSellers() {
         await Product.findByIdAndUpdate(product._id, { isBestSeller });
       }
     }
-   
   } catch (err) {
-    console.error('Error updating best sellers:', err);
+    console.error("Error updating best sellers:", err);
     throw err;
   }
 }
@@ -166,9 +231,6 @@ const deleteImageFromCloudinary = async (publicId) => {
   }
 };
 
-
-
-
 // Update the product with the new image URL
 const updateProductImage = async (productId, newImageUrl) => {
   try {
@@ -178,15 +240,13 @@ const updateProductImage = async (productId, newImageUrl) => {
       { new: true }
     );
     if (!updatedProduct) {
-      throw new Error('Product not found');
+      throw new Error("Product not found");
     }
     return updatedProduct;
   } catch (error) {
     throw new Error(`Error updating product: ${error.message}`);
   }
 };
-
-
 
 module.exports = {
   getBestSellers,
@@ -199,4 +259,5 @@ module.exports = {
   deleteImageFromCloudinary,
   uploadImageToCloudinary,
   updateProductImage,
+  uploadImagesForVariants
 };
