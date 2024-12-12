@@ -1,35 +1,169 @@
-// utils/mailer.js
-const nodemailer = require('nodemailer');
-require('dotenv').config();
+// const nodemailer = require('nodemailer');
+// require('dotenv').config();
 
-// SMTP transporter setup for Gmail
+// const transporter = nodemailer.createTransport({
+//   host: 'smtp.gmail.com',
+//   port: 465,
+//   secure: true,
+//   auth: {
+//     user: process.env.GMAIL_USER,
+//     pass: process.env.GMAIL_PASSWORD,
+//   },
+// });
+
+// transporter.verify((error) => {
+//   if (error) {
+//     console.error('Mailer verification failed:', error);
+//   } else {
+//     console.log('Mailer is ready to send messages.');
+//   }
+// });
+
+// module.exports = transporter;
+
+
+// const nodemailer = require('nodemailer');
+// require('dotenv').config();
+
+// const transporter = nodemailer.createTransport({
+//   service: 'gmail',
+//   auth: {
+//     user: process.env.GMAIL_USER, // Your Gmail address
+//     pass: process.env.GMAIL_PASSWORD, // Your App Password or Gmail password
+//   },
+// });
+
+// transporter.verify((error, success) => {
+//   if (error) {
+//     console.error('Mailer verification failed:', error);
+//   } else {
+//     console.log('Mailer is ready to send messages.');
+//   }
+// });
+
+// module.exports = transporter;
+// // .........................................................................................// //
+
+// const nodemailer = require('nodemailer');
+// require('dotenv').config();
+
+// // Create a transporter using environment variables for Gmail credentials
+// const transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     host: 'smtp.gmail.com',
+//     port: 587, // Use 587 for TLS
+//     secure: false, // Use `true` for port 465, `false` for all other ports
+//     auth: {
+//         user: process.env.GMAIL_USER, // Your Gmail address from .env file
+//         pass: process.env.GMAIL_PASSWORD, // Your App Password or Gmail password from .env file
+//     },
+// });
+
+// // Verify the transporter configuration
+// transporter.verify((error, success) => {
+//     if (error) {
+//         console.error('Mailer verification failed:', error);
+//     } else {
+//         console.log('Mailer is ready to send messages.');
+//     }
+// });
+
+// // Function to send mail with the transporter
+// async function sendMail(to, subject, text, html) {
+//     try {
+//         // Send mail with defined transport object
+//         const info = await transporter.sendMail({
+//             from: process.env.GMAIL_USER, // Sender address
+//             to: to, // List of receivers
+//             subject: subject, // Subject line
+//             text: text, // Plain text body (optional)
+//             html: html, // HTML body
+//         });
+
+//         console.log('Message sent: %s', info.messageId);
+//     } catch (error) {
+//         console.error('Error sending email:', error);
+//     }
+// }
+
+// module.exports = sendMail;
+
+
+// const nodemailer = require("nodemailer");
+// require('dotenv').config();
+
+// const transporter = nodemailer.createTransport({
+//   service: 'gmail',
+//   host: "smtp.gmail.com",
+//   port: 587,
+//   secure: false, // Use true for port 465
+//   auth: {
+//     user: process.env.GMAIL_USER, // Sender email from environment variables
+//     pass: process.env.GMAIL_PASSWORD, // App Password
+//   },
+// });
+
+// async function sendMail(to, subject, text, html) {
+//   try {
+//     const info = await transporter.sendMail({
+//       from: process.env.GMAIL_USER, // Sender address
+//       to: to, // Receiver address
+//       subject: subject, // Subject
+//       text: text, // Plain text body
+//       html: html, // HTML body
+//     });
+//     console.log("Message sent: %s", info.messageId);
+//   } catch (error) {
+//     console.error("Error sending mail:", error.message);
+//     throw new Error("Email sending failed");
+//   }
+// }
+
+// module.exports = sendMail;
+
+
+
+const nodemailer = require("nodemailer");
+require("dotenv").config();
+
+// Log the email and password (be cautious with logging sensitive data in production)
+console.log("GMAIL_USER:", process.env.GMAIL_USER);
+console.log("GMAIL_PASSWORD:", process.env.GMAIL_PASSWORD);
+
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com', // Gmail SMTP server
-  port: 465, // Use 465 for SSL or 587 for TLS
-  secure: true, // Use true for 465, false for other ports
+  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // Use true for port 465
   auth: {
-    user: process.env.GMAIL_USER, // Load from environment variable
-    pass: process.env.GMAIL_PASSWORD, // Load from environment variable
+    user: process.env.GMAIL_USER, // Sender email
+    pass: process.env.GMAIL_PASSWORD, // App Password
   },
 });
 
-// Function to send a message (OTP or any custom message)
-const sendMessage = async (recipient, subject, message) => {
-  const mailOptions = {
-    from: process.env.GMAIL_USER, // Sender's email address
-    to: recipient, // Recipient's email address
-    subject: subject, // Subject of the email
-    text: message, // Body of the email
-  };
-
+async function sendMail(to, subject, text, html) {
   try {
-    // Send the email
-    await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully!');
-  } catch (error) {
-    console.error('Error sending email:', error);
-    throw new Error('Error sending email: ' + error.message);
-  }
-};
+    // Log the email sending details
+    console.log(`Sending email to: ${to}`);
+    console.log(`Subject: ${subject}`);
+    console.log(`HTML Content: ${html}`);
 
-module.exports = { sendMessage };
+    const info = await transporter.sendMail({
+      from: `"Fatima" <${process.env.GMAIL_USER}>`, // Sender name and email
+      to, // Recipient email
+      subject, // Email subject
+      text, // Plain text (optional)
+      html, // HTML body
+    });
+
+    // Log the message ID returned by the sendMail method
+    console.log("Message sent: %s", info.messageId);
+    return info.messageId; // Optional, to return the ID
+  } catch (error) {
+    // Log the error details
+    console.error("Error sending mail:", error.message);
+    throw new Error("Email sending failed");
+  }
+}
+
+module.exports = sendMail;
