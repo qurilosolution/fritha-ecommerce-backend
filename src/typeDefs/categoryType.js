@@ -8,7 +8,7 @@
 //     description: String
 //     subcategories: [Subcategory]
 //     products: [Product]
-//     imageUrl: String!
+//     imageUrl: [String]
 //   }
 
 //   extend type Query {
@@ -17,8 +17,8 @@
 //   }
   
 //   extend type Mutation {
-//     createCategory(name: String!, description: String, imageUrl: Upload!): Category
-//     updateCategory(id: ID!, name: String, description: String, imageUrl: Upload!): Category
+//     createCategory(name: String!, description: String, imageUrl: Upload): Category
+//     updateCategory(id: ID!, name: String, description: String, imageUrl: Upload): Category
 //     deleteCategory(id: ID!): Boolean
 //   }
 // `;
@@ -27,18 +27,19 @@
 
 
 
+
 const { gql } = require('apollo-server-express');
 
 const categoryType = gql`
-  scalar Upload
+scalar Upload 
   type Category {
     id: ID!
     name: String!
     description: String
     subcategories: [Subcategory]
     products: [Product]
-    imageUrl: String!
-    userId: ID! # Track the user who created/updated the category
+    imageUrl: [String]
+    userId: ID!  # Added userId field
   }
 
   extend type Query {
@@ -47,8 +48,8 @@ const categoryType = gql`
   }
   
   extend type Mutation {
-    createCategory(name: String!, description: String, imageUrl: Upload!, userId: ID!): Category
-    updateCategory(id: ID!, name: String, description: String, imageUrl: Upload, userId: ID!): Category
+    createCategory(name: String!, description: String, imageUrl: Upload, userId: ID!): Category # Added userId argument
+    updateCategory(id: ID!, name: String, description: String, imageUrl: Upload, userId: ID): Category # Added userId argument
     deleteCategory(id: ID!): Boolean
   }
 `;
