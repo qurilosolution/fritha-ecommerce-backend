@@ -61,7 +61,7 @@ cron.schedule('* * * * * *', async () => {
 });
 
 
-const server = new ApolloServer({ typeDefs, resolvers ,uploads :true});
+const server = new ApolloServer({ typeDefs, resolvers ,uploads:true});
 const startServer = async () => {
  
    

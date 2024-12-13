@@ -1,6 +1,6 @@
 const Category = require('../models/category');
 const Subcategory = require('../models/Subcategory');
-const cloudinary = require('../config/cloudinary');
+
 const uploadImageToCloudinary = require('../utils/fileUpload');
 
 const getCategories = async () => {
@@ -11,50 +11,43 @@ const getCategoryById = async (id) => {
   return await Category.findById(id).populate('subcategories products');
 };
 
-const createCategory = async (_, { name, description, imageUrl }) => {
+const createCategory = async (categoryData) => {
   try {
-    
-    // Create the category with the image URL
+    const { name, description, imageUrl } = categoryData;
+    console.log("Received category data:", categoryData);
+
+    // Create the category document
     const newCategory = new Category({
       name,
       description,
-      imageUrl,
     });
-    
-    
-    if (imageUrl) {
-      
-      // Ensure `imageUrl` is an array (in case of a single file)
-      const imageUrls = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
-      
-      
+
+    // Handle image upload if imageUrl is provided
+    if (imageUrl && imageUrl.length > 0) {
       const uploadedImages = [];
-      for (const image of imageUrls) {
+
+      for (const image of imageUrl) {
         try {
-          // Upload the resolved image
-          const uploadedImage = await uploadImageToCloudinary(image); // Ensure this function handles `createReadStream`
+          const uploadedImage = await uploadImageToCloudinary(image);
           console.log("Uploaded Image:", uploadedImage);
 
           if (!uploadedImage) {
             throw new Error("Uploaded image does not contain a URL");
           }
 
-          // Store the URL in the array
           uploadedImages.push(uploadedImage);
-          // Process variant images
-         
         } catch (error) {
           console.error("Error uploading image:", error.message);
           throw new Error("Image upload failed.");
         }
       }
-      
 
-      newCategory.imageUrl = uploadedImages.length ? uploadedImages : []; // Set resolved URLs in the product data
+      // Set the image URL(s) to the category
+      newCategory.imageUrl = uploadedImages.length > 0 ? uploadedImages : [];
     } else {
-      newCategory.imageUrl = []; // Default to an empty array if no images are provided
+      // Default to an empty array if no image is provided
+      newCategory.imageUrl = [];
     }
-
 
     // Save the category and return the result
     return await newCategory.save();
