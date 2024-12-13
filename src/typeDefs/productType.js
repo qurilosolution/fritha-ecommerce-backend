@@ -24,7 +24,7 @@ const productType = gql`
     mrp: Float
     inclusiveOfTaxes: Boolean
   }
-
+ 
   type Product {
     id: ID!
     name: String!
@@ -32,7 +32,7 @@ const productType = gql`
     description: String
     keyBenefits: [String]
     reviews: Int
-    imageUrl: String!
+    imageUrl: [String]
     netContent: String
     priceDetails: PriceDetails
     variants: [Variant]
@@ -42,7 +42,7 @@ const productType = gql`
     additionalDetails: String
     createdAt: String
     totalReviews: Int
-    averageRating: Int
+    averageRating: Float
     isBestSeller: Boolean
   }
 
@@ -58,7 +58,7 @@ const productType = gql`
   description: String
   keyBenefits: [String]
   reviews: Int
-  imageUrl: Upload!
+  
   netContent: String
   priceDetails: PriceDetailsInput
   variants: [VariantInput]
@@ -67,12 +67,12 @@ const productType = gql`
   keyFeatures: String
   additionalDetails: String
   totalReviews: Int
-  averageRating: Int
+  averageRating: Float
   isBestSeller: Boolean
 }
 
 extend type Mutation {
-  createProduct(input: CreateProductInput!): Product
+  createProduct(input: CreateProductInput! ,imageUrl: Upload): Product
   updateProduct(
     id: ID!
     name: String!
@@ -80,7 +80,7 @@ extend type Mutation {
     subcategory: ID!
     description: String
     keyBenefits: [String!]
-    imageUrl: Upload!
+    imageUrl: [Upload!]
     netContent: String
     priceDetails: PriceDetailsInput
     variants: [ID!]!
@@ -126,7 +126,7 @@ extend type Mutation {
     pricePerUnitDiscount: Float
     combo: String
     isOutOfStock: Boolean
-    imageUrl: [String]
+    imageUrl: [Upload!]
     netContent: String
     salePrice: Float
     saleStartDate: Date
