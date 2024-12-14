@@ -182,7 +182,6 @@
 // module.exports = { authResolvers };
 
 
-
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { AuthModel } = require('../models/authmodel');
@@ -283,64 +282,34 @@ const authResolvers = {
       }
     },
 
-    // sendOtp: async (_, { email }) => {
-    //   try {
-    //     const user = await AuthModel.findOne({ email });
-    //     if (!user) {
-    //       throw new Error('User not found');
-    //     }
-
-    //     // Generate OTP and store it with an expiry time
-    //     const otp = uuidv4().slice(0, 6).toUpperCase(); // Generate a 6-character OTP
-    //     const otpExpiration = Date.now() + OTP_EXPIRY_TIME; // OTP expiry time
-    //     otpStore[email] = { otp, expiry: otpExpiration };
-
-    //     // Send OTP to user's email using the sendMail function
-    //     await sendMail(
-    //       email,
-    //       'Your OTP for Password Reset',
-    //       `Your OTP is ${otp}. It is valid for 10 minutes.`
-    //     );
-
-    //     return {
-    //       success: true,
-    //       message: 'OTP sent to your email',
-    //     };
-    //   } catch (error) {
-    //     throw new Error(`Error sending OTP: ${error.message}`);
-    //   }
-    // },
-
-
     sendOtp: async (_, { email }) => {
       try {
         const user = await AuthModel.findOne({ email });
         if (!user) {
-          throw new Error("User not found");
+          throw new Error('User not found');
         }
-    
+
         // Generate OTP
         const otp = uuidv4().slice(0, 6).toUpperCase();
         const otpExpiration = Date.now() + OTP_EXPIRY_TIME; // OTP expiry time
         otpStore[email] = { otp, expiry: otpExpiration };
-    
+
         // Email content
-        const subject = "Your OTP for Password Reset";
+        const subject = 'Your OTP for Password Reset';
         const html = `<p>Your OTP is <b>${otp}</b>. It is valid for 10 minutes.</p>`;
-    
-        // Send Email
+
+        // Send OTP to user's email
         await sendMail(email, subject, null, html);
-    
+
         return {
           success: true,
-          message: "OTP sent to your email",
+          message: 'OTP sent to your email',
         };
       } catch (error) {
-        console.error("Error in sendOtp:", error.message);
+        console.error('Error in sendOtp:', error.message);
         throw new Error(`Error sending OTP: ${error.message}`);
       }
     },
-    
 
     verifyOtp: async (_, { email, otp }) => {
       try {
@@ -389,9 +358,48 @@ const authResolvers = {
         throw new Error(`Error resetting password: ${error.message}`);
       }
     },
+
+    resetPassword: async (_, { oldPassword, newPassword }, { req }) => {
+      try {
+        // Extract the token from cookies
+        const token = req.cookies.token;
+        if (!token) {
+          throw new Error('User not authenticated');
+        }
+
+        // Verify the token
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        const userId = decoded.user_id;
+
+        // Find the user in the database
+        const user = await AuthModel.findById(userId);
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        // Verify the old password (if applicable)
+        const isOldPasswordValid = await comparePassword(user.password, oldPassword);
+        if (!isOldPasswordValid) {
+          throw new Error('Invalid old password');
+        }
+
+        // Hash the new password
+        const hashedPassword = await genPassword(newPassword);
+
+        // Update the user's password
+        user.password = hashedPassword;
+        await user.save();
+
+        return {
+          success: true,
+          message: 'Password updated successfully',
+        };
+      } catch (error) {
+        console.error("Error resetting password:", error);
+        throw new Error(`Error resetting password: ${error.message}`);
+      }
+    },
   },
 };
 
 module.exports = authResolvers;
-
- 
