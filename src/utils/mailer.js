@@ -149,7 +149,7 @@ async function sendMail(to, subject, text, html) {
     console.log(`HTML Content: ${html}`);
 
     const info = await transporter.sendMail({
-      from: `"Fatima" <${process.env.GMAIL_USER}>`, // Sender name and email
+      from: `"Fritha" <${process.env.GMAIL_USER}>`, // Sender name and email
       to, // Recipient email
       subject, // Email subject
       text, // Plain text (optional)

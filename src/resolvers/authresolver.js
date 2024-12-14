@@ -188,10 +188,14 @@ const { AuthModel } = require('../models/authmodel');
 const { genPassword, comparePassword } = require('../utils/auth');
 const { v4: uuidv4 } = require('uuid');
 const sendMail = require('../utils/mailer'); // Adjusted to use the sendMail function
+const { generateToken } = require('../utils/newpasswordtoken');
+const { verifyToken } = require('../utils/newpasswordtoken');
+
+
 
 // Temporary storage for OTPs (Consider using a proper cache like Redis for production)
 const otpStore = {};
-const OTP_EXPIRY_TIME = 10 * 60 * 1000; // 10 minutes expiry
+const OTP_EXPIRY_TIME = 3 * 60 * 1000; // 1 minute expiry
 
 const authResolvers = {
   Query: {
@@ -282,6 +286,141 @@ const authResolvers = {
       }
     },
 
+
+
+
+    // sendOtp: async (_, { email }) => {
+    //   try {
+    //     const user = await AuthModel.findOne({ email });
+    //     if (!user) {
+    //       throw new Error('User not found');
+    //     }
+
+    //     // Generate OTP
+    //     const otp = uuidv4().slice(0, 6).toUpperCase();
+    //     const otpExpiration = Date.now() + OTP_EXPIRY_TIME; // OTP expiry time
+    //     otpStore[email] = { otp, expiry: otpExpiration };
+
+    //     // Email content
+    //     const subject = 'Your OTP for Password Reset';
+    //     const html = `<p>Your OTP is <b>${otp}</b>. It is valid for 10 minutes.</p>`;
+       
+    //     // Send OTP to user's email
+    //     await sendMail(email, subject, null, html);
+
+    //     return {
+    //       success: true,
+    //       message: 'OTP sent to your email',
+    //     };
+    //   } catch (error) {
+    //     console.error('Error in sendOtp:', error.message);
+    //     throw new Error(`Error sending OTP: ${error.message}`);
+    //   }
+    // },
+
+
+    
+    // verifyOtp: async (_, { email, otp }) => {
+    //   try {
+    //     // Check if the OTP is valid and not expired
+    //     const storedOtp = otpStore[email];
+    //     if (!storedOtp || storedOtp.otp !== otp) {
+    //       throw new Error('Invalid OTP');
+    //     }
+
+    //     if (Date.now() > storedOtp.expiry) {
+    //       delete otpStore[email]; // Expired OTP, remove it from storage
+    //       throw new Error('OTP has expired');
+    //     }
+
+    //     // OTP is valid, remove it from the store
+    //     delete otpStore[email];
+
+    //     return {
+    //       success: true,
+    //       message: 'OTP verified successfully',
+    //     };
+    //   } catch (error) {
+    //     throw new Error(`Error verifying OTP: ${error.message}`);
+    //   }
+    // },
+
+    // resetPasswordWithOtp: async (_, { email, newPassword }) => {
+    //   try {
+    //     const user = await AuthModel.findOne({ email });
+    //     if (!user) {
+    //       throw new Error('User not found');
+    //     }
+
+    //     // Hash the new password
+    //     const hashedPassword = await genPassword(newPassword);
+
+    //     // Update the user's password
+    //     user.password = hashedPassword;
+    //     await user.save();
+
+    //     return {
+    //       success: true,
+    //       message: 'Password updated successfully',
+    //     };
+    //   } catch (error) {
+    //     throw new Error(`Error resetting password: ${error.message}`);
+    //   }
+    // },
+
+
+
+
+    
+    // resetPasswordWithOtp: async (_, { email, newPassword }) => {
+    //   try {
+    //     console.log(newPassword,"lloollollo")
+    //     // Check if OTP exists in store for the provided email
+    //     const storedOtp = otpStore[email];
+    //     if (!storedOtp) {
+    //       throw new Error('OTP not generated or expired'); // OTP was not found
+    //     }
+    
+    //     // Check if the OTP has expired
+    //     if (Date.now() > storedOtp.expiry) {
+    //       delete otpStore[email]; // Remove expired OTP
+    //       throw new Error('OTP has expired');
+    //     }
+    
+    //     // Verify the OTP (Here we compare the provided OTP with the stored OTP)
+    //     // Assuming the client will send the OTP they received as a separate field
+    //     if (storedOtp.otp !== otp) {
+    //       throw new Error('Invalid OTP'); // OTP doesn't match
+    //     }
+    
+    //     // OTP is valid, proceed with password reset
+    //     const user = await AuthModel.findOne({ email });
+    //     if (!user) {
+    //       throw new Error('User not found');
+    //     }
+    
+    //     // Hash the new password
+    //     const hashedPassword = await genPassword(newPassword);
+    
+    //     // Update the user's password
+    //     user.password = hashedPassword;
+    //     await user.save();
+    
+    //     // Remove OTP from the store after successful password reset
+    //     delete otpStore[email];
+    
+    //     return {
+    //       success: true,
+    //       message: 'Password updated successfully',
+    //     };
+    //   } catch (error) {
+    //     console.error('Error resetting password with OTP:', error);
+    //     throw new Error(`Error resetting password: ${error.message}`);
+    //   }
+    // },
+    
+
+
     sendOtp: async (_, { email }) => {
       try {
         const user = await AuthModel.findOne({ email });
@@ -291,13 +430,13 @@ const authResolvers = {
 
         // Generate OTP
         const otp = uuidv4().slice(0, 6).toUpperCase();
-        const otpExpiration = Date.now() + OTP_EXPIRY_TIME; // OTP expiry time
+        const otpExpiration = Date.now() + OTP_EXPIRY_TIME; // OTP expiry time set to 1 minute
         otpStore[email] = { otp, expiry: otpExpiration };
 
         // Email content
         const subject = 'Your OTP for Password Reset';
-        const html = `<p>Your OTP is <b>${otp}</b>. It is valid for 10 minutes.</p>`;
-
+        const html = `<p>Your OTP is <b>${otp}</b>. It is valid for 3 minute.</p>`;
+        
         // Send OTP to user's email
         await sendMail(email, subject, null, html);
 
@@ -311,22 +450,54 @@ const authResolvers = {
       }
     },
 
-    verifyOtp: async (_, { email, otp }) => {
+    // verifyOtp: async (_, { email, otp }) => {
+    //   try {
+    //     // Check if the OTP is valid and not expired
+    //     const storedOtp = otpStore[email];
+    //     if (!storedOtp || storedOtp.otp !== otp) {
+    //       throw new Error('Invalid OTP');
+    //     }
+
+    //     if (Date.now() > storedOtp.expiry) {
+    //       delete otpStore[email]; // Expired OTP, remove it from storage
+    //       throw new Error('OTP has expired');
+    //     }
+
+    //     // OTP is valid, remove it from the store
+    //     delete otpStore[email];
+
+    //     return {
+    //       success: true,
+    //       message: 'OTP verified successfully',
+    //     };
+    //   } catch (error) {
+    //     throw new Error(`Error verifying OTP: ${error.message}`);
+    //   }
+    // },
+
+
+    verifyOtp: async (_, { email, otp }, { res }) => {
       try {
-        // Check if the OTP is valid and not expired
         const storedOtp = otpStore[email];
         if (!storedOtp || storedOtp.otp !== otp) {
           throw new Error('Invalid OTP');
         }
-
+    
         if (Date.now() > storedOtp.expiry) {
           delete otpStore[email]; // Expired OTP, remove it from storage
           throw new Error('OTP has expired');
         }
-
-        // OTP is valid, remove it from the store
-        delete otpStore[email];
-
+    
+        // OTP is valid, generate a token
+        const token = generateToken({ email }, '10m'); // Token valid for 10 minutes
+    
+        // Set the token in a secure, HTTP-only cookie
+        res.cookie('resetToken', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production', // Use secure flag in production
+          maxAge: 10 * 60 * 1000, // 10 minutes
+        });
+    
         return {
           success: true,
           message: 'OTP verified successfully',
@@ -336,28 +507,101 @@ const authResolvers = {
       }
     },
 
-    resetPasswordWithOtp: async (_, { email, newPassword }) => {
+
+    // resetPasswordWithOtp: async (_, { email, otp, newPassword }) => {
+    //   try {
+    //     console.log(otp,";;lllkkk")
+    //     // Check if OTP exists in store for the provided email
+    //     const storedOtp = otpStore[email];
+    //     if (!storedOtp) {
+    //       throw new Error('OTP not generated or expired'); // OTP was not found
+    //     }
+    
+    //     // Check if the OTP has expired
+    //     if (Date.now() > storedOtp.expiry) {
+    //       delete otpStore[email]; // Remove expired OTP
+    //       throw new Error('OTP has expired');
+    //     }
+    
+    //     // Verify the OTP (Here we compare the provided OTP with the stored OTP)
+    //     if (storedOtp.otp !== otp) {
+    //       throw new Error('Invalid OTP'); // OTP doesn't match
+    //     }
+    
+    //     // OTP is valid, proceed with password reset
+    //     const user = await AuthModel.findOne({ email });
+    //     if (!user) {
+    //       throw new Error('User not found');
+    //     }
+    
+    //     // Hash the new password
+    //     const hashedPassword = await genPassword(newPassword);
+    
+    //     // Update the user's password
+    //     user.password = hashedPassword;
+    //     await user.save();
+    
+    //     // Remove OTP from the store after successful password reset
+    //     delete otpStore[email];
+    
+    //     return {
+    //       success: true,
+    //       message: 'Password updated successfully',
+    //     };
+    //   } catch (error) {
+    //     console.error('Error resetting password with OTP:', error);
+    //     throw new Error(`Error resetting password: ${error.message}`);
+    //   }
+    // },
+
+
+    resetPasswordWithOtp: async (_, { newPassword }, { req }) => {
       try {
+        // Get the token from cookies
+        const token = req.cookies.resetToken;
+        if (!token) {
+          throw new Error('Authorization token is missing');
+        }
+    
+        // Verify the token
+        const decoded = verifyToken(token);
+    
+        // Retrieve the email from the token payload
+        const { email } = decoded;
+    
+        // Fetch the user
         const user = await AuthModel.findOne({ email });
         if (!user) {
           throw new Error('User not found');
         }
-
+    
         // Hash the new password
         const hashedPassword = await genPassword(newPassword);
-
+    
         // Update the user's password
         user.password = hashedPassword;
         await user.save();
-
+    
+        // Clear the reset token cookie
+        req.res.clearCookie('resetToken');
+    
         return {
           success: true,
           message: 'Password updated successfully',
         };
       } catch (error) {
+        console.error('Error resetting password with OTP:', error);
         throw new Error(`Error resetting password: ${error.message}`);
       }
     },
+
+
+
+
+
+
+
+
 
     resetPassword: async (_, { oldPassword, newPassword }, { req }) => {
       try {
