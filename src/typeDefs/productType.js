@@ -53,6 +53,7 @@ const productType = gql`
   }
   scalar Upload
   input CreateProductInput {
+  id:ID
   name: String!
   category: ID!
   description: String
@@ -70,35 +71,19 @@ const productType = gql`
   isBestSeller: Boolean
   imageUrl: Upload
 }
-  scalar Upload
-  extend type Mutation {
-  createProduct(input: CreateProductInput! ,imageUrl: Upload): Product
+
+ scalar Upload
+ extend type Mutation {
+  createProduct(input: CreateProductInput!, imageUrl: Upload): Product 
   updateProduct(
     id: ID!
-    name: String!
-    category: ID!
-    subcategory: ID!
-    description: String
-    keyBenefits: [String!]
-    imageUrl:Upload
-    netContent: String
-    priceDetails: PriceDetailsInput
-    variants: [ID!]!
-    usp: String
-    ingredients: [String!]
-    keyFeatures: String
-    additionalDetails: String
-    createdAt: String!
-    totalReviews: Int
-    averageRating: Int
-    isBestSeller: Boolean!
+    input: CreateProductInput!
+    publicIds: [String] 
+    newImages: Upload
   ): Product
-
-
-    deleteProduct(id: ID!): DeletionResponse
-    refreshBestSellers: RefreshResponse
-  }
-
+  deleteProduct(id: ID!): DeletionResponse!
+  refreshBestSellers: RefreshResponse
+}
   input PriceDetailsInput {
     specialPrice: Float
     mrp: Float
@@ -132,6 +117,8 @@ const productType = gql`
     saleStartDate: Date
     saleEndDate: Date
     isOnSale: Boolean
+    publicIds: [String]
+    newImages: Upload
    
   }
  

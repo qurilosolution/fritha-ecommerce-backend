@@ -44,6 +44,8 @@ const variantSchema = new mongoose.Schema({
   saleStartDate: { type: Date }, 
   saleEndDate: { type: Date },   
   isOnSale: { type: Boolean, default: false }, 
+  publicIds:{type: String },
+  newImages:{type:String}
 });
 
 // Middleware to calculate dynamic values before saving

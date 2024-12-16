@@ -75,45 +75,112 @@ const productResolvers = {
   
   
 
-    // Update a product, including image update
-    updateProduct: async (_, { id, input, publicId, newImage }) => {
-      try {
-        let updatedProduct;
+    // Update a product, including handling image updates
+updateProduct: async (_, { id, input, publicIds, newImages }) => {
+  try {
+    let updatedProduct;
 
-        // If a new image is provided, delete the old image and upload the new one
-        if (newImage) {
-          // Delete the old image if a publicId is provided
-          if (publicId) {
+    // Process product-level image updates if `newImages` is provided
+    if (newImages && Array.isArray(newImages) && newImages.length > 0) {
+      // Delete old images if `publicIds` are provided
+      if (publicIds && Array.isArray(publicIds) && publicIds.length > 0) {
+        await Promise.all(
+          publicIds.map(async (publicId) => {
             await productService.deleteImageFromCloudinary(publicId);
+          })
+        );
+      }
+
+      // Upload new images to Cloudinary
+      const uploadedImages = await Promise.all(
+        newImages.map(async (image) =>
+          productService.uploadImageToCloudinary(image)
+        )
+      );
+
+      // Update the product with the new image URLs and other input data
+      updatedProduct = await productService.updateProduct(id, {
+        ...input,
+        imageUrl: uploadedImages, // Set the updated array of image URLs
+      });
+    } else {
+      // If no new images are provided, just update the other fields
+      updatedProduct = await productService.updateProduct(id, input);
+    }
+
+    // Process variants if provided in input
+    if (input.variants && Array.isArray(input.variants)) {
+      input.variants = await Promise.all(
+        input.variants.map(async (variant) => {
+          if (variant.newImages && variant.newImages.length > 0) {
+            // Delete old variant images if public IDs are provided
+            if (variant.publicIds && Array.isArray(variant.publicIds)) {
+              await Promise.all(
+                variant.publicIds.map(async (publicId) => {
+                  await productService.deleteImageFromCloudinary(publicId);
+                })
+              );
+            }
+
+            // Upload new variant images
+            const uploadedVariantImages = await Promise.all(
+              variant.newImages.map((image) =>
+                productService.uploadImageToCloudinary(image)
+              )
+            );
+
+            return {
+              ...variant,
+              imageUrl: uploadedVariantImages, // Update with the new images
+            };
           }
 
-          // Upload the new image to Cloudinary
-          const newImageUrl = await productService.uploadImageToCloudinary(newImage);
+          // If no new images, return the original variant unchanged
+          return variant;
+        })
+      );
 
-          // Update the product with the new image URL and other input data
-          updatedProduct = await productService.updateProduct(id, {
-            ...input,
-            imageUrl: newImageUrl, // Add the new image URL to the product data
-          });
-        } else {
-          // If no new image is provided, just update the other fields
-          updatedProduct = await productService.updateProduct(id, input);
-        }
+      // Update the product with the updated variants
+      updatedProduct = await productService.updateProduct(id, {
+        ...input,
+        variants: input.variants,
+      });
+    }
 
-        return updatedProduct;
-      } catch (error) {
-        throw new Error(`Error updating product: ${error.message}`);
-      }
-    },
+    return updatedProduct;
+  } catch (error) {
+    throw new Error(`Error updating product: ${error.message}`);
+  }
+}, 
 
-    // Delete a product
-    deleteProduct: async (_, { id }) => {
-      try {
-        return await productService.deleteProduct(id);
-      } catch (error) {
-        throw new Error(`Error deleting product: ${error.message}`);
-      }
-    },
+// Delete a product
+deleteProduct: async (_, { id }) => {
+  try {
+    // Call the service to delete the product
+    const isDeleted = await productService.deleteProduct(id);
+
+    if (!isDeleted) {
+      // Return a failure response if the product was not found or deleted
+      return {
+        success: false,
+        message: "Product not found or could not be deleted",
+      };
+    }
+
+    // Return a success response if the product was deleted
+    return {
+      success: true,
+      message: "Product deleted successfully",
+    };
+  } catch (error) {
+    // Return a failure response in case of an error
+    return {
+      success: false,
+      message: `Error deleting product: ${error.message}`,
+    };
+  }
+},
+
 
     // Update best seller statuses
     refreshBestSellers: async () => {
@@ -128,3 +195,7 @@ const productResolvers = {
 };
 
 module.exports = productResolvers;
+
+
+
+   

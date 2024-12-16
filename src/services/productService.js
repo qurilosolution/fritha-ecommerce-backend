@@ -38,10 +38,8 @@ const createProduct = async (input) => {
       category,
       description,
       keyBenefits,
-      imageUrl,
       netContent,
       priceDetails,
-      variants,
       usp,
       ingredients,
       keyFeatures,
@@ -51,51 +49,22 @@ const createProduct = async (input) => {
       isBestSeller,
     };
 
+    // Upload product images
     if (imageUrl) {
-      
-
-      // Ensure `imageUrl` is an array (in case of a single file)
       const imageUrls = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
-      
-      
-      const uploadedImages = [];
-      for (const image of imageUrls) {
-        try {
-          // Upload the resolved image
-          const uploadedImage = await uploadImageToCloudinary(image); // Ensure this function handles `createReadStream`
-          console.log("Uploaded Image:", uploadedImage);
-
-          if (!uploadedImage) {
-            throw new Error("Uploaded image does not contain a URL");
-          }
-
-          // Store the URL in the array
-          uploadedImages.push(uploadedImage);
-          // Process variant images
-         
-        } catch (error) {
-          console.error("Error uploading image:", error.message);
-          throw new Error("Image upload failed.");
-        }
-      }
-      
-
-      productData.imageUrl = uploadedImages.length ? uploadedImages : []; // Set resolved URLs in the product data
+      const uploadedImages = await Promise.all(
+        imageUrls.map((image) => uploadImageToCloudinary(image))
+      );
+      productData.imageUrl = uploadedImages;
     } else {
-      productData.imageUrl = []; // Default to an empty array if no images are provided
+      productData.imageUrl = [];
     }
 
-    console.log("Final Product Data:", productData);
-
-    // Process variants
-    if (input.variants) {
-      console.log("Variants before processing:", input.variants);
-      try {
-        productData.variants = await uploadImagesForVariants(input.variants);
-      } catch (error) {
-        console.error("Error processing variants:", error.message);
-        throw new Error("Error processing product variants.");
-      }
+    // Process variant images
+    if (variants && Array.isArray(variants)) {
+      productData.variants = await uploadImagesForVariants(variants);
+    } else {
+      productData.variants = [];
     }
 
     // Create the product
@@ -109,39 +78,38 @@ const createProduct = async (input) => {
   }
 };
 
-
 const uploadImagesForVariants = async (variants) => {
   if (!Array.isArray(variants)) {
     throw new Error("Variants should be an array.");
   }
 
-  return Promise.all(
+  // Map over each variant and upload their images
+  const processedVariants = await Promise.all(
     variants.map(async (variant) => {
       try {
         let uploadedImages = [];
         if (variant.imageUrl && Array.isArray(variant.imageUrl) && variant.imageUrl.length > 0) {
-          // Upload images for this variant
+          // Upload images for the variant
           uploadedImages = await Promise.all(
             variant.imageUrl.map((image) => uploadImageToCloudinary(image))
           );
-          console.log(`Uploaded images for variant ${variant.size}:`, uploadedImages);
         }
 
-        // Return a new variant object with updated imageUrl
+        // Return the variant object with updated imageUrl
         return {
           ...variant,
-          imageUrl: uploadedImages.length ? uploadedImages : [], // Ensure it is always an array
+          imageUrl: uploadedImages,
         };
       } catch (error) {
-        console.error(
-          `Error uploading images for variant with size ${variant.size}:`,
-          error.message
-        );
-        throw new Error(`Variant image upload failed for size ${variant.size}.`);
+        console.error(`Error uploading images for variant with size ${variant.size}:`, error.message);
+        throw new Error(`Image upload failed for variant with size ${variant.size}.`);
       }
     })
   );
+
+  return processedVariants;
 };
+
 
 
 const getProducts = async () => {
@@ -162,30 +130,87 @@ const getProductById = async (id) => {
   }
 };
 
-const updateProduct = async (id, productData) => {
+const updateProduct = async (id, input) => {
   try {
-    // If image URLs are provided and they are an array, upload the images
-    if (productData.imageUrl && productData.imageUrl.length > 0) {
-      const uploadedImages = await Promise.all(
-        productData.imageUrl.map(
-          async (image) => await uploadImageToCloudinary(image)
-        )
-      );
-      productData.imageUrl = uploadedImages; // Set the new image URLs
+    if (!id || !input) {
+      throw new Error("Product ID and update data are required.");
     }
 
-    // Find and update the product with the provided data
+    // Destructure input to separate fields
+    const {
+      name,
+      category,
+      description,
+      keyBenefits,
+      netContent,
+      priceDetails,
+      usp,
+      ingredients,
+      keyFeatures,
+      additionalDetails,
+      totalReviews,
+      averageRating,
+      isBestSeller,
+      imageUrl,
+      variants,
+    } = input;
+
+    // Validate required fields
+    if (!name || !category) {
+      throw new Error("Name and Category are required fields.");
+    }
+
+    const productData = {
+      name,
+      category,
+      description,
+      keyBenefits,
+      netContent,
+      priceDetails,
+      usp,
+      ingredients,
+      keyFeatures,
+      additionalDetails,
+      totalReviews,
+      averageRating,
+      isBestSeller,
+    };
+
+    // Handle product-level image updates
+    if (imageUrl && Array.isArray(imageUrl) && imageUrl.length > 0) {
+      const uploadedImages = await Promise.all(
+        imageUrl.map((image) => uploadImageToCloudinary(image))
+      );
+      productData.imageUrl = uploadedImages;
+    }
+
+    // Handle variant updates
+    if (variants && Array.isArray(variants)) {
+      productData.variants = await uploadImagesForVariants(variants);
+    }
+
+    // Update the product in the database
     const updatedProduct = await Product.findByIdAndUpdate(id, productData, {
-      new: true,
+      new: true, // Return the updated document
+      runValidators: true, // Ensure schema validations are run
     })
-      .populate("category")
-      .populate("subcategory"); // Populate category and subcategory for the updated product
+      // .populate("category")
+      // .populate("subcategory"); // Populate relations if needed
+
+    if (!updatedProduct) {
+      throw new Error("Product not found or update failed.");
+    }
 
     return updatedProduct; // Return the updated product
   } catch (error) {
+    console.error("Error updating product:", error.message);
     throw new Error(`Error updating product: ${error.message}`);
   }
 };
+
+
+
+
 
 const deleteProduct = async (id) => {
   try {
