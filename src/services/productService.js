@@ -4,10 +4,158 @@ const cloudinary = require('../config/cloudinary');
 
 const uploadImageToCloudinary = require("../utils/fileUpload");
 
-const createProduct = async (input) => {
+// const createProduct = async (input) => {
   
-  try {
+//   try {
 
+//     if (!input || Object.keys(input).length === 0) {
+//       throw new Error("Input data is missing.");
+//     }
+
+//     const {
+//       name,
+//       category,
+//       description,
+//       keyBenefits,
+//       reviews,
+//       imageUrl,
+//       netContent,
+//       priceDetails,
+//       variants,
+//       usp,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//     } = input;
+
+//     // Validate required fields
+//     if (!name || !category) {
+//       throw new Error("Name and Category are required fields.");
+//     }
+
+//     // Prepare the product data
+//     const productData = {
+//       name,
+//       category,
+//       description,
+//       keyBenefits,
+//       reviews,
+//       imageUrl,
+//       netContent,
+//       priceDetails,
+//       variants,
+//       usp,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//     };
+
+//     // Handle image upload
+//     if (imageUrl && imageUrl.length > 0) {
+//       const uploadedImages = await Promise.all(
+//         imageUrl.map(async (image) => {
+//           const uploadedImage = await uploadImageToCloudinary(image);
+//           return uploadedImage.url;
+//         })
+//       );
+//       productData.imageUrl = uploadedImages;
+//     }
+
+//     // Create the product
+//     const product = new Product(productData);
+//     await product.save();
+
+//     return product;
+//   } catch (error) {
+//     console.error("Error creating product:", error.message);
+//     throw new Error(`Error creating product: ${error.message}`);
+//   }
+// };
+
+// const createProduct = async (input) => {
+//   try {
+//     if (!input || Object.keys(input).length === 0) {
+//       throw new Error("Input data is missing.");
+//     }
+
+//     const {
+//       name,
+//       category,
+//       description,
+//       keyBenefits,
+//       reviews,
+//       imageUrl,
+//       netContent,
+//       priceDetails,
+//       variants,
+//       usp,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//       userId, // Extract userId
+
+//     } = input;
+
+//     // Validate required fields
+//     if (!userId || !name || !category) {
+//       throw new Error("UserId, Name, and Category are required fields.");
+//     }
+
+//     const productData = {
+//       name,
+//       category,
+//       description,
+//       keyBenefits,
+//       reviews,
+//       imageUrl,
+//       netContent,
+//       priceDetails,
+//       variants,
+//       usp,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//       userId, // Include userId in the product data
+
+//     };
+
+//     // Handle image upload
+//     if (imageUrl && imageUrl.length > 0) {
+//       const uploadedImages = await Promise.all(
+//         imageUrl.map(async (image) => {
+//           const uploadedImage = await uploadImageToCloudinary(image);
+//           return uploadedImage.url;
+//         })
+//       );
+//       productData.imageUrl = uploadedImages;
+//     }
+
+//     // Create the product
+//     const product = new Product(productData);
+//     await product.save();
+
+//     return product;
+//   } catch (error) {
+//     console.error("Error creating product:", error.message);
+//     throw new Error(`Error creating product: ${error.message}`);
+//   }
+// };
+
+
+const createProduct = async (input) => {
+  try {
     if (!input || Object.keys(input).length === 0) {
       throw new Error("Input data is missing.");
     }
@@ -29,14 +177,13 @@ const createProduct = async (input) => {
       totalReviews,
       averageRating,
       isBestSeller,
+      userId, // Ensure this is passed correctly
     } = input;
 
-    // Validate required fields
-    if (!name || !category) {
-      throw new Error("Name and Category are required fields.");
+    if (!userId || !name || !category) {
+      throw new Error("UserId, Name, and Category are required fields.");
     }
 
-    // Prepare the product data
     const productData = {
       name,
       category,
@@ -54,9 +201,10 @@ const createProduct = async (input) => {
       totalReviews,
       averageRating,
       isBestSeller,
+      userId, // Ensure userId is included here
     };
 
-    // Handle image upload
+    // Handle image upload if present
     if (imageUrl && imageUrl.length > 0) {
       const uploadedImages = await Promise.all(
         imageUrl.map(async (image) => {

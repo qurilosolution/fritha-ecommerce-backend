@@ -47,6 +47,7 @@ const productResolvers = {
         const { input } = args;  // Destructure input from args after confirming args exists
     
         console.log("Received input for product:", input);
+        console.log(input.userId,"fojdshkjdsnhfkjds")
     
         // Check if all required fields in the input are present (optional, based on your validation)
         if (!input.name || !input.category) {
@@ -62,35 +63,30 @@ const productResolvers = {
       }
     },
     
-    
+    // createProduct: async (_, { input }) => {
+    //   try {
+    //     // Validate and include userId
+    //     if (!input.userId) {
+    //       throw new Error("UserId is required.");
+    //     }
+
+    //     return await productService.createProduct(input);
+    //   } catch (error) {
+    //     console.error("Error creating product:", error);
+    //     throw new Error(`Controller error while creating product: ${error.message}`);
+    //   }
+    // },
     
 
     // Update a product, including image update
-    updateProduct: async (_, { id, input, publicId, newImage }) => {
+    updateProduct: async (_, { id, input }) => {
       try {
-        let updatedProduct;
-
-        // If a new image is provided, delete the old image and upload the new one
-        if (newImage) {
-          // Delete the old image if a publicId is provided
-          if (publicId) {
-            await productService.deleteImageFromCloudinary(publicId);
-          }
-
-          // Upload the new image to Cloudinary
-          const newImageUrl = await productService.uploadImageToCloudinary(newImage);
-
-          // Update the product with the new image URL and other input data
-          updatedProduct = await productService.updateProduct(id, {
-            ...input,
-            imageUrl: newImageUrl, // Add the new image URL to the product data
-          });
-        } else {
-          // If no new image is provided, just update the other fields
-          updatedProduct = await productService.updateProduct(id, input);
+        // Ensure userId is passed in update
+        if (!input.userId) {
+          throw new Error("UserId is required for updating a product.");
         }
 
-        return updatedProduct;
+        return await productService.updateProduct(id, input);
       } catch (error) {
         throw new Error(`Error updating product: ${error.message}`);
       }
