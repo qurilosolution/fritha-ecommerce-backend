@@ -7,9 +7,20 @@ const getCategories = async () => {
   return await Category.find().populate('subcategories products');
 };
 
-const getCategoryById = async (id) => {
-  return await Category.findById(id).populate('subcategories products');
+const getCategoryById = async (parent, { id }) => {
+  console.log('Fetching category with ID:', id);
+
+  const category = await Category.findById(id).populate('subcategories products');
+
+  if (!category) {
+    console.error('No category found with this ID:', id);
+    return null;
+  }
+
+  console.log('Category found:', category);
+  return category;
 };
+
 
 const createCategory = async (categoryData) => {
   try {
@@ -139,10 +150,8 @@ const changeSubcategoryCategory = async (subcategoryId, oldCategoryId, newCatego
   }
 };
 
-
-
 const deleteCategory = async (id) => {
-  await Subcategory.deleteMany({ category: id }); // Delete related subcategories
+  await Subcategory.deleteMany({ category: id }); 
   const result = await Category.findByIdAndDelete(id);
   return !!result;
 };

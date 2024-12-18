@@ -44,7 +44,7 @@ const productResolvers = {
           throw new Error("Input is required for creating a product.");
         }
     
-        const { input, imageUrl } = args;
+        const { input, imageUrl , variants } = args;
         console.log("Received input for product:", input);
     
         // Resolve imageUrl if provided
@@ -53,15 +53,23 @@ const productResolvers = {
           resolvedImageUrl = await imageUrl;
           console.log("Resolved imageUrl:", resolvedImageUrl);
         }
-    
+              // Handle variant image uploads
+      //   const processedVariants = await Promise.all(
+      //   variants.map(async (variant) => {
+      //     if (variant.imageUrl) {
+      //       const variantImageUrl = await uploadImageToCloudinary(variant.imageUrl);
+      //       return { ...variant, imageUrl: variantImageUrl };
+      //     }
+      //     return variant;
+      //   })
+      // );
         // Prepare product data
         const productData = {
           ...input,
           imageUrl: resolvedImageUrl ? [resolvedImageUrl] : [],
+          // variants: processedVariants,
         };
-    
         
-     
         // Create the product
         const product = await productService.createProduct(productData);
         console.log("Product successfully created:", product);
@@ -71,12 +79,33 @@ const productResolvers = {
         throw new Error(`Controller error while creating product: ${error.message}`);
       }
     },
+    // createProduct: async (_, args) => {
+    //   console.log("Received args in createProduct:", args);
     
-  
-  
-
-    // Update a product, including handling image updates
-updateProduct: async (_, { id, input, publicIds, newImages }) => {
+    //   try {
+    //     const { input, imageUrl } = args;
+    //     if (!input) throw new Error("Input is required for creating a product.");
+    
+    //     const resolvedImageUrl = imageUrl ? await imageUrl : null;
+    //     console.log("Resolved imageUrl:", resolvedImageUrl);
+    
+    //     const productData = {
+    //       ...input,
+    //       imageUrl: resolvedImageUrl ? [resolvedImageUrl] : [],
+    //       variants: await productService.uploadImagesForVariants(input.variants || []),
+    //     };
+    
+    //     const product = await productService.createProduct(productData);
+    //     console.log("Product successfully created:", product);
+    //     return product;
+    //   } catch (error) {
+    //     console.error("Error creating product:", error.message);
+    //     throw new Error(`Controller error while creating product: ${error.message}`);
+    //   }
+    // },
+    
+  updateProduct: async (_, { id, input, publicIds, newImages }) => {
+    
   try {
     let updatedProduct;
 

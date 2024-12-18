@@ -6,19 +6,19 @@ const { GraphQLUpload } = require('graphql-upload');
 const categoryResolver = {
   Upload: GraphQLUpload,
 
-  Query: {
+  Query: { 
     getCategories: categoryService.getCategories,
     getCategoryById: categoryService.getCategoryById,
   },
   Mutation: {
-    createCategory: async (_, { name, description, imageUrl }) => {
+    createCategory: async (_, { name, description, imageUrl  }) => {
       console.log("Received args in createCategory:", { name, description, imageUrl });
     
       try {
         const categoryData = {
           name,
           description,
-          imageUrl: [], // Initialize as an empty array
+          imageUrl: [], 
         };
     
         // Handle file upload
@@ -113,7 +113,23 @@ const categoryResolver = {
       }
     },
     
-    deleteCategory: categoryService.deleteCategory,
+    deleteCategory: async (_, { id }) => {
+      try {
+        // Call deleteCategory function
+        const result = await categoryService.deleteCategory(id);
+        
+        // Ensure result is valid
+        if (result) {
+          return { success: true, message: "Category deleted successfully." };
+        } else {
+          return { success: false, message: "Category deletion failed. Category may not exist." };
+        }
+      } catch (error) {
+        console.error("Error deleting category:", error.message);
+        return { success: false, message: `Failed to delete category: ${error.message}` };
+      }
+    }
+    
   },
 };
 

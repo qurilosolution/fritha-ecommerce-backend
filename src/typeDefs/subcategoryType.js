@@ -7,10 +7,13 @@ scalar Upload
     name: String!
     description: String
     imageUrl: [String]
-    category: Category!
+    category: Category
     products: [Product]
   }
-
+  type DeletionResponse {
+    success: Boolean!
+    message: String
+  }
   extend type Query {
     getSubcategories: [Subcategory]
     getSubcategoryById(id: ID!): Subcategory
@@ -18,9 +21,9 @@ scalar Upload
 
   extend type Mutation {  
     createSubcategory(name: String!, description: String, imageUrl: Upload ,categoryId: ID!): Subcategory
-    updateSubcategory(id: ID!, name: String, description: String, imageUrl: Upload , categoryId : ID): Subcategory
-    deleteSubcategory(id: ID!): Boolean
+    updateSubcategory(id: ID!, name: String, description: String, imageUrl: Upload , categoryId: ID!): Subcategory
+    deleteSubcategory(subcategoryId: ID!, categoryId: ID!): DeletionResponse!
   }
-`;
+`;  
 
 module.exports = subcategoryType;

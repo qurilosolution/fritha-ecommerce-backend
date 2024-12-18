@@ -10,6 +10,11 @@ scalar Upload
     products: [Product]
     imageUrl: [String]
   }
+  
+   type DeletionResponse {
+    success: Boolean!
+    message: String
+  }
 
   extend type Query {
     getCategories: [Category]
@@ -19,7 +24,7 @@ scalar Upload
   extend type Mutation {
     createCategory(name: String!, description: String, imageUrl: Upload): Category
     updateCategory(id: ID!, name: String, description: String, imageUrl: Upload): Category
-    deleteCategory(id: ID!): Boolean
+    deleteCategory(id: ID!): DeletionResponse!
   }
 `;
 

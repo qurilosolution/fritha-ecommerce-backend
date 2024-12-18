@@ -10,7 +10,6 @@ const { updateBestSellers } = require('./src/services/productService');
 const Product = require('./src/models/Product');
 const { graphqlUploadExpress } = require('graphql-upload');
 
-
 require('dotenv').config(); 
  
 const app = express();

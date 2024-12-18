@@ -29,13 +29,14 @@ const productType = gql`
     id: ID!
     name: String!
     category: Category
+    subcategory: Subcategory
     description: String
     keyBenefits: [String]
     reviews: Int
     imageUrl: [String]
     netContent: String
     priceDetails: PriceDetails
-    variants: [Variant]
+    variants: [Variant!]
     usp: String
     ingredients: [String]
     keyFeatures: String
@@ -56,12 +57,13 @@ const productType = gql`
   id:ID
   name: String!
   category: ID!
+  subcategory:ID!
   description: String
   keyBenefits: [String]
   reviews: Int
   netContent: String
   priceDetails: PriceDetailsInput
-  variants: [VariantInput]
+  variants: [VariantInput!]
   usp: String
   ingredients: [String]
   keyFeatures: String
@@ -72,11 +74,11 @@ const productType = gql`
   imageUrl: Upload
 }
 
- scalar Upload
+scalar Upload
  extend type Mutation {
-  createProduct(input: CreateProductInput!, imageUrl: Upload): Product 
+  createProduct(input: CreateProductInput!, imageUrl: Upload , variants: [VariantInput!]): Product 
   updateProduct(
-    id: ID!
+    id: ID
     input: CreateProductInput!
     publicIds: [String] 
     newImages: Upload
@@ -100,6 +102,7 @@ const productType = gql`
     message: String
   }
   scalar Date
+  scalar Upload
   input VariantInput {
     id: ID
     size: Int
@@ -118,8 +121,6 @@ const productType = gql`
     saleEndDate: Date
     isOnSale: Boolean
     publicIds: [String]
-    newImages: Upload
-   
   }
  
 `;

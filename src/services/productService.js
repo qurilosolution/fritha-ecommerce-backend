@@ -12,6 +12,7 @@ const createProduct = async (input) => {
     const {
       name,
       category,
+      subcategory,
       description,
       keyBenefits,
       imageUrl,
@@ -31,15 +32,22 @@ const createProduct = async (input) => {
     if (!name || !category) {
       throw new Error("Name and Category are required fields.");
     }
+    // const processedVariants = variants
+    //   ? await uploadImagesForVariants(variants)
+    //   : [];
 
     // Prepare the product data
     const productData = {
+      
       name,
       category,
+      subcategory,
       description,
       keyBenefits,
       netContent,
       priceDetails,
+      variants,
+      // : processedVariants,
       usp,
       ingredients,
       keyFeatures,
@@ -60,16 +68,19 @@ const createProduct = async (input) => {
       productData.imageUrl = [];
     }
 
-    // Process variant images
-    if (variants && Array.isArray(variants)) {
-      productData.variants = await uploadImagesForVariants(variants);
-    } else {
-      productData.variants = [];
-    }
+    // // Process variant images
+    // if (variants && Array.isArray(variants)) {
+    //   productData.variants = await uploadImagesForVariants(variants);
+    // } else {
+    //   productData.variants = [];
+    // }
 
     // Create the product
     const product = new Product(productData);
-    await product.save();
+    await product.save(); 
+   
+    await product.populate("category");
+    await product.populate("subcategory");
 
     return product;
   } catch (error) {
@@ -78,38 +89,132 @@ const createProduct = async (input) => {
   }
 };
 
+// const uploadImagesForVariants = async (variants) => {
+//   if (!Array.isArray(variants)) {
+//     throw new Error("Variants should be an array.");
+//   }
+
+//   // Map over each variant and upload their images
+//   const processedVariants = await Promise.all(
+//     variants.map(async (variant) => {
+//       try {
+//         let uploadedImages = [];
+//         if (variant.imageUrl && Array.isArray(variant.imageUrl) && variant.imageUrl.length > 0) {
+//           // Upload images for the variant
+//           uploadedImages = await Promise.all(
+//             variant.imageUrl.map((image) => uploadImageToCloudinary(image))
+//           );
+//         }
+
+//         // Return the variant object with updated imageUrl
+//         return {
+//           ...variant,
+//           imageUrl: uploadedImages,
+//         };
+//       } catch (error) {
+//         console.error(`Error uploading images for variant with size ${variant.size}:`, error.message);
+//         throw new Error(`Image upload failed for variant with size ${variant.size}.`);
+//       }
+//     })
+//   );
+
+//   return processedVariants;
+// };
+
 const uploadImagesForVariants = async (variants) => {
-  if (!Array.isArray(variants)) {
-    throw new Error("Variants should be an array.");
-  }
-
-  // Map over each variant and upload their images
-  const processedVariants = await Promise.all(
+  return Promise.all(
     variants.map(async (variant) => {
-      try {
-        let uploadedImages = [];
-        if (variant.imageUrl && Array.isArray(variant.imageUrl) && variant.imageUrl.length > 0) {
-          // Upload images for the variant
-          uploadedImages = await Promise.all(
-            variant.imageUrl.map((image) => uploadImageToCloudinary(image))
-          );
-        }
-
-        // Return the variant object with updated imageUrl
+      if (variant.imageUrl) {
+        const uploadedImageUrl = await uploadImageToCloudinary(variant.imageUrl);
         return {
           ...variant,
-          imageUrl: uploadedImages,
+          imageUrl: [uploadedImageUrl], // Add uploaded URL to the variant
         };
-      } catch (error) {
-        console.error(`Error uploading images for variant with size ${variant.size}:`, error.message);
-        throw new Error(`Image upload failed for variant with size ${variant.size}.`);
       }
+      return variant;
     })
   );
-
-  return processedVariants;
 };
 
+
+// const createProduct = async (input) => {
+//   try {
+//     if (!input || !input.name || !input.category) {
+//       throw new Error("Name and Category are required fields.");
+//     }
+
+//     const {
+//       name,
+//       category,
+//       subcategory,
+//       description,
+//       keyBenefits,
+//       netContent,
+//       priceDetails,
+//       usp,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//       imageUrl,
+//       variants,
+//     } = input;
+
+//     const productData = {
+//       name,
+//       category,
+//       subcategory,
+//       description,
+//       keyBenefits,
+//       netContent,
+//       priceDetails,
+//       usp,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//       imageUrl: imageUrl ? await uploadImageToCloudinary(imageUrl) : [],
+//       variants: variants ? await uploadImagesForVariants(variants) : [],
+//     };
+
+//     const product = new Product(productData);
+//     await product.save();
+//     return product;
+//   } catch (error) {
+//     console.error("Error creating product:", error.message);
+//     throw new Error(`Service error while creating product: ${error.message}`);
+//   }
+// };
+
+// const uploadImagesForVariants = async (variants) => {
+//   try {
+//     if (!Array.isArray(variants)) throw new Error("Variants should be an array.");
+
+//     const processedVariants = await Promise.all(
+//       variants.map(async (variant) => {
+//         if (!variant.imageUrl) return variant;
+
+//         const uploadedImages = await Promise.all(
+//           variant.imageUrl.map((image) => uploadImageToCloudinary(image))
+//         );
+
+//         return {
+//           ...variant,
+//           imageUrl: uploadedImages,
+//         };
+//       })
+//     );
+
+//     return processedVariants;
+//   } catch (error) {
+//     console.error("Error uploading images for variants:", error.message);
+//     throw error;
+//   }
+// };
 
 
 const getProducts = async () => {
@@ -140,6 +245,7 @@ const updateProduct = async (id, input) => {
     const {
       name,
       category,
+      subcategory,
       description,
       keyBenefits,
       netContent,
@@ -163,6 +269,7 @@ const updateProduct = async (id, input) => {
     const productData = {
       name,
       category,
+      subcategory,
       description,
       keyBenefits,
       netContent,
@@ -194,8 +301,8 @@ const updateProduct = async (id, input) => {
       new: true, // Return the updated document
       runValidators: true, // Ensure schema validations are run
     })
-      // .populate("category")
-      // .populate("subcategory"); // Populate relations if needed
+      .populate("category")
+      .populate("subcategory"); 
 
     if (!updatedProduct) {
       throw new Error("Product not found or update failed.");

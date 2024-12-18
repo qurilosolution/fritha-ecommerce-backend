@@ -9,14 +9,21 @@ const getSubcategories = async () => {
   return await Subcategory.find().populate('category products');
 };
 
-// Fetch a subcategory by ID
-const getSubcategoryById = async (id) => {
-  return await Subcategory.findById(id).populate('category products');
+
+const getSubcategoryById = async (parent, { id }) =>  {
+  console.log("Fetching subcategory", id);
+  try {
+    return await Subcategory.findById(id).populate('category products');
+    
+  } catch (error) {
+    console.error("Error fetching subcategory by ID:", error);
+    return null; 
+  }
 };
 
 
 const createSubcategory = async (subcategoryData) => {
-  try {
+    try {
     const { name, description, imageUrl, categoryId } = subcategoryData;
     console.log("Received inputs:", { name, description, imageUrl, categoryId });
 
@@ -33,26 +40,32 @@ const createSubcategory = async (subcategoryData) => {
       category: categoryId,
     });
 
-    // Handle image uploads
-    if (imageUrl && imageUrl.length > 0) {
-      const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
-      const uploadedImages = [];
+   // Handle image upload if imageUrl is provided
+   if (imageUrl && imageUrl.length > 0) {
+    const uploadedImages = [];
 
-      for (const image of images) {
-        try {
-          const uploadedImage = await uploadImageToCloudinary(image);
-          if (!uploadedImage) {
-            throw new Error("Uploaded image does not contain a URL.");
-          }
-          uploadedImages.push(uploadedImage);
-        } catch (error) {
-          console.error("Error uploading image:", error.message);
-          throw new Error("Image upload failed.");
+    for (const image of imageUrl) {
+      try {
+        const uploadedImage = await uploadImageToCloudinary(image);
+        console.log("Uploaded Image:", uploadedImage);
+
+        if (!uploadedImage) {
+          throw new Error("Uploaded image does not contain a URL");
         }
-      }
 
-      newSubcategory.imageUrl = uploadedImages;
+        uploadedImages.push(uploadedImage);
+      } catch (error) {
+        console.error("Error uploading image:", error.message);
+        throw new Error("Image upload failed.");
+      }
     }
+
+    // Set the image URL(s) to the category
+    newSubcategory.imageUrl = uploadedImages.length > 0 ? uploadedImages : [];
+  } else {
+    // Default to an empty array if no image is provided
+    newSubcategory.imageUrl = [];
+  }
 
     // Save subcategory
     const savedSubcategory = await newSubcategory.save();
@@ -60,8 +73,10 @@ const createSubcategory = async (subcategoryData) => {
     // Delegate category update to categoryService
     await categoryService.addSubcategoryToCategory(categoryId, savedSubcategory._id);
 
-    console.log("Subcategory successfully created:", savedSubcategory);
-    return savedSubcategory;
+    // Return the populated subcategory
+    return await savedSubcategory.populate("category");
+
+    
   } catch (error) {
     console.error("Error creating subcategory:", error.message);
     throw new Error(`Failed to create subcategory: ${error.message}`);
@@ -174,9 +189,11 @@ const updateSubcategory = async (id, data) => {
     const updatedSubcategory = await Subcategory.findByIdAndUpdate(id, updatedData, { new: true });
 
     // If category is changed, update the relationships
-    if (categoryId && categoryId.toString() !== existingSubcategory.category.toString()) {
+    if (categoryId && categoryId !== existingSubcategory.category) {
       console.log("Category changed. Updating parent categories...");
       await categoryService.changeSubcategoryCategory(id, existingSubcategory.category, categoryId);
+      // Return the populated subcategory
+      return await updatedSubcategory.populate("category");
     }
 
     console.log("Subcategory successfully updated:", updatedSubcategory);
@@ -187,7 +204,6 @@ const updateSubcategory = async (id, data) => {
     throw new Error(`Failed to update subcategory: ${error.message}`);
   }
 };
-
 
 const deleteSubcategory = async (id) => {
   const subcategory = await Subcategory.findById(id);

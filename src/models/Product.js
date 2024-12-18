@@ -107,8 +107,8 @@ const productSchema = new mongoose.Schema({
     ref: 'Category', // Link to the category collection
     required: true,
   },
-  Subcategory: 
-  { type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory', required: false },
+  subcategory: 
+  { type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory', required: true},
 
   description: {
     type: String, // Long description of the product
