@@ -17,7 +17,7 @@ const subcategoryResolver = {
       try {
         // Initialize subcategory data
         const subcategoryData = {
-          name,
+          name, 
           description: description || null,
           imageUrl: [], // Initialize empty array for image URLs
           categoryId,

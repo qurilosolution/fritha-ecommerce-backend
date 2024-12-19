@@ -4,7 +4,7 @@ const reviewType = gql`
   type Review {
     id: ID!
     productId: ID!
-    rating: Float
+    rating: Int
     title: String!
     description: String!
     createdAt: String!
@@ -12,7 +12,7 @@ const reviewType = gql`
 
   input ReviewInput {
     productId: ID!
-    rating: Float
+    rating: Int 
     title: String!
     description: String!
   }

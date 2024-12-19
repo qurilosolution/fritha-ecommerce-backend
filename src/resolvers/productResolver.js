@@ -178,6 +178,7 @@ const productResolvers = {
 
     return updatedProduct;
   } catch (error) {
+    console.error("Error updating product:", error);
     throw new Error(`Error updating product: ${error.message}`);
   }
 }, 
@@ -211,8 +212,8 @@ deleteProduct: async (_, { id }) => {
 },
 
 
-    // Update best seller statuses
-    refreshBestSellers: async () => {
+// Update best seller statuses
+refreshBestSellers: async () => {
       try {
         await productService.updateBestSellers();
         return { success: true, message: 'Best seller statuses updated successfully' };

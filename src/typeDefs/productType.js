@@ -80,7 +80,7 @@ scalar Upload
   updateProduct(
     id: ID
     input: CreateProductInput!
-    publicIds: [String] 
+    publicIds: [String]
     newImages: Upload
   ): Product
   deleteProduct(id: ID!): DeletionResponse!

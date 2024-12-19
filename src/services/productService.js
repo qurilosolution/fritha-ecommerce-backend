@@ -219,7 +219,7 @@ const uploadImagesForVariants = async (variants) => {
 
 const getProducts = async () => {
   try {
-    return await Product.find().populate("category").populate("Subcategory"); // Populate both fields
+    return await Product.find().populate("category").populate("subcategory"); // Populate both fields
   } catch (error) {
     throw new Error(`Error fetching products: ${error.message}`);
   }
@@ -228,8 +228,10 @@ const getProducts = async () => {
 const getProductById = async (id) => {
   try {
     return await Product.findById(id)
-      .populate("category")
-      .populate("Subcategory");
+         .populate("category")
+         .populate("subcategory")
+         .populate("variants");
+         
   } catch (error) {
     throw new Error(`Error fetching product by ID: ${error.message}`);
   }
@@ -240,9 +242,7 @@ const updateProduct = async (id, input) => {
     if (!id || !input) {
       throw new Error("Product ID and update data are required.");
     }
-
-    // Destructure input to separate fields
-    const {
+   const {
       name,
       category,
       subcategory,
@@ -298,8 +298,8 @@ const updateProduct = async (id, input) => {
 
     // Update the product in the database
     const updatedProduct = await Product.findByIdAndUpdate(id, productData, {
-      new: true, // Return the updated document
-      runValidators: true, // Ensure schema validations are run
+      new: true, 
+      runValidators: true, 
     })
       .populate("category")
       .populate("subcategory"); 
@@ -314,10 +314,6 @@ const updateProduct = async (id, input) => {
     throw new Error(`Error updating product: ${error.message}`);
   }
 };
-
-
-
-
 
 const deleteProduct = async (id) => {
   try {

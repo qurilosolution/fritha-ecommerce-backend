@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const variantSchema = new mongoose.Schema({
+  
   size: {
     type: Number,
     required: false,
@@ -44,7 +45,7 @@ const variantSchema = new mongoose.Schema({
   saleStartDate: { type: Date }, 
   saleEndDate: { type: Date },   
   isOnSale: { type: Boolean, default: false }, 
-  publicIds:{type: String },
+  publicIds:[{ type: String }],
   newImages:{type:String}
 });
 
@@ -108,7 +109,10 @@ const productSchema = new mongoose.Schema({
     required: true,
   },
   subcategory: 
-  { type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory', required: true},
+  { type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Subcategory', 
+    required: true
+  },
 
   description: {
     type: String, // Long description of the product
