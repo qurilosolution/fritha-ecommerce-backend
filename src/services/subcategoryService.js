@@ -2,179 +2,118 @@ const Category = require('../models/category');
 const Subcategory = require('../models/Subcategory');
 const categoryService = require('../services/categoryService');
 const uploadImageToCloudinary = require('../utils/fileUpload');
-
-
 // Fetch all subcategories
 const getSubcategories = async () => {
   return await Subcategory.find().populate('category products');
 };
-
-// Fetch a subcategory by ID
-const getSubcategoryById = async (id) => {
-  return await Subcategory.findById(id).populate('category products');
-};
-
-// const createSubcategory = async (subcategoryData) => {
-//   try {
-//     const { name, description, imageUrl, categoryId } = subcategoryData;
-//     console.log("Received inputs:", { name, description, imageUrl, categoryId });
-
-//     // Validate required fields
-//     if (!categoryId) {
-//       throw new Error("categoryId are required to create a subcategory.");
-//     }
-
-//     console.log("Received subcategory data:", subcategoryData);
-
-//     // Create the subcategory document
-//     const newSubcategory = new Subcategory({
-//       name,
-//       description: description || null,
-//       imageUrl: [],
-//       category:categoryId,
-      
-//     });
-
-//     // Handle image uploads
-//     if (imageUrl && imageUrl.length > 0) {
-//       // Ensure `imageUrl` is an array
-//       const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
-//       const uploadedImages = [];
-
-//       for (const image of images) {
-//         try {
-//           const uploadedImage = await uploadImageToCloudinary(image);
-//           console.log("Uploaded Image:", uploadedImage);
-
-//           if (!uploadedImage ) {
-//             throw new Error("Uploaded image does not contain a URL.");
-//           }
-
-//           uploadedImages.push(uploadedImage);
-//         } catch (error) {
-//           console.error("Error uploading image:", error.message);
-//           throw new Error("Image upload failed.");
-//         }
-//       }
-
-//       // Assign uploaded image URLs to the subcategory
-//       newSubcategory.imageUrl = uploadedImages;
-//     }
-
-//     // Save subcategory
-//     const savedSubcategory = await newSubcategory.save();
-
-//     // Update parent category to reference the new subcategory
-//      await categoryService.updateCategory(categoryId, { $push: { subcategories: savedSubcategory._id } });
-
-//     console.log("Subcategory successfully created:", savedSubcategory);
-//     return savedSubcategory;
-//   } catch (error) {
-//     console.error("Error creating subcategory:", error.message);
-//     throw new Error(`Failed to create subcategory: ${error.message}`);
-//   }
-
-// };
-
-
-const createSubcategory = async (subcategoryData) => {
+const getSubcategoryById = async (parent, { id }) =>  {
+  console.log("Fetching subcategory", id);
   try {
-    const { name, description, imageUrl, categoryId, userId } = subcategoryData;
-    console.log("Received inputs:", { name, description, imageUrl, categoryId, userId });
-
-    if (!categoryId || !userId) {
-      throw new Error("categoryId and userId are required to create a subcategory.");
+    return await Subcategory.findById(id).populate('category products');
+  } catch (error) {
+    console.error("Error fetching subcategory by ID:", error);
+    return null;
+  }
+};
+const createSubcategory = async (subcategoryData) => {
+    try {
+    const { name, description, imageUrl, categoryId } = subcategoryData;
+    console.log("Received inputs:", { name, description, imageUrl, categoryId });
+    // Validate required fields
+    if (!categoryId) {
+      throw new Error("categoryId is required to create a subcategory.");
     }
-
+    // Create the subcategory document
     const newSubcategory = new Subcategory({
       name,
       description: description || null,
       imageUrl: [],
       category: categoryId,
-      userId,
     });
-
-    // Handle image uploads (unchanged)
-    if (imageUrl && imageUrl.length > 0) {
-      const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
-      const uploadedImages = [];
-      for (const image of images) {
+   // Handle image upload if imageUrl is provided
+   if (imageUrl && imageUrl.length > 0) {
+    const uploadedImages = [];
+    for (const image of imageUrl) {
+      try {
         const uploadedImage = await uploadImageToCloudinary(image);
+        console.log("Uploaded Image:", uploadedImage);
+        if (!uploadedImage) {
+          throw new Error("Uploaded image does not contain a URL");
+        }
         uploadedImages.push(uploadedImage);
+      } catch (error) {
+        console.error("Error uploading image:", error.message);
+        throw new Error("Image upload failed.");
       }
-      newSubcategory.imageUrl = uploadedImages;
     }
-
+    // Set the image URL(s) to the category
+    newSubcategory.imageUrl = uploadedImages.length > 0 ? uploadedImages : [];
+  } else {
+    // Default to an empty array if no image is provided
+    newSubcategory.imageUrl = [];
+  }
+    // Save subcategory
     const savedSubcategory = await newSubcategory.save();
-    await categoryService.updateCategory(categoryId, { $push: { subcategories: savedSubcategory._id } });
-
-    console.log("Subcategory successfully created:", savedSubcategory);
-    return savedSubcategory;
+    // Delegate category update to categoryService
+    await categoryService.addSubcategoryToCategory(categoryId, savedSubcategory._id);
+    // Return the populated subcategory
+    return await savedSubcategory.populate("category");
   } catch (error) {
     console.error("Error creating subcategory:", error.message);
     throw new Error(`Failed to create subcategory: ${error.message}`);
   }
 };
-
-
-// const updateSubcategory = async ({ id, name, description, image }) => {
-//   try {
-//     let imageUrl = null;
-
-//     // If a new image is provided, upload it to Cloudinary
-//     if (image) {
-//       imageUrl = await uploadImageToCloudinary(image);
-//     }
-
-//     // Update the subcategory with the new data and image URL (if uploaded)
-//     const updatedSubcategory = await Subcategory.findByIdAndUpdate(
-//       id,
-//       { name, description, imageUrl },
-//       { new: true }
-//     );
-
-//     return updatedSubcategory;
-//   } catch (error) {
-//     console.error("Error updating subcategory:", error);
-//     throw new Error("Failed to update subcategory.");
-//   }
-// };
-
-const updateSubcategory = async ({ id, name, description, image, userId }) => {
+const updateSubcategory = async (id, data) => {
+  const { name, description, imageUrl, categoryId } = data;
   try {
-    let imageUrl = null;
-
-    if (image) {
-      imageUrl = await uploadImageToCloudinary(image);
+    console.log("Received inputs for update:", { id, name, description, imageUrl, categoryId });
+    if (!id) throw new Error("Subcategory ID is required to update.");
+    // Find the existing subcategory
+    const existingSubcategory = await Subcategory.findById(id);
+    if (!existingSubcategory) throw new Error("Subcategory not found.");
+    // Handle image uploads
+    let uploadedImages = [];
+    if (imageUrl && imageUrl.length > 0) {
+      const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
+      for (const image of images) {
+        const uploadedImage = await uploadImageToCloudinary(image);
+        if (!uploadedImage) throw new Error("Uploaded image does not contain a URL.");
+        uploadedImages.push(uploadedImage);
+      }
     }
-
-    const updatedSubcategory = await Subcategory.findByIdAndUpdate(
-      id,
-      { name, description, imageUrl, userId },
-      { new: true }
-    );
-
+    // Prepare updated data
+    const updatedData = {
+      name: name || existingSubcategory.name,
+      description: description || existingSubcategory.description,
+      imageUrl: uploadedImages.length > 0 ? uploadedImages : existingSubcategory.imageUrl,
+      category: categoryId || existingSubcategory.category,
+    };
+    // Update the subcategory
+    const updatedSubcategory = await Subcategory.findByIdAndUpdate(id, updatedData, { new: true });
+    // If category is changed, update the relationships
+    if (categoryId && categoryId !== existingSubcategory.category) {
+      console.log("Category changed. Updating parent categories...");
+      await categoryService.changeSubcategoryCategory(id, existingSubcategory.category, categoryId);
+      // Return the populated subcategory
+      return await updatedSubcategory.populate("category");
+    }
+    console.log("Subcategory successfully updated:", updatedSubcategory);
     return updatedSubcategory;
   } catch (error) {
-    console.error("Error updating subcategory:", error);
-    throw new Error("Failed to update subcategory.");
+    console.error("Error updating subcategory:", error.message);
+    throw new Error(`Failed to update subcategory: ${error.message}`);
   }
 };
-
-
 const deleteSubcategory = async (id) => {
   const subcategory = await Subcategory.findById(id);
   if (!subcategory) return false;
-
   // Remove the subcategory reference from the parent category
   await Category.findByIdAndUpdate(subcategory.category, {
     $pull: { subcategories: id },
   });
-
   const result = await Subcategory.findByIdAndDelete(id);
   return !!result;
 };
-
 module.exports = {
   getSubcategories,
   getSubcategoryById,

@@ -41,12 +41,12 @@ const mongoose = require('mongoose');
 const categorySchema = new mongoose.Schema(
   {
     name: {
-      type: String, // Example: "Face Wash"
+      type: String, 
       required: true,
       trim: true,
     },
     description: {
-      type: String, // Example: "Products for facial cleansing"
+      type: String, 
       trim: true,
     },
     subcategories: [

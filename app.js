@@ -13,7 +13,6 @@ const { authResolvers } = require('./src/resolvers/authresolver');
 const connectDB = require('./src/config/db');
 const { updateBestSellers } = require('./src/services/productService');
 const Product = require('./src/models/Product');
-const router = require('./src/router/router');
 
 const app = express();
 app.use(express.json());
@@ -53,18 +52,7 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
-// Merge typeDefs and resolvers
-const mergedTypeDefs = mergeTypeDefs([typeDefs]);
-const mergedResolvers = mergeResolvers([resolvers]);
-
-// Apollo Server
-const server = new ApolloServer({
-  typeDefs: mergedTypeDefs,
-  resolvers: mergedResolvers,
-  uploads: false,
-  context: ({ req, res }) => ({ req, res }) // Ensure `req` and `res` are available in the resolver context
-});
-
+const server = new ApolloServer({ typeDefs, resolvers ,uploads:true});
 const startServer = async () => {
   await server.start();
   app.use(graphqlUploadExpress());
@@ -78,8 +66,8 @@ const startServer = async () => {
 // Start server
 startServer();
 
-// Routes
-app.use('/auth', router);
+// // Routes
+// app.use('/auth', router);
 
 
 

@@ -39,7 +39,12 @@ scalar Upload
     subcategories: [Subcategory]
     products: [Product]
     imageUrl: [String]
-    userId: ID!  # Added userId field
+
+  }
+  
+   type DeletionResponse {
+    success: Boolean!
+    message: String
   }
 
   extend type Query {
@@ -48,9 +53,11 @@ scalar Upload
   }
   
   extend type Mutation {
-    createCategory(name: String!, description: String, imageUrl: Upload, userId: ID!): Category # Added userId argument
-    updateCategory(id: ID!, name: String, description: String, imageUrl: Upload, userId: ID): Category # Added userId argument
-    deleteCategory(id: ID!): Boolean
+
+    createCategory(name: String!, description: String, imageUrl: Upload): Category
+    updateCategory(id: ID!, name: String, description: String, imageUrl: Upload): Category
+    deleteCategory(id: ID!): DeletionResponse!
+
   }
 `;
 

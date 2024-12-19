@@ -41,36 +41,23 @@ const subcategoryType = gql`
     imageUrl: [String]
     category: Category!
     products: [Product]
-    userId: ID! # Added userId to track the user
   }
-
+  type DeletionResponse {
+    success: Boolean!
+    message: String
+  }
   extend type Query {
     getSubcategories: [Subcategory]
     getSubcategoryById(id: ID!): Subcategory
   }
 
-  extend type Mutation {
-    createSubcategory(
-      name: String!
-      description: String
-      imageUrl: Upload
-      categoryId: ID!
-      userId: ID! # Added userId as a required input for creation
-    ): Subcategory
 
-    updateSubcategory(
-      id: ID!
-      name: String
-      description: String
-      imageUrl: Upload
-      userId: ID! # Added userId as an optional input for update
-    ): Subcategory
+  extend type Mutation {  
+    createSubcategory(name: String!, description: String, imageUrl: Upload ,categoryId: ID!): Subcategory
+    updateSubcategory(id: ID!, name: String, description: String, imageUrl: Upload , categoryId: ID!): Subcategory
+    deleteSubcategory(subcategoryId: ID!, categoryId: ID!): DeletionResponse!
 
-    deleteSubcategory(
-      id: ID!
-      userId: ID! # Added userId for tracking user performing the deletion
-    ): Boolean
   }
-`;
+`;  
 
 module.exports = subcategoryType;
