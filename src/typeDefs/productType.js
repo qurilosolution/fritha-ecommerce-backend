@@ -1,5 +1,4 @@
 const { gql } = require("apollo-server-express");
-
 const productType = gql`
   type Variant {
     size: Int
@@ -18,13 +17,11 @@ const productType = gql`
     saleEndDate: Date
     isOnSale: Boolean
   }
-
   type PriceDetails {
     specialPrice: Float
     mrp: Float
     inclusiveOfTaxes: Boolean
   }
- 
   type Product {
     id: ID!
     name: String!
@@ -46,7 +43,6 @@ const productType = gql`
     averageRating: Float
     isBestSeller: Boolean
   }
-
   extend type Query {
     getProducts: [Product]
     getProductById(id: ID!): Product
@@ -73,14 +69,13 @@ const productType = gql`
   isBestSeller: Boolean
   imageUrl: Upload
 }
-
 scalar Upload
  extend type Mutation {
-  createProduct(input: CreateProductInput!, imageUrl: Upload , variants: [VariantInput!]): Product 
+  createProduct(input: CreateProductInput!, imageUrl: Upload , variants: [VariantInput!]): Product
   updateProduct(
     id: ID
     input: CreateProductInput!
-    publicIds: [String] 
+    publicIds: [String]
     newImages: Upload
   ): Product
   deleteProduct(id: ID!): DeletionResponse!
@@ -96,7 +91,6 @@ scalar Upload
     success: Boolean!
     message: String
   }
-
   type RefreshResponse {
     success: Boolean!
     message: String
@@ -122,7 +116,5 @@ scalar Upload
     isOnSale: Boolean
     publicIds: [String]
   }
- 
 `;
-
 module.exports = productType;

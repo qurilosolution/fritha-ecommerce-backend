@@ -1,11 +1,18 @@
+
 const mongoose = require("mongoose");
 const Product = require("./Product");
+
 
 const reviewSchema = new mongoose.Schema({
   productId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product",
     required: true,
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Assuming User is another collection
+    default: null,
   },
   rating: {
     type: Number,
@@ -26,6 +33,7 @@ const reviewSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
 
 // Post middleware to update product reviews
 reviewSchema.post("save", async function () {
