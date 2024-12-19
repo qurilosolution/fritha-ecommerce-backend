@@ -31,6 +31,7 @@ const cloudinary = require("../config/cloudinary");
 
 
 
+
 // const uploadImageToCloudinary = async (image) => {
 //   try {
 //     let uploadResult;
@@ -179,6 +180,7 @@ const cloudinary = require("../config/cloudinary");
 //     throw new Error('Image upload failed');
 //   }
 // };
+
 
 
 const uploadImageToCloudinary = async (image) => {

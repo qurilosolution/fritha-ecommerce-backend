@@ -1,5 +1,4 @@
 const ReviewService = require('../services/reviewService');
-
 const reviewResolvers = {
   Query: {
     async getReviewsByProduct(_, { productId }) {
@@ -19,5 +18,4 @@ const reviewResolvers = {
     },
   },
 };
-
 module.exports = reviewResolvers;
