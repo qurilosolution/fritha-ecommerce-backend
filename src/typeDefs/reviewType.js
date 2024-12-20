@@ -15,7 +15,6 @@ const reviewType = gql`
     productId: ID!
     rating: Int 
     userId: ID! 
-    rating: Int
     title: String!
     description: String!
   }

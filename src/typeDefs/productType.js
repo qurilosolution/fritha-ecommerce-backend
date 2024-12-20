@@ -9,7 +9,7 @@ const productType = gql`
     pricePerUnitDiscount: Float
     combo: String
     pricePerUnit: Float
-    isOutOfStock: Boolean
+    isStock: Boolean
     imageUrl: [String]
     netContent: String
     salePrice: Float
@@ -107,7 +107,7 @@ scalar Upload
     pricePerUnit: Float
     pricePerUnitDiscount: Float
     combo: String
-    isOutOfStock: Boolean
+    isStock: Boolean
     imageUrl: Upload
     netContent: String
     salePrice: Float

@@ -16,7 +16,7 @@ const variantSchema = new mongoose.Schema({
     type: Number,
   },
   mrp: {
-    type: Number, // Example: 269 (before discount)
+    type: Number, 
     required: true,
   },
  
@@ -32,9 +32,9 @@ const variantSchema = new mongoose.Schema({
   combo: {
     type: String, // Example: "250 ml (Pack of 2)"
   },
-  isOutOfStock: {
+  isStock: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   imageUrl: {
     type: [String], // Array of image URLs
@@ -96,6 +96,12 @@ variantSchema.pre('save', function (next) {
     } else {
       this.remainingTime = 'Sale Ended';
     }
+  }
+   
+  if (!this.size || this.size === 0) {
+    this.isStock = false;
+  } else {
+    this.isStock = true;
   }
 
   next();
