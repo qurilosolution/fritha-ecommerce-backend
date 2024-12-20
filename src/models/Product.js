@@ -1,5 +1,7 @@
+
 const mongoose = require('mongoose');
 
+// Variant Schema
 const variantSchema = new mongoose.Schema({
   
   size: {
@@ -14,14 +16,15 @@ const variantSchema = new mongoose.Schema({
     type: Number,
   },
   mrp: {
-    type: Number, // Example: 269 (before discount) 
-    required: false,
+    type: Number, // Example: 269 (before discount)
+    required: true,
   },
+ 
   discount: {
     type: Number, // Example: Calculated as a percentage
   },
   pricePerUnit: {
-    type: Number, // Example: ₹2.29 per ml (calculated based on size and price)
+    type: Number, // Example: ₹2.29 per ml (calculated)
   },
   pricePerUnitDiscount: {
     type: Number, // Price per unit based on discount price
@@ -31,7 +34,7 @@ const variantSchema = new mongoose.Schema({
   },
   isOutOfStock: {
     type: Boolean,
-    default: false, // Default to in stock
+    default: false,
   },
   imageUrl: {
     type: [String], // Array of image URLs
@@ -39,7 +42,20 @@ const variantSchema = new mongoose.Schema({
   },
   netContent: {
     type: String,
-    default: 'ml', // Default unit is "ml" but can be changed
+    default: 'ml',
+  },
+  salePrice: {
+    type: Number,
+  },
+  saleStartDate: {
+    type: Date,
+  },
+  saleEndDate: {
+    type: Date,
+  },
+  isOnSale: {
+    type: Boolean,
+    default: false,
   },
   salePrice: { type: Number },  
   saleStartDate: { type: Date }, 
@@ -49,40 +65,33 @@ const variantSchema = new mongoose.Schema({
   newImages:{type:String}
 });
 
-// Middleware to calculate dynamic values before saving
+// Middleware to calculate dynamic values before saving a variant
 variantSchema.pre('save', function (next) {
-  // Calculate discount price and percentage
   if (this.mrp && this.discountPrice) {
-    this.discount = (
-      ((this.mrp - this.discountPrice) / this.mrp) *
-      100
-    ).toFixed(2); // Rounded to 2 decimal places
+    this.discount = +(((this.mrp - this.discountPrice) / this.mrp) * 100).toFixed(2); // Calculate discount percentage
   }
 
-  // Calculate price per unit
   if (this.discountPrice && this.size) {
-    this.pricePerUnit = (this.discountPrice / this.size).toFixed(2);
+    this.pricePerUnit = +(this.discountPrice / this.size).toFixed(2); // Calculate price per unit
   }
-  
-  // Calculate the compo (combination of size and pack)
+
   if (this.size && this.pack) {
-    this.combo = `${this.size} ml (Pack of ${this.pack})`; 
+    this.combo = `${this.size} ml (Pack of ${this.pack})`; // Generate combo description
   }
-  // Calculate price per unit discount based on compo (or size and pack)
-  if (this.discountPrice && this.combo) {
-    this.pricePerUnitDiscount = (this.discountPrice / this.combo).toFixed(2); // Adjust calculation logic if needed
+
+  if (this.discountPrice && this.size) {
+    this.pricePerUnitDiscount = +(this.discountPrice / this.size).toFixed(2);
   }
-  
-  // Calculate remaining sale time
+
   if (this.saleEndDate) {
     const currentTime = new Date();
-    const timeLeft = this.saleEndDate - currentTime; // Time left in milliseconds
+    const timeLeft = this.saleEndDate - currentTime;
 
     if (timeLeft > 0) {
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-      
+
       this.remainingTime = `${hours}h : ${minutes}m : ${seconds}s`;
     } else {
       this.remainingTime = 'Sale Ended';
@@ -92,12 +101,23 @@ variantSchema.pre('save', function (next) {
   next();
 });
 
+// Price Details Schema
 const PriceDetailsSchema = new mongoose.Schema({
-  specialPrice: Number,
-  mrp: Number,
-  inclusiveOfTaxes: Boolean,
+  specialPrice: {
+    type: Number,
+    required: false,
+  },
+  mrp: {
+    type: Number,
+    required: true,
+  },
+  inclusiveOfTaxes: {
+    type: Boolean,
+    default: true,
+  },
 });
 
+// Product Schema
 const productSchema = new mongoose.Schema({
   name: {
     type: String, // Example: "Rice Face Wash With Rice Water & Niacinamide"
@@ -108,6 +128,7 @@ const productSchema = new mongoose.Schema({
     ref: 'Category', // Link to the category collection
     required: true,
   },
+
   subcategory: 
   { type: mongoose.Schema.Types.ObjectId, 
     ref: 'Subcategory', 
@@ -122,8 +143,10 @@ const productSchema = new mongoose.Schema({
       type: String, // Example: "Gently Cleanses Skin", "Hydrates Skin"
     },
   ],
+
   
   imageUrl: { type: [String], default: [] },
+
   netContent: {
     type: String, // Example: "100ml"
   },
@@ -159,11 +182,12 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // Initially, not a best seller
   },
-  
-}); 
+  userId: {
+    type:String ,// Adjust to your specific requirements
+  },
+});
+
 module.exports = mongoose.model('Product', productSchema);
-
-
 
 
 

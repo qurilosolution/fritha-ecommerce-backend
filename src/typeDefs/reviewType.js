@@ -4,6 +4,7 @@ const reviewType = gql`
   type Review {
     id: ID!
     productId: ID!
+    userId: ID!
     rating: Int
     title: String!
     description: String!
@@ -13,6 +14,8 @@ const reviewType = gql`
   input ReviewInput {
     productId: ID!
     rating: Int 
+    userId: ID! 
+    rating: Int
     title: String!
     description: String!
   }
