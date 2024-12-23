@@ -30,8 +30,12 @@ const productResolvers = {
   },
   Mutation: {
     // Create a new product
-    createProduct: async (_, args) => {
-      console.log("Received args in createProduct:", args);
+    createProduct: async (_, args , context) => {
+      console.log(context.user);
+      if(!context.user)
+        throw Error("You must be logged in to create a category");
+      if(!context.user.role.includes("admin"))
+        throw Error("You must be an admin to create a category");
       try {
         if (!args || !args.input) {
           throw new Error("Input is required for creating a product.");
@@ -89,11 +93,16 @@ const productResolvers = {
     //     throw new Error(`Controller error while creating product: ${error.message}`);
     //   }
     // },
-  updateProduct: async (_, { id, input, publicIds, newImages }) => {
+  updateProduct: async (_, { id, input, publicIds, newImages  } ,context) => {
+    console.log(context.user);
+      if(!context.user)
+        throw Error("You must be logged in to create a category");
+      if(!context.user.role.includes("admin"))
+        throw Error("You must be an admin to create a category");
   try {
     let updatedProduct;
     // Process product-level image updates if `newImages` is provided
-    if (newImages && Array.isArray(newImages) && newImages.length > 0) {
+    if (newImages && Array.isArray(newImages) &&imageUrl.length > 0) {
       // Delete old images if `publicIds` are provided
       if (publicIds && Array.isArray(publicIds) && publicIds.length > 0) {
         await Promise.all(
@@ -158,7 +167,12 @@ const productResolvers = {
   }
 },
 // Delete a product
-deleteProduct: async (_, { id }) => {
+deleteProduct: async (_, { id } ,context) => {
+  console.log(context.user);
+      if(!context.user)
+        throw Error("You must be logged in to create a category");
+      if(!context.user.role.includes("admin"))
+        throw Error("You must be an admin to create a category");
   try {
     // Call the service to delete the product
     const isDeleted = await productService.deleteProduct(id);

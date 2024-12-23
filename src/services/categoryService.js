@@ -4,16 +4,18 @@ const uploadImageToCloudinary = require('../utils/fileUpload');
 const getCategories = async () => {
   return await Category.find().populate('subcategories products');
 };
-const getCategoryById = async (parent, { id }) => {
-  console.log('Fetching category with ID:', id);
-  const category = await Category.findById(id).populate('subcategories products');
-  if (!category) {
-    console.error('No category found with this ID:', id);
+const getCategoryById = async (parent ,{id }) => {
+ 
+  try{
+    return await Category.findById(id).populate('subcategories products');
+    
+  }
+  catch(error){
+    console.error("Error fetching subcategory by ID:" , error);
     return null;
   }
-  console.log('Category found:', category);
-  return category;
 };
+
 const createCategory = async (categoryData) => {
   try {
     const { name, description, imageUrl } = categoryData;
@@ -69,45 +71,48 @@ const addSubcategoryToCategory = async (categoryId, subcategoryId) => {
     throw new Error(`Failed to update category: ${error.message}`);
   }
 };
-const updateCategory = async (id,data) => {
-  const  {name, description, imageUrl }=data;
+
+const updateCategory = async (id, data) => {
+  const { name, description, imageUrl } = data;
+
   try {
+    console.log("Received inputs for update:", { id, name, description, imageUrl });
+
+    if (!id) throw new Error("Category ID is required to update.");
+
     // Find the existing category
-    console.log("Received arguments:", { id, name, description, imageUrl });
     const existingCategory = await Category.findById(id);
-    if (!existingCategory) {
-      throw new Error("Category not found");
-    }
-    const uploadedImages = [];
-    // Handle image upload if imageUrl is provided
+    if (!existingCategory) throw new Error("Category not found.");
+
+    // Handle image uploads
+    let uploadedImages = [];
     if (imageUrl && imageUrl.length > 0) {
-      for (const image of imageUrl) {
-        try {
-          const uploadedImage = await uploadImageToCloudinary(image);
-          console.log("Uploaded Image:", uploadedImage);
-          if (!uploadedImage) {
-            throw new Error("Uploaded image does not contain a URL");
-          }
-          uploadedImages.push(uploadedImage);
-        } catch (error) {
-          console.error("Error uploading image:", error.message);
-          throw new Error("Image upload failed.");
-        }
+      const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
+      for (const image of images) {
+        const uploadedImage = await uploadImageToCloudinary(image);
+        if (!uploadedImage) throw new Error("Uploaded image does not contain a URL.");
+        uploadedImages.push(uploadedImage);
       }
     }
-    // Update the category with the new details
-    const updatedCategoryData = {
+
+    // Prepare updated data
+    const updatedData = {
       name: name || existingCategory.name,
       description: description || existingCategory.description,
       imageUrl: uploadedImages.length > 0 ? uploadedImages : existingCategory.imageUrl,
     };
-    const updatedCategory = await Category.findByIdAndUpdate(id, updatedCategoryData, { new: true });
+
+    // Update the category
+    const updatedCategory = await Category.findByIdAndUpdate(id, updatedData, { new: true });
+
+    console.log("Category successfully updated:", updatedCategory);
     return updatedCategory;
   } catch (error) {
-    console.error("Error updating category:", error);
-    throw new Error("Failed to update category.");
+    console.error("Error updating category:", error.message);
+    throw new Error(`Failed to update category: ${error.message}`);
   }
 };
+
 const changeSubcategoryCategory = async (subcategoryId, oldCategoryId, newCategoryId) => {
   try {
     // Remove subcategory from the old category

@@ -3,12 +3,13 @@ const productType = gql`
   type Variant {
     size: Int
     pack: Int
+    price: Int
     mrp: Float
+    stock: Int
     discount: Float
-    discountPrice: Float
+    pricePerUnit: Float
     pricePerUnitDiscount: Float
     combo: String
-    pricePerUnit: Float
     isStock: Boolean
     imageUrl: [String]
     netContent: String
@@ -16,23 +17,26 @@ const productType = gql`
     saleStartDate: Date
     saleEndDate: Date
     isOnSale: Boolean
+    publicIds: String
   }
-  type PriceDetails {
-    specialPrice: Float
-    mrp: Float
-    inclusiveOfTaxes: Boolean
-  }
+  
   type Product {
     id: ID!
     name: String!
     category: Category
     subcategory: Subcategory
     description: String
+    price: Int
+    stock:Int
+    mrp:Int
+    isStock: Boolean
     keyBenefits: [String]
     reviews: Int
     imageUrl: [String]
+    newImages:[String]
+    discount :Int
+    inclusiveOfTaxes: Boolean
     netContent: String
-    priceDetails: PriceDetails
     variants: [Variant!]
     usp: String
     ingredients: [String]
@@ -57,8 +61,12 @@ const productType = gql`
   description: String
   keyBenefits: [String]
   reviews: Int
+  price: Int
+  mrp:Int
+  stock:Int
+  isStock: Boolean
   netContent: String
-  priceDetails: PriceDetailsInput
+  discount :Int
   variants: [VariantInput!]
   usp: String
   ingredients: [String]
@@ -81,11 +89,7 @@ scalar Upload
   deleteProduct(id: ID!): DeletionResponse!
   refreshBestSellers: RefreshResponse
 }
-  input PriceDetailsInput {
-    specialPrice: Float
-    mrp: Float
-    inclusiveOfTaxes: Boolean
-  }
+  
   scalar Upload
   type DeletionResponse {
     success: Boolean!
@@ -101,9 +105,10 @@ scalar Upload
     id: ID
     size: Int
     pack: Int
-    discountPrice: Float
+    price: Int
     mrp: Float
-    discount: Float
+    stock:Int
+    discount: Int
     pricePerUnit: Float
     pricePerUnitDiscount: Float
     combo: String

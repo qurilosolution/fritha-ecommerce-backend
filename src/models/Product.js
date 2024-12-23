@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 // Variant Schema
 const variantSchema = new mongoose.Schema({
   
-  size: {
+   size: {
     type: Number,
     required: false,
   },
@@ -12,14 +12,18 @@ const variantSchema = new mongoose.Schema({
     type: Number, 
     required: false, 
   },
-  discountPrice: {
+  price: {
     type: Number,
   },
   mrp: {
     type: Number, 
     required: true,
   },
- 
+  stock:{
+    type:Number,
+    required:true,
+     default:10
+  },
   discount: {
     type: Number, // Example: Calculated as a percentage
   },
@@ -44,15 +48,7 @@ const variantSchema = new mongoose.Schema({
     type: String,
     default: 'ml',
   },
-  salePrice: {
-    type: Number,
-  },
-  saleStartDate: {
-    type: Date,
-  },
-  saleEndDate: {
-    type: Date,
-  },
+  
   isOnSale: {
     type: Boolean,
     default: false,
@@ -62,7 +58,8 @@ const variantSchema = new mongoose.Schema({
   saleEndDate: { type: Date },   
   isOnSale: { type: Boolean, default: false }, 
   publicIds:[{ type: String }],
-  newImages:{type:String}
+  newImages:[{type:String}]
+  
 });
 
 // Middleware to calculate dynamic values before saving a variant
@@ -98,7 +95,7 @@ variantSchema.pre('save', function (next) {
     }
   }
    
-  if (!this.size || this.size === 0) {
+  if (!this.stock || this.stock === 0) {
     this.isStock = false;
   } else {
     this.isStock = true;
@@ -108,20 +105,7 @@ variantSchema.pre('save', function (next) {
 });
 
 // Price Details Schema
-const PriceDetailsSchema = new mongoose.Schema({
-  specialPrice: {
-    type: Number,
-    required: false,
-  },
-  mrp: {
-    type: Number,
-    required: true,
-  },
-  inclusiveOfTaxes: {
-    type: Boolean,
-    default: true,
-  },
-});
+
 
 // Product Schema
 const productSchema = new mongoose.Schema({
@@ -140,7 +124,31 @@ const productSchema = new mongoose.Schema({
     ref: 'Subcategory', 
     required: true
   },
-
+  specialPrice: {
+    type: Number,
+    required: false,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  stock:{
+    type:Number,
+    required:true,
+     default:10
+  },
+  mrp: {
+    type: Number,
+    required: true,
+  },
+  discount: {
+    type: Number,
+    required: true,
+  },
+  inclusiveOfTaxes: {
+    type: Boolean,
+    default: true,
+  },
   description: {
     type: String, // Long description of the product
   },
@@ -150,13 +158,16 @@ const productSchema = new mongoose.Schema({
     },
   ],
 
+  isStock: {
+    type: Boolean,
+    default: true,
+  },
   
   imageUrl: { type: [String], default: [] },
 
   netContent: {
     type: String, // Example: "100ml"
   },
-  priceDetails: PriceDetailsSchema,
   variants: [variantSchema], // Array of available variants
   usp: {
     type: String, // Example: "₹2.29/ml"
@@ -188,9 +199,7 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // Initially, not a best seller
   },
-  userId: {
-    type:String ,// Adjust to your specific requirements
-  },
+  
 });
 
 module.exports = mongoose.model('Product', productSchema);

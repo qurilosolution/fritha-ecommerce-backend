@@ -8,9 +8,14 @@ const categoryResolver = {
     getCategoryById: categoryService.getCategoryById,
   },
   Mutation: {
-    createCategory: async (_, { name, description, imageUrl  }) => {
-      console.log("Received args in createCategory:", { name, description, imageUrl });
-      try {
+    createCategory: async (_, { name, description, imageUrl  } ,context) => {
+      console.log(context.user);
+      if(!context.user)
+        throw Error("You must be logged in to create a category");
+      if(!context.user.role.includes("admin"))
+        throw Error("You must be an admin to create a category");
+
+       try {
         const categoryData = {
           name,
           description,
@@ -47,51 +52,57 @@ const categoryResolver = {
         throw new Error(`Controller error while creating category: ${error.message}`);
       }
     },
-    updateCategory: async (_, { id, name, description, imageUrl }) => {
-      console.log("Received args in updateCategory:", { id, name, description, imageUrl });
+    
+    updateCategory: async (_, args, context) => {
+      console.log("Input args received in resolver:", args);
+      console.log("User context:", context.user);
+    
+      if (!context.user) throw Error("You must be logged in to update a category");
+      if (!context.user.role.includes("admin"))
+        throw Error("You must be an admin to update a category");
+    
       try {
-        // Find the existing category to update
-        const existingCategory = await categoryService.getCategoryById(id);
-        if (!existingCategory) {
-          throw new Error("Category not found in resolver");
+        const { id, name, description, imageUrl } = args;
+    
+        // Validate ID
+        if (!id || typeof id !== "string") {
+          throw new Error("Category ID must be a valid string.");
         }
-        const updatedCategoryData = {
-          name: name || existingCategory.name, // Retain existing name if not provided
-          description: description || existingCategory.description, // Retain existing description if not provided
-          imageUrl: existingCategory.imageUrl, // Default to existing image URLs
-        };
-        // Handle file upload if imageUrl is provided
+        console.log("Validated ID:", id);
+    
+        // Prepare image upload handling
+        let uploadedImages = [];
         if (imageUrl) {
-          const uploadedImages = [];
-          console.log("Type of imageUrl:", typeof imageUrl);
-          // Await the imageUrl to resolve the promise
+          console.log("Handling file upload for imageUrl...");
           const images = Array.isArray(imageUrl) ? imageUrl : [await imageUrl];
           for (const image of images) {
-            try {
-              const uploadedImage = await uploadImageToCloudinary(image);
-              console.log("Uploaded Image:", uploadedImage);
-              if (!uploadedImage) {
-                throw new Error("Uploaded image does not contain a URL.");
-              }
-              uploadedImages.push(uploadedImage);
-            } catch (error) {
-              console.error("Error uploading image:", error.message);
-              throw new Error("Image upload failed.");
-            }
+            const uploadedImage = await uploadImageToCloudinary(image);
+            if (!uploadedImage) throw new Error("Failed to upload image.");
+            uploadedImages.push(uploadedImage);
           }
-          // Update the image URLs in the updated data
-          updatedCategoryData.imageUrl = uploadedImages.length > 0 ? uploadedImages : existingCategory.imageUrl;
         }
-        // Update the category in the database
-        const updatedCategory = await categoryService.updateCategory(id, updatedCategoryData);
+    
+        // Call service to update category
+        const updatedCategory = await categoryService.updateCategory(id, {
+          name,
+          description,
+          imageUrl: uploadedImages.length > 0 ? uploadedImages : undefined,
+        });
+    
         console.log("Category successfully updated:", updatedCategory);
         return updatedCategory;
       } catch (error) {
-        console.error("Error updating category:", error.message);
-        throw new Error(`Controller error while updating category: ${error.message}`);
+        console.error("Error in updateCategory resolver:", error.message);
+        throw new Error(`Failed to update category: ${error.message}`);
       }
     },
-    deleteCategory: async (_, { id }) => {
+    
+    deleteCategory: async (_, { id } ,context) => {
+      console.log(context.user);
+      if(!context.user)
+        throw Error("You must be logged in to create a category");
+      if(!context.user.role.includes("admin"))
+        throw Error("You must be an admin to create a category");
       try {
         // Call deleteCategory function
         const result = await categoryService.deleteCategory(id);

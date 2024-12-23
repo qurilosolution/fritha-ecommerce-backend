@@ -106,14 +106,15 @@ const updateSubcategory = async (id, data) => {
 };
 const deleteSubcategory = async (id) => {
   const subcategory = await Subcategory.findById(id);
-  if (!subcategory) return false;
-  // Remove the subcategory reference from the parent category
-  await Category.findByIdAndUpdate(subcategory.category, {
-    $pull: { subcategories: id },
-  });
+  if (!subcategory) {
+    // Return a message if the subcategory is already deleted or doesn't exist
+    return { success: false, message: "Subcategory already deleted or does not exist." };
+  }
+  
   const result = await Subcategory.findByIdAndDelete(id);
-  return !!result;
+  return result ? { success: true, message: "Subcategory deleted successfully." } : { success: false, message: "Failed to delete subcategory." };
 };
+
 module.exports = {
   getSubcategories,
   getSubcategoryById,

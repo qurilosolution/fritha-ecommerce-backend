@@ -49,14 +49,8 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
-const server = new ApolloServer({ typeDefs, resolvers ,uploads:true ,context: async ({ req ,res }) => {
-  const user = await authMiddleware({ req, res });
-  console.log(user); 
-  if (!user) {
-    throw new Error('Authentication failed: User not found or token is invalid');
-  }
-  return { user ,req, res}; 
-}});  
+const server = new ApolloServer({ typeDefs, resolvers ,uploads:true , context:authMiddleware,
+});  
 
 
 const startServer = async () => {
