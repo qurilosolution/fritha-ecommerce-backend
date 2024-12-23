@@ -11,8 +11,14 @@ const otpStore = {};
 const OTP_EXPIRY_TIME = 3 * 60 * 1000; // 1 minute expiry
 const authResolvers = {
   Query: {
-    getUser: async (_, { email }) => {
+    getUser: async (_, { email },context) => {
       try {
+        console.log(context.user);
+        if(!context.user)
+          throw Error("You must be logged in to get user info");
+        if(!context.user.role.includes("admin"))
+          throw Error("You must be an admin to create a  user");
+        
         const user = await AuthModel.findOne({ email });
         if (!user) {
           throw new Error("User not found");
