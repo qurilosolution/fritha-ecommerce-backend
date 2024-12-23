@@ -230,6 +230,9 @@ const updateProduct = async (id, input) => {
       netContent,
       priceDetails,
       usp,
+      mrp,
+      price,
+      stock,
       ingredients,
       keyFeatures,
       additionalDetails,
@@ -238,6 +241,7 @@ const updateProduct = async (id, input) => {
       isBestSeller,
       imageUrl,
       variants,
+      publicIds,
     } = input;
     // Validate required fields
     if (!name || !category) {
@@ -252,12 +256,16 @@ const updateProduct = async (id, input) => {
       netContent,
       priceDetails,
       usp,
+      mrp,
+      price,
+      stock,
       ingredients,
       keyFeatures,
       additionalDetails,
       totalReviews,
       averageRating,
       isBestSeller,
+      publicIds,
     };
     // Handle product-level image updates
     if (imageUrl && Array.isArray(imageUrl) && imageUrl.length > 0) {

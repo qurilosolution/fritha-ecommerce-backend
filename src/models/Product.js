@@ -199,6 +199,8 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // Initially, not a best seller
   },
+  publicIds:[{ type: String }],
+  newImages:[{type:String}]
   
 });
 

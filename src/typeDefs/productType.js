@@ -46,6 +46,8 @@ const productType = gql`
     totalReviews: Int
     averageRating: Float
     isBestSeller: Boolean
+    publicIds:[String]
+    newImages:[String]
   }
   extend type Query {
     getProducts: [Product]
@@ -76,6 +78,7 @@ const productType = gql`
   averageRating: Float
   isBestSeller: Boolean
   imageUrl: Upload
+ 
 }
 scalar Upload
  extend type Mutation {
@@ -120,6 +123,7 @@ scalar Upload
     saleEndDate: Date
     isOnSale: Boolean
     publicIds: [String]
+    newImages:Upload
   }
 `;
 module.exports = productType;
