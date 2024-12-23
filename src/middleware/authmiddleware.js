@@ -7,7 +7,7 @@ const AuthMiddleware = async (req, res, next) => {
     // Get the token from cookies
     const authToken = req.cookies.token;
     if (!authToken) {
-      return res.status(403).json({ status: 'failed', message: 'Unauthorized user!' });
+      return res.status(403).json({ status: 'failed', message: 'Unauthorized userrrr!' });
     }
 
     // Verify the token
