@@ -11,23 +11,52 @@ const otpStore = {};
 const OTP_EXPIRY_TIME = 3 * 60 * 1000; // 1 minute expiry
 const authResolvers = {
   Query: {
-    getUser: async (_, { email },context) => {
-      try {
-        console.log(context.user);
-        if(!context.user)
-          throw Error("You must be logged in to get user info");
-        if(!context.user.role.includes("admin"))
-          throw Error("You must be an admin to create a  user");
+    // getUser: async (_, { email },context) => {
+    //   try {
+    //     console.log(context.user);
+    //     if(!context.user)
+    //       throw Error("You must be logged in to get user info");
+    //     if(!context.user.role.includes("admin"))
+    //       throw Error("You must be an admin to create a  user");
         
-        const user = await AuthModel.findOne({ email });
+    //     const user = await AuthModel.findOne({ email });
+    //     if (!user) {
+    //       throw new Error("User not found");
+    //     }
+    //     return user;
+    //   } catch (error) {
+    //     throw new Error(`Error fetching user: ${error.message}`);
+    //   }
+    // },
+
+
+    getUser: async (_, __, context) => {
+      console.log(context,"kjkjkjkjk")
+      try {
+        // Check if the user is authenticated
+        if (!context.token) {
+          throw new Error("Authentication token is missing. Please log in.");
+        }
+         // Decode the token to get user information
+        const decoded = jwt.verify(context.token, process.env.JWT_SECRET);
+        if (!decoded || !decoded.id) {
+          throw new Error("Invalid or expired token. Please log in again.");
+        }
+    
+        // Fetch the user from the database using the decoded user ID
+        const user = await AuthModel.findById(decoded.id);
         if (!user) {
           throw new Error("User not found");
         }
+    
+        // Return the user data
         return user;
       } catch (error) {
         throw new Error(`Error fetching user: ${error.message}`);
       }
     },
+
+
   },
   Mutation: {
     signup: async (
