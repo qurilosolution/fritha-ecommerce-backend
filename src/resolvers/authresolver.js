@@ -31,31 +31,35 @@ const authResolvers = {
 
 
     getUser: async (_, __, context) => {
-      console.log(context,"kjkjkjkjk")
+      console.log(context, "Context received");
+
       try {
-        // Check if the user is authenticated
-        if (!context.token) {
+        // Check if the token exists in context (should be passed via the middleware)
+        if (!context.user) {
           throw new Error("Authentication token is missing. Please log in.");
         }
-         // Decode the token to get user information
-        const decoded = jwt.verify(context.token, process.env.JWT_SECRET);
+
+        // Decode the token to get user information
+        const decoded = jwt.verify(context.user, process.env.JWT_SECRET);
+        
         if (!decoded || !decoded.id) {
-          throw new Error("Invalid or expired token. Please log in again.");
+          throw new Error("Invalid or expired user. Please log in again.");
         }
-    
-        // Fetch the user from the database using the decoded user ID
-        const user = await AuthModel.findById(decoded.id);
+
+        // If we already have the user in context (via authMiddleware), use it
+        const user = context.user || await AuthModel.findById(decoded.id);
+
         if (!user) {
           throw new Error("User not found");
         }
-    
+
         // Return the user data
         return user;
       } catch (error) {
+        console.error("Error fetching user:", error.message);
         throw new Error(`Error fetching user: ${error.message}`);
       }
     },
-
 
   },
   Mutation: {

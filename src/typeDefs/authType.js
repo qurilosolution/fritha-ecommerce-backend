@@ -17,9 +17,11 @@ const authType = gql`
     user: User
     token: String   
   }
+    
   type Query {
      getUser: User
   }
+
   type Mutation {
     signup(
       firstName: String!
