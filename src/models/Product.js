@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 
 // Variant Schema
 const variantSchema = new mongoose.Schema({
-  size: {
+  
+   size: {
     type: Number,
     required: false,
   },
@@ -11,14 +12,18 @@ const variantSchema = new mongoose.Schema({
     type: Number, 
     required: false, 
   },
-  discountPrice: {
+  price: {
     type: Number,
   },
   mrp: {
-    type: Number, // Example: 269 (before discount)
+    type: Number, 
     required: true,
   },
- 
+  stock:{
+    type:Number,
+    required:true,
+     default:10
+  },
   discount: {
     type: Number, // Example: Calculated as a percentage
   },
@@ -31,9 +36,9 @@ const variantSchema = new mongoose.Schema({
   combo: {
     type: String, // Example: "250 ml (Pack of 2)"
   },
-  isOutOfStock: {
+  isStock: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   imageUrl: {
     type: [String], // Array of image URLs
@@ -43,15 +48,7 @@ const variantSchema = new mongoose.Schema({
     type: String,
     default: 'ml',
   },
-  salePrice: {
-    type: Number,
-  },
-  saleStartDate: {
-    type: Date,
-  },
-  saleEndDate: {
-    type: Date,
-  },
+  
   isOnSale: {
     type: Boolean,
     default: false,
@@ -60,8 +57,9 @@ const variantSchema = new mongoose.Schema({
   saleStartDate: { type: Date }, 
   saleEndDate: { type: Date },   
   isOnSale: { type: Boolean, default: false }, 
-  publicIds:{type: String },
-  newImages:{type:String}
+  publicIds:[{ type: String }],
+  newImages:[{type:String}]
+  
 });
 
 // Middleware to calculate dynamic values before saving a variant
@@ -96,25 +94,18 @@ variantSchema.pre('save', function (next) {
       this.remainingTime = 'Sale Ended';
     }
   }
+   
+  if (!this.stock || this.stock === 0) {
+    this.isStock = false;
+  } else {
+    this.isStock = true;
+  }
 
   next();
 });
 
 // Price Details Schema
-const PriceDetailsSchema = new mongoose.Schema({
-  specialPrice: {
-    type: Number,
-    required: false,
-  },
-  mrp: {
-    type: Number,
-    required: true,
-  },
-  inclusiveOfTaxes: {
-    type: Boolean,
-    default: true,
-  },
-});
+
 
 // Product Schema
 const productSchema = new mongoose.Schema({
@@ -129,8 +120,35 @@ const productSchema = new mongoose.Schema({
   },
 
   subcategory: 
-  { type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory', required: true},
-
+  { type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Subcategory', 
+    required: true
+  },
+  specialPrice: {
+    type: Number,
+    required: false,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  stock:{
+    type:Number,
+    required:true,
+     default:10
+  },
+  mrp: {
+    type: Number,
+    required: true,
+  },
+  discount: {
+    type: Number,
+    required: true,
+  },
+  inclusiveOfTaxes: {
+    type: Boolean,
+    default: true,
+  },
   description: {
     type: String, // Long description of the product
   },
@@ -140,13 +158,16 @@ const productSchema = new mongoose.Schema({
     },
   ],
 
+  isStock: {
+    type: Boolean,
+    default: true,
+  },
   
   imageUrl: { type: [String], default: [] },
 
   netContent: {
     type: String, // Example: "100ml"
   },
-  priceDetails: PriceDetailsSchema,
   variants: [variantSchema], // Array of available variants
   usp: {
     type: String, // Example: "₹2.29/ml"
@@ -156,6 +177,9 @@ const productSchema = new mongoose.Schema({
       type: String, // Example: "Turmeric", "Saffron", "Carrot Seed Oil"
     },
   ],
+  review:{
+     type:Number,
+  },
   keyFeatures: {
     type: String, // Example: Highlights for promotion
   },
@@ -178,9 +202,9 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // Initially, not a best seller
   },
-  userId: {
-    type:String ,// Adjust to your specific requirements
-  },
+  publicIds:[{ type: String }],
+  newImages:[{type:String}]
+  
 });
 
 module.exports = mongoose.model('Product', productSchema);

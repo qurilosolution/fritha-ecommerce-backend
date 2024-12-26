@@ -1,28 +1,37 @@
-
-// authMiddleware.js
 const jwt = require('jsonwebtoken');
+const { AuthModel } = require('../models/authmodel');
+require('dotenv').config();
 
-const AuthMiddleware = async (req, res, next) => {
+const authMiddleware = async ({ req }) => {
+  console.log('req.headers:', req.headers); 
+
   try {
-    // Get the token from cookies
-    const authToken = req.cookies.token;
-    if (!authToken) {
-      return res.status(403).json({ status: 'failed', message: 'Unauthorized user!' });
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization; 
+    if (!authHeader) {
+      console.log('No Authorization header found');
+      return { user: null };
     }
 
-    // Verify the token
-    const userInfo = jwt.verify(authToken, process.env.SECRET_KEY);
-    if (userInfo) {
-      req.user_id = userInfo.user_id; // Store user_id in the request
-      next(); // Allow the request to proceed
-    } else {
-      return res.status(403).json({ status: 'failed', message: 'Unauthorized user!' });
+    // Get token from 'Bearer token' format
+    const authToken = authHeader.split(' ')[1]; 
+    console.log('Extracted Token:', authToken);
+    if (!authToken) {
+      console.log('No auth token found in Authorization header');
+      return { user: null };
     }
+    // Token verification logic
+    const userInfo = jwt.verify(authToken, process.env.SECRET_KEY);
+    console.log('Decoded User Info:', userInfo);
+
+  
+     
+    return { user:userInfo }; 
+    
   } catch (err) {
-    console.log(err);
-    return res.status(403).json({ status: 'failed', message: 'Unauthorized user!' });
+    console.log('Error verifying token:', err);
+    return { user: null };
   }
 };
 
-module.exports = { AuthMiddleware };
-
+module.exports = { authMiddleware };

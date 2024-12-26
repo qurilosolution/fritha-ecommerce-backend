@@ -1,38 +1,43 @@
 const { gql } = require("apollo-server-express");
 const productType = gql`
   type Variant {
+    id : Int
     size: Int
     pack: Int
+    price: Int
     mrp: Float
+    stock: Int
     discount: Float
-    discountPrice: Float
+    pricePerUnit: Float
     pricePerUnitDiscount: Float
     combo: String
-    pricePerUnit: Float
-    isOutOfStock: Boolean
+    isStock: Boolean
     imageUrl: [String]
     netContent: String
     salePrice: Float
     saleStartDate: Date
     saleEndDate: Date
     isOnSale: Boolean
+    publicIds: [String]
+    newImages:[String]
   }
-  type PriceDetails {
-    specialPrice: Float
-    mrp: Float
-    inclusiveOfTaxes: Boolean
-  }
+
   type Product {
     id: ID!
     name: String!
     category: Category
     subcategory: Subcategory
     description: String
+    price: Int
+    stock:Int
+    mrp:Int
+    isStock: Boolean
     keyBenefits: [String]
-    reviews: Int
+    review: Int
     imageUrl: [String]
+    discount :Int
+    inclusiveOfTaxes: Boolean
     netContent: String
-    priceDetails: PriceDetails
     variants: [Variant!]
     usp: String
     ingredients: [String]
@@ -42,6 +47,8 @@ const productType = gql`
     totalReviews: Int
     averageRating: Float
     isBestSeller: Boolean
+    publicIds:[String] 
+    newImages:[String]
   }
   extend type Query {
     getProducts: [Product]
@@ -56,9 +63,13 @@ const productType = gql`
   subcategory:ID!
   description: String
   keyBenefits: [String]
-  reviews: Int
+  review: Int
+  price: Int
+  mrp:Int
+  stock:Int
+  isStock: Boolean
   netContent: String
-  priceDetails: PriceDetailsInput
+  discount :Int
   variants: [VariantInput!]
   usp: String
   ingredients: [String]
@@ -67,25 +78,24 @@ const productType = gql`
   totalReviews: Int
   averageRating: Float
   isBestSeller: Boolean
-  imageUrl: Upload
+  imageUrl: [Upload!]!
+  publicIds: [String]
+  newImages: [Upload!]!
+ 
 }
 scalar Upload
  extend type Mutation {
-  createProduct(input: CreateProductInput!, imageUrl: Upload , variants: [VariantInput!]): Product
+  createProduct(input: CreateProductInput!, imageUrl: [Upload!]! , variants: [VariantInput!]): Product
   updateProduct(
     id: ID
     input: CreateProductInput!
     publicIds: [String]
-    newImages: Upload
+    newImages: [Upload!]!
   ): Product
   deleteProduct(id: ID!): DeletionResponse!
   refreshBestSellers: RefreshResponse
 }
-  input PriceDetailsInput {
-    specialPrice: Float
-    mrp: Float
-    inclusiveOfTaxes: Boolean
-  }
+  
   scalar Upload
   type DeletionResponse {
     success: Boolean!
@@ -101,13 +111,14 @@ scalar Upload
     id: ID
     size: Int
     pack: Int
-    discountPrice: Float
+    price: Int
     mrp: Float
-    discount: Float
+    stock:Int
+    discount: Int
     pricePerUnit: Float
     pricePerUnitDiscount: Float
     combo: String
-    isOutOfStock: Boolean
+    isStock: Boolean
     imageUrl: Upload
     netContent: String
     salePrice: Float
@@ -115,6 +126,7 @@ scalar Upload
     saleEndDate: Date
     isOnSale: Boolean
     publicIds: [String]
+    newImages:[Upload!]!
   }
 `;
 module.exports = productType;

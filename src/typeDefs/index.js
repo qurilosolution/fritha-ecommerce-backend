@@ -5,6 +5,7 @@ const subcategoryType = require('./subcategoryType');
 const productType = require('./productType');
 const authType = require("./authType")
 const reviewType = require("./reviewType");
+const orderType = require("./orderType")
 
 
 const typeDefs = gql`
@@ -13,6 +14,7 @@ const typeDefs = gql`
   ${subcategoryType}
   ${productType}
   ${reviewType}
+  ${orderType}
   ${authType}
 `;
 
