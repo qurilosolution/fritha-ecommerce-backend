@@ -26,7 +26,7 @@ const authResolvers = {
   Mutation: {
     signup: async (
       _,
-      { firstName, lastName, email, phoneNumber, password, gender, birthDate }
+      { firstName, lastName, email, phoneNumber, password, gender, birthDate ,role }
     ) => {
       try {
         const existingUser = await AuthModel.findOne({ email });
@@ -42,6 +42,7 @@ const authResolvers = {
           password: hashedPassword,
           gender,
           birthDate,
+          role,
         });
         await newUser.save();
         return {
@@ -59,6 +60,7 @@ const authResolvers = {
         if (!user) {
           throw new Error("User not found");
         }
+        console.log(user);
         const isPasswordMatch = await comparePassword(user.password, password);
         if (!isPasswordMatch) {
           throw new Error("Invalid credentials");
@@ -68,15 +70,16 @@ const authResolvers = {
             id: user._id,
             name: user.firstName + user.lastName,
             email: user.email,
-            role: "admin",
+            role: user.role,
           },
           process.env.SECRET_KEY,
-          { expiresIn: "1h" }
+          { expiresIn: "24h" }
         );
 
         return {
           success: true,
           message: "Login successful",
+          
           user: {
             id: user._id,
             firstName: user.firstName,
@@ -85,13 +88,18 @@ const authResolvers = {
             phoneNumber: user.phoneNumber,
             gender: user.gender,
             birthDate: user.birthDate,
+            role: user.role,
           },
+          
           token,
+          
         };
+       
       } catch (error) {
         throw new Error(`Error during login: ${error.message}`);
       }
     },
+    
 
     verifyOtp: async (_, { email, otp }, { res }) => {
       try {
@@ -104,12 +112,12 @@ const authResolvers = {
           throw new Error("OTP has expired");
         }
         // OTP is valid, generate a token
-        const token = generateToken({ email }, "50m"); // Token valid for 10 minutes
+        const token = generateToken({ email }, "10m"); // Token valid for 10 minutes
         // Set the token in a secure, HTTP-only cookie
         res.cookie("resetToken", token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production", // Use secure flag in production
-          maxAge: 50 * 60 * 1000, // 10 minutes
+          maxAge: 10 * 60 * 1000, // 10 minutes
         });
         return {
           success: true,

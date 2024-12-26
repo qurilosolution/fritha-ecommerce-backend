@@ -115,10 +115,29 @@ const deleteSubcategory = async (id) => {
   return result ? { success: true, message: "Subcategory deleted successfully." } : { success: false, message: "Failed to delete subcategory." };
 };
 
+const addProductToSubCategory = async (subcategory, productsId) => {
+  try {
+    const updatedSubcategory = await Subcategory.findByIdAndUpdate(
+      subcategory,
+      { $push: { products: productsId } },
+      { new: true } // Return the updated document
+    );
+    if (!updatedSubcategory) {
+      throw new Error("Products not found or failed to update.");
+    }
+    console.log("Updated subcategory with new Products:", updatedSubcategory);
+    return updatedSubcategory;
+  } catch (error) {
+    console.error("Error updating subcategory:", error.message);
+    throw new Error(`Failed to update subcategory: ${error.message}`);
+  }
+};
+
 module.exports = {
   getSubcategories,
   getSubcategoryById,
   createSubcategory,
   updateSubcategory,
   deleteSubcategory,
+  addProductToSubCategory,
 };

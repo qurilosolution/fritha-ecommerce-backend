@@ -10,6 +10,8 @@ scalar Upload
     description: String
     subcategories: [Subcategory]
     products: [Product]
+    BannerimageUrl:[String]
+    CartimageUrl: [String]
     imageUrl: [String]
 
   }
@@ -26,8 +28,8 @@ scalar Upload
   
   extend type Mutation {
 
-    createCategory(name: String!, description: String, imageUrl: Upload): Category
-    updateCategory(id: ID!, name: String, description: String, imageUrl: Upload): Category
+    createCategory(name: String!, description: String, imageUrl: [Upload!]! ,BannerimageUrl: [Upload!]! ,CartimageUrl: [Upload!]!): Category
+    updateCategory(id: ID!, name: String, description: String, imageUrl: [Upload!]! , BannerimageUrl: [Upload!]! ,CartimageUrl: [Upload!]!): Category
     deleteCategory(id: ID!): DeletionResponse!
 
   }

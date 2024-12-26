@@ -1,9 +1,7 @@
 const cloudinary = require("../config/cloudinary");
 
-
-
-const   uploadImageToCloudinary = async (image) => {
-  console.log("Upload   ing file:", image);
+const uploadImageToCloudinary = async (image) => {
+  console.log("Uploading file:", image);
   try {
     // Check if image is a URL
     if (typeof image === "string") {
@@ -12,7 +10,7 @@ const   uploadImageToCloudinary = async (image) => {
     }
 
     // Handle file uploads
-    const { createReadStream, filename } = image; // Extract the stream and filename
+    const { createReadStream, filename, mimetype, encoding } = await image; // Extract the stream and filename
     const stream = createReadStream();
 
     return new Promise((resolve, reject) => {
