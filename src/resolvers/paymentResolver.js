@@ -49,6 +49,8 @@ const paymetResolvers = {
       }
     },
 
+    
+
     // Verify payment
     // verifyPayment: async (
     //   _,
@@ -117,6 +119,8 @@ const paymetResolvers = {
     //       throw new Error("Failed to verify payment. Please try again.");
     //     }
     //   }
+
+
 
     verifyPayment: async (_, { razorpayOrderId, razorpayPaymentId, razorpaySignature }) => {
       try {
