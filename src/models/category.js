@@ -28,9 +28,18 @@ const categorySchema = new mongoose.Schema(
       type: [String], // Optional images for the category
       trim: true,
     },
+    BannerimageUrl: {
+      type: [String], // Optional images for the category
+      trim: true,
+    },
+    CartimageUrl: {
+      type: [String], // Optional images for the category
+      trim: true,
+    },
     
   },
   {
+
     timestamps: true, // Automatically add createdAt and updatedAt
   }
 );

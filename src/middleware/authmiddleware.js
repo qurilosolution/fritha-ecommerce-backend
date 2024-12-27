@@ -25,8 +25,9 @@ const authMiddleware = async ({ req }) => {
     console.log('Decoded User Info:', userInfo);
 
   
-
+     
     return { user:userInfo }; 
+    
   } catch (err) {
     console.log('Error verifying token:', err);
     return { user: null };

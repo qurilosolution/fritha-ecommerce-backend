@@ -31,6 +31,7 @@ const authType = gql`
       password: String!
       gender: String
       birthDate: String
+      role:String
     ): AuthResponse
 
     login(email: String!, password: String!): AuthResponse
