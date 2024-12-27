@@ -21,8 +21,8 @@ const subcategoryType = gql`
 
 
   extend type Mutation {  
-    createSubcategory(name: String!, description: String, imageUrl: Upload ,categoryId: ID!): Subcategory
-    updateSubcategory(id: ID!, name: String, description: String, imageUrl: Upload , categoryId: ID!): Subcategory
+    createSubcategory(name: String!, description: String, imageUrl: [Upload!]! ,categoryId: ID!): Subcategory
+    updateSubcategory(id: ID!, name: String, description: String, imageUrl: [Upload!]! , categoryId: ID!): Subcategory
     deleteSubcategory(subcategoryId: ID!, categoryId: ID!): DeletionResponse!
 
   }

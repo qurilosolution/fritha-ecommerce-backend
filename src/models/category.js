@@ -24,15 +24,12 @@ const categorySchema = new mongoose.Schema(
         ref: 'Product', // Links products to this category
       },
     ],
-    imageUrl: {
+    
+    bannerImageUrl: {
       type: [String], // Optional images for the category
       trim: true,
     },
-    BannerimageUrl: {
-      type: [String], // Optional images for the category
-      trim: true,
-    },
-    CartimageUrl: {
+    cardImageUrl: {
       type: [String], // Optional images for the category
       trim: true,
     },
