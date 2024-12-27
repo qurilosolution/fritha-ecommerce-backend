@@ -62,29 +62,62 @@ const authResolvers = {
     // },
 
 
+    // getUser: async (_, __, context) => {
+    //   console.log(context, "Context received"); // Check the entire context here
+    
+    //   try {
+    //     if (!context.user) {
+    //       throw new Error("Authentication token is missing. Please log in.");
+    //     }
+    
+    //     if (typeof context.user !== 'string') {
+    //       throw new Error("JWT must be a string, but received: " + typeof context.user);
+    //     }
+    
+    //     const decoded = jwt.verify(context.user, process.env.JWT_SECRET);
+    //     if (!decoded || !decoded.id) {
+    //       throw new Error("Invalid or expired user. Please log in again.");
+    //     }
+    
+    //     const user = context.user || await AuthModel.findById(decoded.id);
+    
+    //     if (!user) {
+    //       throw new Error("User not found");
+    //     }
+    
+    //     return user;
+    //   } catch (error) {
+    //     console.error("Error fetching user:", error.message);
+    //     throw new Error(`Error fetching user: ${error.message}`);
+    //   }
+    // },
+    
+
     getUser: async (_, __, context) => {
-      console.log(context, "Context received"); // Check the entire context here
+      console.log(context, "Context received");
     
       try {
+        // Check if the user object exists in the context
         if (!context.user) {
           throw new Error("Authentication token is missing. Please log in.");
         }
     
-        if (typeof context.user !== 'string') {
-          throw new Error("JWT must be a string, but received: " + typeof context.user);
+        // Verify that `context.user` is an object
+        if (typeof context.user !== "object") {
+          throw new Error("Invalid user context: Expected an object.");
         }
     
-        const decoded = jwt.verify(context.user, process.env.JWT_SECRET);
-        if (!decoded || !decoded.id) {
-          throw new Error("Invalid or expired user. Please log in again.");
-        }
+        // Extract user information from the context
+        const { id } = context.user;
     
-        const user = context.user || await AuthModel.findById(decoded.id);
+        // Find the user in the database using the extracted ID
+        const user = await AuthModel.findById(id);
     
         if (!user) {
           throw new Error("User not found");
         }
     
+        // Return the user data
         return user;
       } catch (error) {
         console.error("Error fetching user:", error.message);
