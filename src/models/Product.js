@@ -177,6 +177,9 @@ const productSchema = new mongoose.Schema({
       type: String, // Example: "Turmeric", "Saffron", "Carrot Seed Oil"
     },
   ],
+  review:{
+     type:Number,
+  },
   keyFeatures: {
     type: String, // Example: Highlights for promotion
   },

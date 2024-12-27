@@ -1,6 +1,7 @@
 const { gql } = require("apollo-server-express");
 const productType = gql`
   type Variant {
+    id : Int
     size: Int
     pack: Int
     price: Int
@@ -17,9 +18,10 @@ const productType = gql`
     saleStartDate: Date
     saleEndDate: Date
     isOnSale: Boolean
-    publicIds: String
+    publicIds: [String]
+    newImages:[String]
   }
-  
+
   type Product {
     id: ID!
     name: String!
@@ -31,9 +33,9 @@ const productType = gql`
     mrp:Int
     isStock: Boolean
     keyBenefits: [String]
-    reviews: Int
+    review: Int
     imageUrl: [String]
-   
+
     discount :Int
     inclusiveOfTaxes: Boolean
     netContent: String
@@ -46,7 +48,7 @@ const productType = gql`
     totalReviews: Int
     averageRating: Float
     isBestSeller: Boolean
-    publicIds:[String]
+    publicIds:[String] 
     newImages:[String]
   }
   extend type Query {
@@ -62,7 +64,7 @@ const productType = gql`
   subcategory:ID!
   description: String
   keyBenefits: [String]
-  reviews: Int
+  review: Int
   price: Int
   mrp:Int
   stock:Int
@@ -77,17 +79,19 @@ const productType = gql`
   totalReviews: Int
   averageRating: Float
   isBestSeller: Boolean
-  imageUrl: Upload
+  imageUrl: [Upload!]!
+  publicIds: [String]
+  newImages: [Upload!]!
  
 }
 scalar Upload
  extend type Mutation {
-  createProduct(input: CreateProductInput!, imageUrl: Upload , variants: [VariantInput!]): Product
+  createProduct(input: CreateProductInput!, imageUrl: [Upload!]! , variants: [VariantInput!]): Product
   updateProduct(
     id: ID
     input: CreateProductInput!
     publicIds: [String]
-    newImages: Upload
+    newImages: [Upload!]!
   ): Product
   deleteProduct(id: ID!): DeletionResponse!
   refreshBestSellers: RefreshResponse
@@ -123,7 +127,7 @@ scalar Upload
     saleEndDate: Date
     isOnSale: Boolean
     publicIds: [String]
-    newImages:Upload
+    newImages:[Upload!]!
   }
 `;
 module.exports = productType;
