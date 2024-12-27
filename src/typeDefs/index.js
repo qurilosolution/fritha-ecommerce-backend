@@ -6,6 +6,8 @@ const productType = require('./productType');
 const variantType = require('./variantType');
 const authType = require("./authType")
 const reviewType = require("./reviewType");
+const wishlistType = require("./wishlistType")
+const paymentType = require("./paymentType")
 const orderType = require("./orderType")
 
 
@@ -18,6 +20,8 @@ const typeDefs = gql`
   ${reviewType}
   ${orderType}
   ${authType}
+  ${wishlistType}
+  ${paymentType}
 `;
 
 module.exports = typeDefs;

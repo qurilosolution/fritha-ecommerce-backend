@@ -1,3 +1,4 @@
+
 const { mergeResolvers } = require('@graphql-tools/merge');
 const categoryResolver = require('./categoryResolver');
 const subcategoryResolver = require('./subcategoryResolver');
@@ -8,7 +9,13 @@ const orderResolver = require("./orderResolver")
 const variantResolver = require("./variantResolver")
 
 
-const resolvers = mergeResolvers([categoryResolver, subcategoryResolver, productResolver ,reviewResolver,authResolver,orderResolver , variantResolver]);
+
+const wishlistResolver = require("./wishlistResolver");
+const paymentResolver = require("./paymentResolver");
+
+
+const resolvers = mergeResolvers([categoryResolver, subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,orderResolver,wishlistResolver,paymentResolver ]);
+
 
 
 module.exports = resolvers;
