@@ -11,17 +11,122 @@ const otpStore = {};
 const OTP_EXPIRY_TIME = 3 * 60 * 1000; // 1 minute expiry
 const authResolvers = {
   Query: {
-    getUser: async (_, { email }) => {
+    // getUser: async (_, { email },context) => {
+    //   try {
+    //     console.log(context.user);
+    //     if(!context.user)
+    //       throw Error("You must be logged in to get user info");
+    //     if(!context.user.role.includes("admin"))
+    //       throw Error("You must be an admin to create a  user");
+        
+    //     const user = await AuthModel.findOne({ email });
+    //     if (!user) {
+    //       throw new Error("User not found");
+    //     }
+    //     return user;
+    //   } catch (error) {
+    //     throw new Error(`Error fetching user: ${error.message}`);
+    //   }
+    // },
+
+
+    // getUser: async (_, __, context) => {
+    //   console.log(context, "Context received");
+
+    //   try {
+    //     // Check if the token exists in context (should be passed via the middleware)
+    //     if (!context.user) {
+    //       throw new Error("Authentication token is missing. Please log in.");
+    //     }
+
+    //     // Decode the token to get user information
+    //     const decoded = jwt.verify(context.user, process.env.JWT_SECRET);
+        
+    //     if (!decoded || !decoded.id) {
+    //       throw new Error("Invalid or expired user. Please log in again.");
+    //     }
+
+    //     // If we already have the user in context (via authMiddleware), use it
+    //     const user = context.user || await AuthModel.findById(decoded.id);
+
+    //     if (!user) {
+    //       throw new Error("User not found");
+    //     }
+
+    //     // Return the user data
+    //     return user;
+    //   } catch (error) {
+    //     console.error("Error fetching user:", error.message);
+    //     throw new Error(`Error fetching user: ${error.message}`);
+    //   }
+    // },
+
+
+    // getUser: async (_, __, context) => {
+    //   console.log(context, "Context received"); // Check the entire context here
+    
+    //   try {
+    //     if (!context.user) {
+    //       throw new Error("Authentication token is missing. Please log in.");
+    //     }
+    
+    //     if (typeof context.user !== 'string') {
+    //       throw new Error("JWT must be a string, but received: " + typeof context.user);
+    //     }
+    
+    //     const decoded = jwt.verify(context.user, process.env.JWT_SECRET);
+    //     if (!decoded || !decoded.id) {
+    //       throw new Error("Invalid or expired user. Please log in again.");
+    //     }
+    
+    //     const user = context.user || await AuthModel.findById(decoded.id);
+    
+    //     if (!user) {
+    //       throw new Error("User not found");
+    //     }
+    
+    //     return user;
+    //   } catch (error) {
+    //     console.error("Error fetching user:", error.message);
+    //     throw new Error(`Error fetching user: ${error.message}`);
+    //   }
+    // },
+    
+
+    getUser: async (_, __, context) => {
+      console.log(context, "Context received");
+    
       try {
-        const user = await AuthModel.findOne({ email });
+        // Check if the user object exists in the context
+        if (!context.user) {
+          throw new Error("Authentication token is missing. Please log in.");
+        }
+    
+        // Verify that `context.user` is an object
+        if (typeof context.user !== "object") {
+          throw new Error("Invalid user context: Expected an object.");
+        }
+    
+        // Extract user information from the context
+        const { id } = context.user;
+    
+        // Find the user in the database using the extracted ID
+        const user = await AuthModel.findById(id);
+    
         if (!user) {
           throw new Error("User not found");
         }
+    
+        // Return the user data
         return user;
       } catch (error) {
+        console.error("Error fetching user:", error.message);
         throw new Error(`Error fetching user: ${error.message}`);
       }
     },
+    
+
+
   },
   Mutation: {
     signup: async (
