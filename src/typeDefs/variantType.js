@@ -30,6 +30,11 @@ const variantType = gql`
     message: String
     variants: [Variant]
   }
+  
+  type VariantResponseDelete{
+     success:Boolean
+     message:String
+  }
  
  
   input VariantInput {
@@ -59,8 +64,11 @@ const variantType = gql`
   }
 
   type Mutation {
-    addVariant(productId: ID!, variantData: VariantInput!): VariantResponse  
-    processVariants(variants: [VariantInput]!): VariantResponse
+    addVariant(productId: ID!, variantData: VariantInput!): VariantResponse 
+    addMultipleVariants(productId: ID!, variantsData: [VariantInput]!): VariantResponse
+    updateVariant(variantId: ID!, updateData: VariantInput!): VariantResponse
+    deleteVariant(variantId: ID!): VariantResponseDelete 
+   
   }
 `;
 

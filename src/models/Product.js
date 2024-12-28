@@ -16,11 +16,10 @@ const productSchema = new mongoose.Schema({
     ref: 'Subcategory',
     required: true,
   },
-  variants:{
+  variants:[{
     type: mongoose.Schema.Types.ObjectId,
     ref:'Variant',
-    required: true,
-  },
+  }],
   specialPrice: {
     type: Number,
   },

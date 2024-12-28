@@ -149,7 +149,7 @@ const productType = gql`
     keyBenefits: [String]
     review: Int
     imageUrl: [String]
-
+    discount: Int
     inclusiveOfTaxes: Boolean
     netContent: String
     variants: [Variant!] 

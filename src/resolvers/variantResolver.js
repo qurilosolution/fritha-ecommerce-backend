@@ -3,13 +3,9 @@ const variantService = require("../services/variantService");
 module.exports = {
   Query: {
     // Get variants by product
-    getVariantsByProduct: async (_, { productId }, context) => {
+    getVariantsByProduct: async (_, { productId }) => {
       try {
-        // Ensure the user is authenticated
-        if (!context.user) {
-          throw new Error("You must be logged in to fetch variants.");
-        }
-
+        
         const Variants = await variantService.getVariantsByProduct(productId);
 
         return {
@@ -54,33 +50,103 @@ module.exports = {
           return {
             success: false,
             message: error.message,
-            variant: null,
+            variants: null,
           };
         }
     },
-    // Process and update variants
-    processVariants: async (_, { variants }, context) => {
+    
+    updateVariant: async (_, { variantId, updateData }, context) => {
       try {
-        // Check if user is authenticated
+        // Authentication
         if (!context.user) {
-          throw new Error("You must be logged in to process variants.");
+          throw new Error("You must be logged in to update a variant.");
         }
-
-        const processedVariants = await variantService.processVariants(variants);
-
+    
+        // Authorization
+        if (!context.user.role.includes("admin")) {
+          throw new Error("You must be an admin to update a variant.");
+        }
+    
+        // Input validation
+        if (!variantId || !updateData) {
+          throw new Error("Variant ID and update data are required.");
+        }
+    
+        // Call the service to update the variant
+        const updatedVariant = await variantService.updateVariant(variantId, updateData);
+    
         return {
           success: true,
-          message: "Variants processed successfully",
-          variants: processedVariants,
+          message: "Variant successfully updated",
+          variants: [updatedVariant], // Return the updated variant directly
         };
       } catch (error) {
-        console.error("Error processing variants:", error.message);
+        console.error("Error updating variant:", {
+          message: error.message,
+          variantId,
+          userId: context.user?.id,
+        });
+    
         return {
           success: false,
-          message: error.message,
-          variants: [],
+          message: "An error occurred while updating the variant.",
+          variant: null,
         };
       }
     },
+    
+    deleteVariant: async (_, { variantId }, context) => {
+      try {
+        // Authentication and authorization
+        if (!context.user) {
+          throw new Error("You must be logged in to delete a variant.");
+        }
+        if (!context.user.role.includes("admin")) {
+          throw new Error("You must be an admin to delete a variant.");
+        }
+    
+        const result = await variantService.deleteVariant(variantId);
+        console.log('result' , result);
+        return {
+          success: true,
+          message: result.message,
+          
+        };
+      } catch (error) {
+        console.error("Error deleting variant:", error.message);
+        return {
+          success: false,
+          message: error.message,
+          
+        };
+      }
+    },
+    addMultipleVariants: async (_, { productId, variantsData }, context) => {
+      try {
+        // Authentication and authorization
+        if (!context.user) {
+          throw new Error("You must be logged in to add variants.");
+        }
+        if (!context.user.role.includes("admin")) {
+          throw new Error("You must be an admin to add variants.");
+        }
+    
+        const newVariants = await variantService.addMultipleVariants(productId, variantsData);
+    
+        return {
+          success: true,
+          message: "Variants successfully added",
+          variants: [newVariants],
+        };
+      } catch (error) {
+        console.error("Error adding multiple variants:", error.message);
+        return {
+          success: false,
+          message: error.message,
+          variants: null,
+        };
+      }
+    },
+    
   },
 };

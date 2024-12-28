@@ -10,30 +10,6 @@ const subcategoryService = require("../services/subcategoryService");
 
 
 
-// Create a new variant for a product
-const addVariant = async (productId, variantData) => {
-  try {
-    const product = await Product.findById(productId);
-    if (!product) throw new Error('Product not found');
-
-    const variant = new Variant({ ...variantData, productId });
-    await variant.save();
-    console.log('Variant added:', variant);
-  } catch (err) {
-    console.error(err.message);
-  }
-};
-
-
-const getVariantsByProduct =async (productId) =>{
-  try {
-    const variants = await Variant.find({ productId });
-    console.log('Variants:', variants);
-  } catch (err) {
-    console.error(err.message);
-  }
-};
-
 
 
 // const createProduct = async (input) => {
@@ -282,8 +258,7 @@ const createProduct = async (input) => {
         )
       : [];
 
-    // // Process product variants using Variant Service
-    // const processedVariants = await variantService.processVariants(variants);
+   
 
     // Prepare product data
     const productData = { 
@@ -319,21 +294,7 @@ const createProduct = async (input) => {
     if (subcategory) {
       await subcategoryService.addProductToSubCategory(subcategory, savedProduct._id);
     }
-    // Process and add variants (if any)
-    if (variants && variants.length > 0) {
-      const processedVariants = await Promise.all(
-        variants.map(async (variant) => {
-          const newVariant = await variantService.addVariant(savedProduct._id, variant);
-          return newVariant._id;  // Return the variant ID
-        })
-      );
-
-     // Add the created variants to the product's variants field
-     
-     savedProduct.variants = processedVariants;
-     await savedProduct.save();  // Update product with variant IDs
-    }
-     
+    
     // Populate relations (category and subcategory)
     await savedProduct.populate("category subcategory variants");
 
