@@ -14,7 +14,9 @@ const wishlistResolver = require("./wishlistResolver");
 const paymentResolver = require("./paymentResolver");
 
 
+
 const resolvers = mergeResolvers([categoryResolver, subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,orderResolver,wishlistResolver,paymentResolver ]);
+
 
 
 

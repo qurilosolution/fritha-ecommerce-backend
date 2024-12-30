@@ -24,7 +24,7 @@ const razorpayType = gql`
   }
 
   type Mutation {
-     Order(amount: Int!, currency: String!): RazorpayOrder
+    createOrders(amount: Int!, currency: String!): RazorpayOrder
     verifyPayment(
       razorpayOrderId: String!
       razorpayPaymentId: String!

@@ -10,7 +10,7 @@ const paymetResolvers = {
 
   Mutation: {
     // Create an order in Razorpay
-    createOrder: async (_, { amount, currency }) => {
+    createOrders: async (_, { amount, currency }) => {
       try {
         console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID); // Check if the key ID is correct
         console.log("RAZORPAY_SECRET_KEY:", process.env.RAZORPAY_SECRET_KEY); // Check if the secret key is correct
@@ -49,6 +49,8 @@ const paymetResolvers = {
       }
     },
 
+    
+
     // Verify payment
     // verifyPayment: async (
     //   _,
@@ -56,7 +58,7 @@ const paymetResolvers = {
     // ) => {
     //   try {
     //     const generatedSignature = crypto
-    //       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    //       .createHmac("sha256", process.env.RAZORPAY_SECRET_KEY)
     //       .update(`${razorpayOrderId}|${razorpayPaymentId}`)
     //       .digest("hex");
 
@@ -81,42 +83,84 @@ const paymetResolvers = {
     // },
   
   
-    verifyPayment: async (
-        _,
-        { razorpayOrderId, razorpayPaymentId, razorpaySignature }
-      ) => {
-        try {
-          const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
+    // verifyPayment: async (
+    //     _,
+    //     { razorpayOrderId, razorpayPaymentId, razorpaySignature }
+    //   ) => {
+    //     try {
+    //       const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
       
-          // Check if the key secret is available
-          if (!razorpayKeySecret) {
-            throw new Error("RAZORPAY_KEY_SECRET is not defined in environment variables.");
-          }
+    //       // Check if the key secret is available
+    //       if (!razorpayKeySecret) {
+    //         throw new Error("RAZORPAY_KEY_SECRET is not defined in environment variables.");
+    //       }
       
-          const generatedSignature = crypto
-            .createHmac("sha256", razorpayKeySecret)
-            .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-            .digest("hex");
+    //       const generatedSignature = crypto
+    //         .createHmac("sha256", razorpayKeySecret)
+    //         .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+    //         .digest("hex");
       
-          console.log("Generated Signature:", generatedSignature);
-          console.log("Received Razorpay Signature:", razorpaySignature);
+    //       console.log("Generated Signature:", generatedSignature);
+    //       console.log("Received Razorpay Signature:", razorpaySignature);
       
-          if (generatedSignature === razorpaySignature) {
-            return {
-              success: true,
-              message: "Payment verified successfully!",
-            };
-          } else {
-            return {
-              success: false,
-              message: "Payment verification failed. Invalid signature.",
-            };
-          }
-        } catch (error) {
-          console.error("Error verifying payment:", error);
-          throw new Error("Failed to verify payment. Please try again.");
+    //       if (generatedSignature === razorpaySignature) {
+    //         return {
+    //           success: true,
+    //           message: "Payment verified successfully!",
+    //         };
+    //       } else {
+    //         return {
+    //           success: false,
+    //           message: "Payment verification failed. Invalid signature.",
+    //         };
+    //       }
+    //     } catch (error) {
+    //       console.error("Error verifying payment:", error);
+    //       throw new Error("Failed to verify payment. Please try again.");
+    //     }
+    //   }
+
+
+
+    verifyPayment: async (_, { razorpayOrderId, razorpayPaymentId, razorpaySignature }) => {
+      try {
+        const razorpayKeySecret = process.env.RAZORPAY_SECRET_KEY;
+    
+        if (!razorpayKeySecret) {
+          throw new Error("RAZORPAY_SECRET_KEY is not defined in environment variables.");
         }
+    
+        if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+          throw new Error("Missing required parameters for payment verification.");
+        }
+    
+        const generatedSignature = crypto
+          .createHmac("sha256", razorpayKeySecret)
+          .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+          .digest("hex");
+    
+        console.log("Generated Signature:", generatedSignature);
+        console.log("Received Razorpay Signature:", razorpaySignature);
+    
+        if (generatedSignature === razorpaySignature) {
+          return {
+            success: true,
+            message: "Payment verified successfully!",
+          };
+        } else {
+          return {
+            success: false,
+            message: "Payment verification failed. Invalid signature.",
+          };
+        }
+      } catch (error) {
+        console.error("Error verifying payment:", error);
+        return {
+          success: false,
+          message: error.message || "Failed to verify payment. Please try again.",
+        };
       }
+    }
       
   },
 };
