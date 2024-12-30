@@ -2,14 +2,224 @@ const Product = require("../models/Product");
 const cloudinary = require("../config/cloudinary");
 const uploadImageToCloudinary = require("../utils/fileUpload");
 const review = require("../models/review");
-const Category = require("../models/category")
+const Category = require("../models/category");
+
+const variantService = require("../services/variantService");
 const categoryService = require("../services/categoryService");
 const subcategoryService = require("../services/subcategoryService");
+
+
+
+
+
+// const createProduct = async (input) => {
+//   try {
+//     if (!input || Object.keys(input).length === 0) {
+//       throw new Error("Input data is missing.");
+//     }
+//     const {
+//       name,
+//       category,
+//       subcategory,
+//       description,
+//       keyBenefits,
+//       imageUrl,
+//       netContent,
+//       review,
+//       variants,
+//       usp,
+//       mrp,
+//       price,
+//       stock,
+//       isStock,
+//       discount,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//     } = input;
+
+//     // Validate required fields
+//     if (!name || !category) {
+//       throw new Error("Name and Category are required fields.");
+//     }
+
+//     // Process product images
+//     const processedImages = imageUrl
+//       ? await Promise.all(
+//           (Array.isArray(imageUrl) ? imageUrl : [imageUrl])
+//             .filter(Boolean) // Ensure valid images
+//             .map((image) => uploadImageToCloudinary(image))
+//         )
+//       : [];
+
+//     // // Process variant images
+//     // const processedVariants = variants && Array.isArray(variants)
+//     //   ? await Promise.all(
+//     //       variants.map(async (variant) => {
+//     //         if (variant.imageUrl) {
+//     //           const variantImageUrl = await uploadImageToCloudinary(variant.imageUrl);
+//     //           return { ...variant, imageUrl: variantImageUrl };
+//     //         }
+//     //         return variant;
+//     //       })
+//     //     )
+//     //   : [];
+
+//     // Prepare product data
+//     const productData = {
+//       name,
+//       category,
+//       subcategory,
+//       description,
+//       keyBenefits,
+//       netContent,
+//       review,
+//       variants,
+//       usp,
+//       mrp,
+//       price,
+//       stock,
+//       isStock: Boolean(isStock),
+//       discount,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//       imageUrl: processedImages,
+//     };
+
+//     // Create the product
+//     const product = new Product(productData);
+//     const savedProduct = await product.save();
+
+//     // Delegate category updates
+//     await categoryService.addProductToCategory(category, savedProduct._id);
+//     if (subcategory) {
+//       await subcategoryService.addProductToSubCategory(subcategory, savedProduct._id);
+//     }
+
+//     // Populate relations
+//     await product.populate("category subcategory");
+
+//     return product;
+//   } catch (error) {
+//     console.error("Error creating product:", error.message);
+//     throw new Error(`Service error while creating product: ${error.message}`);
+//   }
+// };
+
+
+// const createProduct = async (input) => {
+//   try {
+//     if (!input || Object.keys(input).length === 0) {
+//       throw new Error("Input data is missing.");
+//     }
+
+//     const {
+//       name,
+//       category,
+//       subcategory,
+//       description,
+//       keyBenefits,
+//       imageUrl,
+//       netContent,
+//       review,
+//       variants,
+//       usp,
+//       mrp,
+//       price,
+//       stock,
+//       isStock,
+//       discount,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//     } = input;
+
+//     // Validate required fields
+//     if (!name || !category) {
+//       throw new Error("Name and Category are required fields.");
+//     }
+
+//     // Process main product images
+//     const processedImages = await processImages(imageUrl);
+
+//     // Prepare product data
+//     const productData = {
+//       name,
+//       category,
+//       subcategory,
+//       description,
+//       keyBenefits,
+//       netContent,
+//       review,
+//       variants: [],
+//       usp,
+//       mrp,
+//       price,
+//       stock,
+//       isStock: Boolean(isStock),
+//       discount,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//       imageUrl: processedImages,
+//     };
+
+//     // Process variant images
+//     if (variants && Array.isArray(variants)) {
+//       productData.variants = await uploadImagesForVariants(variants);
+//     }
+
+//     // Create and save the product
+//     const product = new Product(productData);
+//     const savedProduct = await product.save();
+
+//     // Update category and subcategory
+//     await categoryService.addProductToCategory(category, savedProduct._id);
+//     if (subcategory) {
+//       await subcategoryService.addProductToSubCategory(
+//         subcategory,
+//         savedProduct._id
+//       );
+//     }
+
+//     // Populate category and subcategory references
+//     await savedProduct.populate("category subcategory");
+
+//     return savedProduct;
+//   } catch (error) {
+//     console.error("Error creating product:", error.message);
+//     throw new Error(`Service error while creating product: ${error.message}`);
+//   }
+// };
+
+// Helper to process image URLs
+// const processImages = async (imageUrl) => {
+//   if (!imageUrl) return [];
+//   const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
+//   return Promise.all(
+//     images.filter((image) => image).map((image) => uploadImageToCloudinary(image))
+//   );
+// };
+
 const createProduct = async (input) => {
   try {
     if (!input || Object.keys(input).length === 0) {
       throw new Error("Input data is missing.");
     }
+
     const {
       name,
       category,
@@ -33,24 +243,25 @@ const createProduct = async (input) => {
       averageRating,
       isBestSeller,
     } = input;
+
     // Validate required fields
     if (!name || !category) {
       throw new Error("Name and Category are required fields.");
     }
-    
 
     // Process product images
     const processedImages = imageUrl
       ? await Promise.all(
           (Array.isArray(imageUrl) ? imageUrl : [imageUrl])
-            .filter((image) => image) // Ensure valid images
+            .filter(Boolean)
             .map((image) => uploadImageToCloudinary(image))
         )
       : [];
-    console.log("Processed images:", processedImages);
-    
-    // Prepare the product data
-    const productData = {
+
+   
+
+    // Prepare product data
+    const productData = { 
       name,
       category,
       subcategory,
@@ -58,7 +269,7 @@ const createProduct = async (input) => {
       keyBenefits,
       netContent,
       review,
-      variants,
+      variants: [],
       usp,
       mrp,
       price,
@@ -73,28 +284,23 @@ const createProduct = async (input) => {
       isBestSeller,
       imageUrl: processedImages,
     };
-    
-    // Process variant images
-    if (variants && Array.isArray(variants)) {
-      productData.variants = await uploadImagesForVariants(variants);
-    } else {
-      productData.variants = [];
-    }
-    console.log("Final variants to be saved:", productData.variants);
+
     // Create the product
     const product = new Product(productData);
-    
-    
     const savedProduct = await product.save();
-    
-    // Delegate category update to categoryService
+
+    // Delegate category updates
     await categoryService.addProductToCategory(category, savedProduct._id);
+    if (subcategory) {
+      await subcategoryService.addProductToSubCategory(subcategory, savedProduct._id);
+    }
+    
+    // Populate relations (category and subcategory)
+    await savedProduct.populate("category subcategory variants");
 
-    await subcategoryService.addProductToSubCategory(subcategory, savedProduct._id);
+   
 
-    await product.populate("category");
-    await product.populate("subcategory");
-    return product;
+    return savedProduct;
   } catch (error) {
     console.error("Error creating product:", error.message);
     throw new Error(`Service error while creating product: ${error.message}`);
@@ -191,6 +397,7 @@ const getProducts = async () => {
     throw new Error(`Error fetching products: ${error.message}`);
   }
 };
+
 const getProductById = async (id) => {
   try {
     return await Product.findById(id)
@@ -223,6 +430,7 @@ const updateProduct = async (id, input) => {
       mrp,
       price,
       stock,
+      imageUrl,
       ingredients,
       keyFeatures,
       additionalDetails,
@@ -246,6 +454,8 @@ const updateProduct = async (id, input) => {
       keyBenefits,
       netContent,
       review,
+      variants,
+      imageUrl,
       usp,
       mrp,
       price,
@@ -285,7 +495,7 @@ const updateProduct = async (id, input) => {
         variants.map(async (variant) => {
           
           console.log("Variant newImages:", variant.newImages);
-          if (variant.newImages && Array.isArray(variant.newImages)&& variant.newImages.length > 0) {
+          if (variant.newImages && Array.isArray(variant.newImages)) {
             if (variant.publicIds && Array.isArray(variant.publicIds)) {
               await Promise.all(
                 variant.publicIds.map((publicId) =>
@@ -388,6 +598,8 @@ const updateProductImage = async (productId, newImageUrl) => {
     throw new Error(`Error updating product: ${error.message}`);
   }
 };
+
+
 module.exports = {
   getBestSellers,
   updateBestSellers,
@@ -399,5 +611,8 @@ module.exports = {
   deleteImageFromCloudinary,
   uploadImageToCloudinary,
   updateProductImage,
-  uploadImagesForVariants
+  uploadImagesForVariants,
+  
+
+
 };

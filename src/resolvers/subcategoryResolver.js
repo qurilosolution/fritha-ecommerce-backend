@@ -9,45 +9,27 @@ const subcategoryResolver = {
     getSubcategoryById: subcategoryService.getSubcategoryById,
   },
   Mutation: {
-     createSubcategory: async (_, { name, description, imageUrl, categoryId } , context) => {
-      console.log(context.user);
-      if (!context.user) 
-        throw Error("You must be logged in to create a category");
-      if (!context.user.role.includes("admin"))
-        throw Error("You must be an admin to create a category");
+    createSubcategory : async (_, { name, description, imageUrl, categoryId }, context) => {
       try {
-        // Initialize subcategory data
+        // Check user authentication and authorization
+        if (!context.user) {
+          throw new Error("You must be logged in to create a subcategory.");
+        }
+        if (!context.user.role.includes("admin")) {
+          throw new Error("You must be an admin to create a subcategory.");
+        }
+    
+        // Prepare the subcategory data
         const subcategoryData = {
-          name, 
-          description: description || null,
-          imageUrl: [], // Initialize empty array for image URLs
+          name,
+          description,
+          imageUrl: Array.isArray(imageUrl) ? imageUrl : [imageUrl], // Ensure imageUrl is an array
           categoryId,
         };
-        // Handle file upload if imageUrl is provided
-        if (imageUrl) {
-          const uploadedImages = [];
-          console.log("Type of imageUrl:", typeof imageUrl);
-          // Await the imageUrl to resolve if it's a file upload or promise
-          const images = Array.isArray(imageUrl) ? imageUrl : [await imageUrl];
-          for (const image of images) {
-            try {
-              // Upload image to Cloudinary
-              const uploadedImage = await uploadImageToCloudinary(image);
-              console.log("Uploaded Image:", uploadedImage);
-              if (!uploadedImage) {
-                throw new Error("Uploaded image does not contain a URL.");
-              }
-              uploadedImages.push(uploadedImage); // Add uploaded image URL to array
-            } catch (error) {
-              console.error("Error uploading image:", error.message);
-              throw new Error("Image upload failed.");
-            }
-          }
-          // Assign the uploaded image URLs to subcategory data
-          subcategoryData.imageUrl = uploadedImages;
-        }
-        // Pass the complete subcategory data to the service layer
+    
+        // Call the service to create the subcategory
         const subcategory = await subcategoryService.createSubcategory(subcategoryData);
+    
         console.log("Subcategory created successfully:", subcategory);
         return subcategory;
       } catch (error) {
@@ -55,44 +37,40 @@ const subcategoryResolver = {
         throw new Error(`Failed to create subcategory: ${error.message}`);
       }
     },
-
    
-    updateSubcategory: async (_, args  , context) => {
-      console.log("Input args received in resolver:", args);
-      console.log(context.user);
-      if (!context.user)
-        throw Error("You must be logged in to create a category");
-      if (!context.user.role.includes("admin"))
-        throw Error("You must be an admin to create a category");
-
+    updateSubcategory : async (_, { id, name, description, imageUrl, categoryId }, context) => {
       try {
-        const { id, name, description, imageUrl, categoryId } = args;
-        // Ensure ID and categoryId are valid strings
+        console.log("Input args received in resolver:", { id, name, description, imageUrl, categoryId });
+    
+        // Check user authentication and authorization
+        if (!context.user) {
+          throw new Error("You must be logged in to update a subcategory.");
+        }
+        if (!context.user.role.includes("admin")) {
+          throw new Error("You must be an admin to update a subcategory.");
+        }
+    
+        // Validate ID and categoryId
         if (!id || typeof id !== "string") {
           throw new Error("Subcategory ID must be a valid string.");
         }
         if (categoryId && typeof categoryId !== "string") {
           throw new Error("Category ID must be a valid string.");
         }
+    
         console.log("Validated IDs:", { id, categoryId });
-        // Prepare image upload handling
-        let uploadedImages = [];
-        if (imageUrl) {
-          console.log("Handling file upload for imageUrl...");
-          const images = Array.isArray(imageUrl) ? imageUrl : [await imageUrl];
-          for (const image of images) {
-            const uploadedImage = await uploadImageToCloudinary(image);
-            if (!uploadedImage) throw new Error("Failed to upload image.");
-            uploadedImages.push(uploadedImage);
-          }
-        }
-        // Call service to update subcategory
+    
+        // Handle image uploads
+        const uploadedImages = await subcategoryService.handleImageUploads(imageUrl);
+    
+        // Call the service to update the subcategory
         const updatedSubcategory = await subcategoryService.updateSubcategory(id, {
           name,
           description,
           imageUrl: uploadedImages.length > 0 ? uploadedImages : undefined,
           categoryId,
         });
+    
         console.log("Subcategory successfully updated:", updatedSubcategory);
         return updatedSubcategory;
       } catch (error) {
@@ -100,6 +78,7 @@ const subcategoryResolver = {
         throw new Error(`Failed to update subcategory: ${error.message}`);
       }
     },
+    
     deleteSubcategory: async (_, { subcategoryId, categoryId } , context) => {
       // console.log("Input args received in resolver:", args);
       console.log(context.user);
