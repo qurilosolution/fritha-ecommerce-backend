@@ -10,7 +10,7 @@ const paymetResolvers = {
 
   Mutation: {
     // Create an order in Razorpay
-    createOrder: async (_, { amount, currency }) => {
+    createOrders: async (_, { amount, currency }) => {
       try {
         console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID); // Check if the key ID is correct
         console.log("RAZORPAY_SECRET_KEY:", process.env.RAZORPAY_SECRET_KEY); // Check if the secret key is correct
