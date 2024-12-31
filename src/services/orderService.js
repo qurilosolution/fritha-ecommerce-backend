@@ -51,7 +51,7 @@ const orderService = {
 
           
           return {
-            product: product._id,
+            product: product._id.toString(),
             quantity: orderProduct.quantity,
             price: product.price,
             discount: product.discount,

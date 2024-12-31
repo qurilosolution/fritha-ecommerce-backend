@@ -17,9 +17,9 @@ const authType = gql`
     user: User
     token: String   
   }
-
+    
   type Query {
-    getUser(email: String!): User
+     getUser: User
   }
 
   type Mutation {
