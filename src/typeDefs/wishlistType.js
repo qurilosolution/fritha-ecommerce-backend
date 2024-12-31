@@ -1,21 +1,26 @@
-const { gql } = require('apollo-server-express');
+const { gql } = require("apollo-server-express");
 
 const wishlistType = gql`
-  type WishlistItem {
-    id: ID!
+type WishlistItem {
+  productIds: [ID!]!  # Change to 'productIds' to match the data structure
+  addedAt: String!
+}
+
+
+
+  type Wishlist {
     userId: ID!
-    productId: ID!
-    addedAt: String!
+    items: [WishlistItem!]!
   }
 
   type Query {
-    getWishlistByUser(userId: ID!): [WishlistItem!]!
+    getWishlistByUser(userId: ID!): Wishlist!
     getWishlistItemById(id: ID!): WishlistItem
   }
 
   type Mutation {
-    addToWishlist(userId: ID!, productId: ID!): WishlistItem!
-    removeFromWishlist(userId: ID!, productId: ID!): WishlistItem!
+    addToWishlist(userId: ID!, productIds: [ID!]!): Wishlist!
+    removeFromWishlist(userId: ID!, productId: ID!): Wishlist!
   }
 `;
 
