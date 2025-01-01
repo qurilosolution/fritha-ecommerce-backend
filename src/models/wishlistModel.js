@@ -6,7 +6,8 @@ const WishlistItemSchema = new Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
   items: [
     {
-      productIds: { type: [mongoose.Schema.Types.ObjectId], required: true, ref: 'Product' },  // Change to 'productIds' (array)
+      product: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Product' },
+      variant: { type: mongoose.Schema.Types.ObjectId, ref: 'Variant' },  // Change to 'productIds' (array)
       addedAt: { type: Date, default: Date.now },
     },
   ],
