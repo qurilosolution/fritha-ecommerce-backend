@@ -4,13 +4,9 @@ const wishlistResolver = {
   Query: {
 
     getWishlist: (_, { userId }) => {
-      return WishlistService.getWishlist(userId);
+       return WishlistService.getWishlist(userId);
     },
-
-
   },
-
-
 
   Mutation: {
     addToWishlist: (_, { userId, item }) => {

@@ -48,8 +48,12 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
-const server = new ApolloServer({ typeDefs, resolvers ,uploads:true , context:authMiddleware,
+// const server = new ApolloServer({ typeDefs, resolvers ,uploads:true , context:authMiddleware,
+// });  
+
+const server = new ApolloServer({ typeDefs, resolvers ,uploads:true
 });  
+
 
 
 const startServer = async () => {

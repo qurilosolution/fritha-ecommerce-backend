@@ -1,28 +1,50 @@
 // wishlistService.js
 const WishlistItem = require("../models/wishlistModel");  // Assuming you have a models folder where your database models are located
 const mongoose = require('mongoose');
+const Product = require("../models/Product");
+const Variant = require("../models/Variant");
+
 
 const WishlistService = {
 
 
 
-
+ 
   getWishlist: async (userId) => {
     try {
-      // Fetch the user's wishlist from the database
-      const wishlist = await WishlistItem.findOne({ userId });
-      
+      console.log(userId, "Fetching Wishlist");
+  
+      // Fetch the user's wishlist and populate product and variant data
+      const wishlist = await WishlistItem.findOne({ userId })
+        .populate({
+          path: 'items.product', // Correct path for the product
+          model: 'Product', // Explicitly mention the model (optional but good practice)
+          select: 'name', // Only fetch the name of the product
+        })
+        .populate({
+          path: 'items.variant', // Correct path for the variant
+          model: 'Variant', // Explicitly mention the model (optional but good practice)
+          select: 'pack', // Only fetch the pack of the variant
+        });
+  
+      if (!wishlist) {
+        throw new Error('Wishlist not found');
+      }
+  
       return {
-        id: wishlist.id, // Include the ID field
-        userId: wishlist.userId, // Include the userId field
-        items: wishlist.items
+        id: wishlist.id,
+        userId: wishlist.userId,
+        items: wishlist.items.map(item => ({
+          product: item.product, // Populated product data
+          variant: item.variant, // Populated variant data
+          addedAt: item.addedAt, // Include the addedAt field
+        })),
       };
-      
-      // assuming the items are stored in a field called 'items'
     } catch (error) {
       throw new Error(`Error fetching wishlist: ${error.message}`);
     }
   },
+  
 
 
 
@@ -30,33 +52,11 @@ const WishlistService = {
 
 
 
-  // addToWishlist: async (userId, item) => {
-  //   try {
-  //     // Check if the variant is a valid ObjectId
-  //     if (!mongoose.Types.ObjectId.isValid(item.variant)) {
-  //       throw new Error('Invalid variant ID');
-  //     }
 
-  //     // Convert variant to ObjectId if valid
-  //     const variantObjectId = new mongoose.Types.ObjectId(item.variant);
 
-  //     // Find the user's wishlist
-  //     let wishlist = await WishlistItem.findOne({ userId }); // Use Wishlist model here
 
-  //     // If no wishlist exists, create one
-  //     if (!wishlist) {
-  //       wishlist = await WishlistItem.create({ userId, items: [] });
-  //     }
 
-  //     // Add the new item to the wishlist
-  //     wishlist.items.push({ ...item, variant: variantObjectId });
-  //     await wishlist.save();
 
-  //     return wishlist;
-  //   } catch (error) {
-  //     throw new Error(`Error adding item to wishlist: ${error.message}`);
-  //   }
-  // },
 
 
 
@@ -92,46 +92,16 @@ const WishlistService = {
   
 
 
-
-
-
-
-
-
-
-
-  // removeFromWishlist: async (userId, productId) => {
-  //   console.log(productId, "llolololo")
-  //   try {
-  //     // Find the user's wishlist
-  //     const wishlist = await WishlistItem.findOne({ userId });
-  
-  //     if (!wishlist) {
-  //       throw new Error("Wishlist not found");
-  //     }
-  
-  //     // Remove the item from the wishlist by matching the product ID correctly
-  //     const updatedItems = wishlist.items.filter(item => item.product.toString() !== productId);
-  
-  //     // If no items remain, you might want to clear the items array entirely
-  //     wishlist.items = updatedItems;
-  //     await wishlist.save();
-  
-  //     // Return the updated wishlist with its ID and userId
-  //     return {
-  //       id: wishlist.id, // Include the ID field
-  //       userId: wishlist.userId, // Include the userId field
-  //       items: wishlist.items
-  //     };
-  //   } catch (error) {
-  //     throw new Error(`Error removing item from wishlist: ${error.message}`);
-  //   }
-  // },
   
   
   removeFromWishlist: async (userId, productId, variantId) => {
     console.log(productId, variantId, "Removing from wishlist");
     try {
+      // Check if productId and variantId are valid
+      if (!productId || !variantId) {
+        throw new Error("Product ID or Variant ID is missing");
+      }
+  
       // Find the user's wishlist
       const wishlist = await WishlistItem.findOne({ userId });
   
@@ -141,10 +111,11 @@ const WishlistService = {
   
       // Remove the item from the wishlist by matching both productId and variantId
       const updatedItems = wishlist.items.filter(item => 
-        item.product.toString() !== productId || item.variant.toString() !== variantId
+        item.product?.toString() !== productId.toString() || 
+        item.variant?.toString() !== variantId.toString()
       );
   
-      // If no items remain, you might want to clear the items array entirely
+      // If no items remain, clear the items array entirely
       wishlist.items = updatedItems;
       await wishlist.save();
   
@@ -152,7 +123,7 @@ const WishlistService = {
       return {
         id: wishlist.id, // Include the ID field
         userId: wishlist.userId, // Include the userId field
-        items: wishlist.items
+        items: wishlist.items,
       };
     } catch (error) {
       throw new Error(`Error removing item from wishlist: ${error.message}`);
