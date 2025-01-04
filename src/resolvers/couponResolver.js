@@ -8,25 +8,63 @@ const couponResolvers = {
     },
 
     // Fetch all coupons (excluding soft-deleted ones by default)
-    listCoupons: async () => {
-      return couponService.getAllCoupons();
+    listCoupons: async (_, __, context) => {
+      console.log(context, "lolololo");
+      if (!context) {
+        throw new Error('You must be logged in to add items to the coupon');
+      }
+      try {
+        return couponService.getAllCoupons();
+      } catch (error) {
+        throw new Error('Error adding item to coupon: ' + error.message);
+      }
     },
+    
   },
 
   Mutation: {
     // Create a new coupon
-    createCoupon: async (_, args) => {
-      return couponService.createCoupon(args);
+    createCoupon: async (_, args, context) => {
+      if (!context) {
+        throw new Error('You must be logged in to add items to the coupon');
+      }
+      try{
+        return couponService.createCoupon(args);
+      }catch(error){
+        throw new Error('Error adding item to coupon: ' + error.message);
+
+      }
     },
 
     // Update an existing coupon
-    updateCoupon: async (_, { id, ...updateData }) => {
-       return couponService.updateCoupon(id, updateData);
+    updateCoupon: async (_, { id, ...updateData },context) => {
+      if (!context) {
+        throw new Error('You must be logged in to add items to the coupon');
+      }
+
+      try{
+        return couponService.updateCoupon(id, updateData);
+
+      }catch(error){
+
+        throw new Error('Error adding item to coupon: ' + error.message);
+
+      }
     },
 
     // Soft-delete a coupon
-    deleteCoupon: async (_, { id }) => {
-      return couponService.softDeleteCoupon(id);
+    deleteCoupon: async (_, { id },context) => {
+      if (!context) {
+        throw new Error('You must be logged in to add items to the coupon');
+      }
+      try{
+        return couponService.softDeleteCoupon(id);
+
+      }catch(error){
+
+        throw new Error('Error adding item to coupon: ' + error.message);
+
+      }
     },
   },
 };

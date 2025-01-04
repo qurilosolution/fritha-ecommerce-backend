@@ -69,6 +69,13 @@
 // };
 
 // module.exports = couponService;
+
+
+
+
+
+
+
 const Coupon = require('../models/couponModel');
 
 const couponService = {
