@@ -22,7 +22,8 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16",
     "razorpay": "^2.9.5",
-    "uuid": "^11.0.3"
+    "uuid": "^11.0.3",
+    "uuidv4": "^6.2.13"
   },
   "peerDependencies": {
     "graphql": " ^15.0.0"
