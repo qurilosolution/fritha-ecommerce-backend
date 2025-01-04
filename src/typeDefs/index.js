@@ -9,6 +9,7 @@ const reviewType = require("./reviewType");
 const wishlistType = require("./wishlistType")
 const paymentType = require("./paymentType")
 const orderType = require("./orderType")
+const couponType = require("./couponType")
 
 const cartType=require("./cartType");
 
@@ -24,6 +25,7 @@ const typeDefs = gql`
   ${wishlistType}
   ${paymentType}
   ${cartType}
+  ${couponType}
 `;
 
 module.exports = typeDefs;
