@@ -10,6 +10,7 @@ const { authMiddleware } = require('./src/middleware/authmiddleware');
 const connectDB = require('./src/config/db');
 const { updateBestSellers } = require('./src/services/productService');
 const Product = require('./src/models/Product');
+const { authentication } = require('./src/middleware/authmiddleware');
 
 const app = express();
 app.use(express.json()); 

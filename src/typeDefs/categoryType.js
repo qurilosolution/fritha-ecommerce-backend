@@ -20,7 +20,7 @@ scalar Upload
     success: Boolean!
     message: String
   }
-
+  
   extend type Query {
     getCategories: [Category]
     getCategoryById(id: ID!): Category
