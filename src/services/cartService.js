@@ -107,12 +107,11 @@ exports.updateCart=async(userId,productId,variantId,quantity)=>{
                 throw new Error('Product not found');
             }
             const variant=await Variant.findById(variantId);
-
             const existingItem=cart.items.find(item=>item.product.toString()===productId.toString()&&(item.variant?item.variant.toString()===variantId.toString():true));
             // console.log("existingItem112")
             if(existingItem){
                 console.log("existingItem",existingItem)
-                // existingItem.quantity=quantity;
+                existingItem.quantity=quantity;
                 await cart.save();
                 const updatedItem={
                     product,
@@ -120,7 +119,6 @@ exports.updateCart=async(userId,productId,variantId,quantity)=>{
                     quantity
                 }
                 return updatedItem;
-            
                 
             }else{
                 throw new Error('Product not found in cart');
@@ -134,16 +132,23 @@ exports.updateCart=async(userId,productId,variantId,quantity)=>{
 exports.syncCart=async(userId,items)=>{
     try{
         const cart=await Cart.findOne({userId});
+        console.log(userId,cart,"cart")
         if(!cart){
             throw new Error('Cart not found');
         }else{
+            console.log(items,"items")
             items.forEach(item=>{
-                const existingItem=cart.items.find(itm=>itm.product.toString()===item.productId.toString()&&(item.variantId?item.variantId.toString()===itm.variant.toString():true));
+                const existingItem=cart.items.find(itm=>itm.product?.toString()===item.productId?.toString()&&(itm.variant?.toString()===item.variantId?.toString()));
                 if(existingItem){
                     existingItem.quantity+=item.quantity;
                 }
                 else{
-                    cart.items.push(item);
+                    const newItem={
+                        product:item.productId,
+                        variant:item.variantId,
+                        quantity:item.quantity
+                    }
+                    cart.items.push(newItem);
                 }
             })
             await cart.save();

@@ -11,6 +11,7 @@ const paymentType = require("./paymentType")
 const orderType = require("./orderType")
 
 const cartType=require("./cartType");
+const addressType = require('./addressType');
 
 const typeDefs = gql`
   ${baseType}
@@ -24,6 +25,7 @@ const typeDefs = gql`
   ${wishlistType}
   ${paymentType}
   ${cartType}
+  ${addressType}
 `;
 
 module.exports = typeDefs;
