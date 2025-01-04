@@ -8,6 +8,7 @@ const categoryResolver = {
     getCategoryById: categoryService.getCategoryById,
   },
   Mutation: {
+    
     createCategory: async (_, { name, description, bannerImageUrl, cardImageUrl }, context) => {
       console.log(context.user);
     

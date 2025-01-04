@@ -1,30 +1,35 @@
 const mongoose = require('mongoose');
-
+const { v4: uuidv4 } = require('uuid');
+const ShippingAddressSchema = new mongoose.Schema({
+  address: { type: String, required: true },
+  city: { type: String, required: true },
+  state: { type: String, required: true },
+  zip: { type: String, required: true },
+  country: { type: String, required: true },
+});
 const OrderSchema = new mongoose.Schema(
   {
-    customer: { type: String, required: true },
-    products: [
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Auth', required: true},
+    items: [
       {
         product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+        variant: { type: mongoose.Schema.Types.ObjectId, ref: 'Variant' },
         quantity: { type: Number, required: true },
         price: { type: Number, required: true },
         discount: { type: Number, required: true },
         mrp: { type: Number, required: true },
-      }
+      },
     ],
     totalAmount: { type: Number, required: true },
-    status: { type: String, enum: ['Pending','Shipping', 'Delivered'], default: 'Pending' },
+    paymentMode: { type: String, enum: ["COD", "Online"], required: true },
+    paymentStatus: { type: String, enum: ["Unpaid", "Processing", "Paid"], default: "Unpaid" },
+    status: { type: String, enum: ["Pending", "Placed", "Cancelled"], default: "Pending" },
+    shippingAddress: {type :ShippingAddressSchema, required : true},
+    orderId: { type: String, default: uuidv4 },
+    paymentId: { type: String ,required: true},
     createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
-
-// Middleware to update the `updatedAt` field before saving
-OrderSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
-
-
-
 module.exports = mongoose.model('Order', OrderSchema);

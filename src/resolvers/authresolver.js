@@ -233,6 +233,7 @@ const authResolvers = {
       }
     },
 
+    
     resetPasswordWithOtp: async (_, { newPassword }, { req }) => {
       try {
         // Get the token from cookies
