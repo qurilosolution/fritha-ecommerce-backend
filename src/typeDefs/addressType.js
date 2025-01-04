@@ -38,7 +38,7 @@ type DeletionResponse {
   extend type Mutation {
     createAddress(input: AddressInput): Address
     updateAddress(id,:ID!,input: AddressInput): Address
-    deleteAddress(id: ID!): DeletionResponse
+    deleteAddress(id: ID!): Address
     
 }
 `;
