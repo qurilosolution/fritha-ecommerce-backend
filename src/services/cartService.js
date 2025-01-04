@@ -107,12 +107,11 @@ exports.updateCart=async(userId,productId,variantId,quantity)=>{
                 throw new Error('Product not found');
             }
             const variant=await Variant.findById(variantId);
-
             const existingItem=cart.items.find(item=>item.product.toString()===productId.toString()&&(item.variant?item.variant.toString()===variantId.toString():true));
             // console.log("existingItem112")
             if(existingItem){
                 console.log("existingItem",existingItem)
-                // existingItem.quantity=quantity;
+                existingItem.quantity=quantity;
                 await cart.save();
                 const updatedItem={
                     product,
@@ -120,7 +119,6 @@ exports.updateCart=async(userId,productId,variantId,quantity)=>{
                     quantity
                 }
                 return updatedItem;
-            
                 
             }else{
                 throw new Error('Product not found in cart');
