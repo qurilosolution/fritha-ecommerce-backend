@@ -1,5 +1,7 @@
 const OrderService = require("../services/paymentService");
 const Order = require("../models/Order"); // Order model for database operations
+const Coupon = require("../models/couponModel"); // Import the Coupon model
+const { CustomerModel: Customer } = require("../models/customerModel"); // Import the Customer model properly
 
 const paymentResolvers = {
   Query: {
@@ -25,39 +27,125 @@ const paymentResolvers = {
   },
 
   Mutation: {
-     createOrder :async (_, { userId, items, totalAmount,paymentId, status, paymentMode, paymentStatus ,shippingAddress } ,context) => {
-      try {
+    //  createOrder :async (_, { userId, items, totalAmount,paymentId, status, paymentMode, paymentStatus ,shippingAddress } ,context) => {
+    //   try {
        
         
+        // console.log("User context:", context.user);
+      
+        // // Ensure the user is logged in and has the "admin" role
+        // if (!context.user) {
+        //   throw new Error("You must be logged in to update a order.");
+        // }
+        // if (!context.user.role.includes("admin") && !context.user.role.includes("user")) {
+        //   throw new Error("You must be an admin or a user to update an order.");
+        // }
+        
+       
+    //     // Call the OrderService to handle order creation
+    //     const order = await OrderService.createOrder(
+    //       userId,
+    //       items,
+    //       totalAmount,
+    //       paymentId,
+    //       status,
+    //       paymentMode,
+    //       paymentStatus,
+    //       shippingAddress
+    //     );
+       
+    //     return order;
+    //   } catch (error) {
+    //     console.error("Error in createOrder resolver:", error);
+    //     throw new Error(error.message || "Failed to create order.");
+    //   }
+    // },
+
+
+    createOrder: async (_, { userId, items, totalAmount, paymentId, status, paymentMode, paymentStatus, shippingAddress, couponCode }, context) => {
+      try {
+
+             
         console.log("User context:", context.user);
       
         // Ensure the user is logged in and has the "admin" role
         if (!context.user) {
           throw new Error("You must be logged in to update a order.");
         }
-        if (!context.user.role.includes("admin") && !context.user.role.includes("user")) {
+        if (!context.user.role.includes("admin") && !context.user.role.includes("customer")) {
           throw new Error("You must be an admin or a user to update an order.");
         }
         
-       
-        // Call the OrderService to handle order creation
+        let discountAmount = 0;
+        let coupon = null;
+    
+        // Check if a coupon is provided
+        if (couponCode) {
+          // Validate the coupon
+          coupon = await Coupon.findOne({ code: couponCode, status: "active" });
+          if (!coupon) {
+            throw new Error("Invalid or expired coupon code.");
+          }
+    
+          // Check coupon validity dates
+          const now = new Date();
+          if (now < coupon.startDate || now > coupon.endDate) {
+            throw new Error("Coupon is not valid at this time.");
+          }
+    
+          // Calculate the discount amount
+          if (coupon.discountPercentage) {
+            discountAmount = (totalAmount * coupon.discountPercentage) / 100;
+          } else if (coupon.flatDiscount) {
+            discountAmount = coupon.flatDiscount;
+          }
+    
+          // Ensure the discount does not exceed the total amount
+          if (discountAmount > totalAmount) {
+            discountAmount = totalAmount;
+          }
+    
+          // Update the coupon usage for the user
+          await Customer.findByIdAndUpdate(
+            userId,
+            {
+              $push: {
+                couponUsed: {
+                  couponId: coupon._id,
+                  usedAt: new Date(),
+                  couponUsageCount: 1,
+                },
+              },
+            },
+            { new: true }
+          );
+        }
+    
+        // Calculate the final total amount after applying the discount
+        const finalTotalAmount = totalAmount - discountAmount;
+    
+        // Create the order
         const order = await OrderService.createOrder(
           userId,
           items,
-          totalAmount,
+          finalTotalAmount,
           paymentId,
           status,
           paymentMode,
           paymentStatus,
-          shippingAddress
+          shippingAddress,
+          { code: couponCode, discountAmount } // Add coupon info to the order
         );
-       
+    
         return order;
       } catch (error) {
         console.error("Error in createOrder resolver:", error);
         throw new Error(error.message || "Failed to create order.");
       }
     },
+
+
+
 
     verifyPayment: async (_, { razorpayOrderId, razorpayPaymentId, razorpaySignature }) => {
       try {

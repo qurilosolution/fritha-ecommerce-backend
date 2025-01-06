@@ -10,6 +10,7 @@ const wishlistResolver = require("./wishlistResolver");
 const paymentResolver = require("./paymentResolver");
 const cartResolver = require("./cartResolver");
 const CouponResolver = require("./couponResolver");
+const testResolver = require("./testingResolver");
 
 const resolvers = mergeResolvers([
   categoryResolver,
@@ -22,7 +23,8 @@ const resolvers = mergeResolvers([
   wishlistResolver,
   paymentResolver,
   cartResolver,
-  CouponResolver
+  CouponResolver,
+  testResolver
 ]);
 
 module.exports = resolvers;

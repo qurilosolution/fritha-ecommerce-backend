@@ -21,18 +21,19 @@ const paymentResolvers = {
     },
   },
   Mutation: {
-     createOrder :async (_, { userId, items, totalAmount,paymentId, status, paymentMode, paymentStatus ,shippingAddress },context) => {
+     createOrder :async (_, { userId, items, totalAmount,paymentId, status, paymentMode, paymentStatus ,shippingAddress }) => {
       try {
 
-        console.log("User context:", context.user);
-        // Ensure the user is logged in and has the "admin" role
-        if (!context.user) {
-          throw new Error("You must be logged in to update a order.");
-        }
-        if (!context.user.role.includes("admin") && !context.user.role.includes("user")) {
-          throw new Error("You must be an admin or a user to update an order.");
-        }
-        // Call the OrderService to handle order creation
+        // console.log("User context:", context.user);
+        // // Ensure the user is logged in and has the "admin" role
+        // if (!context.user) {
+        //   throw new Error("You must be logged in to update a order.");
+        // }
+        // if (!context.user.role.includes("admin") && !context.user.role.includes("user")) {
+        //   throw new Error("You must be an admin or a user to update an order.");
+        // }
+        // // Call the OrderService to handle order creation
+        
         const order = await OrderService.createOrder(
           userId,
           items,

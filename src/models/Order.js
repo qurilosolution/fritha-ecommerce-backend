@@ -31,8 +31,13 @@ const OrderSchema = new mongoose.Schema(
     shippingAddress: {type :ShippingAddressSchema, required : true},
     orderId: { type: String, default: uuidv4 },
     paymentId: { type: String ,required: true}, 
+    coupon: {
+      code: { type: String, default: null }, // Coupon code applied
+      discountAmount: { type: Number, default: 0 }, // Discount applied through coupon
+    },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+    
 
   },
   { timestamps: true } 
