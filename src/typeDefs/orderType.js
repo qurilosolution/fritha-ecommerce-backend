@@ -4,7 +4,6 @@ const razorpayType = gql`
     success: Boolean!
     message: String
   }
-
   type Order {
     id: ID!
     userId: String!
@@ -18,9 +17,7 @@ const razorpayType = gql`
     paymentId: String
     createdAt: String!
     updatedAt: String!
-
   }
-
   type OrderProduct {
     product: Product!
     quantity: Int!
@@ -29,7 +26,6 @@ const razorpayType = gql`
     discount: Float!
     mrp: Float!
   }
-
   input OrderProductInput {
     product: ID!
     variant: ID
@@ -38,7 +34,6 @@ const razorpayType = gql`
     discount: Float!
     mrp: Float!
   }
-
   input ShippingAddressInput {
     address: String!
     city: String!
@@ -46,26 +41,22 @@ const razorpayType = gql`
     zip: String!
     country: String!
   }
-
   type ShippingAddress {
-    
     address: String!
     city: String!
     state: String!
     zip: String!
     country: String!
   }
-
   extend type Query {
     hello : String
     getOrders: [Order!]!
     getOrderById(id: ID!): Order
   }
-
-  extend type Mutation { 
+  extend type Mutation {
     createOrder(
       userId: String!
-      items: [OrderProductInput!]!  
+      items: [OrderProductInput!]!
       totalAmount: Float!
       paymentId: String!
       status: String!
@@ -74,21 +65,15 @@ const razorpayType = gql`
       shippingAddress: ShippingAddressInput!
     ): Order
     updateOrderStatus(id: ID!, status: String!): Order
-    
     deleteOrder(id: ID!): DeletionResponse!
     verifyPayment(
       razorpayOrderId: String!
       razorpayPaymentId: String!
       razorpaySignature: String!
     ): PaymentVerificationResponse
-
-    
-    
     updatePaymentStatus(orderId: ID!, paymentStatus: String!): Order
     cancelOrder(id: ID!): Order
-   
   }
-
   type DeletionResponse {
     success: Boolean!
     message: String

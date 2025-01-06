@@ -1,58 +1,66 @@
+const WishlistService = require("../services/wishlistService");
 
-const jwt = require('jsonwebtoken');
-const WishlistService = require('../services/wishlistService');
-
-const wishlistResolvers = {
+const wishlistResolver = {
   Query: {
-    async getWishlistByUser(_, { userId }, context) {
-      if (!context.user) {
-        throw new Error('You must be logged in to create a wishlist');
+    getWishlist: async (_, __, context) => {
+      const userId = context.user?.id; // Extract `id` from the `user` object in context
+      console.log(userId, "Fetching wishlist");
+    
+      if (!userId) {
+        throw new Error("You must be logged in to view the wishlist");
       }
-      if (!context.user.role.includes('admin')) {
-        throw new Error('You must be an admin to access this');
-      }
-
-      try {
-        return await WishlistService.getWishlistByUser(userId);
-      } catch (error) {
-        throw new Error('Error fetching wishlist items for user: ' + error.message);
-      }
+    
+      return WishlistService.getWishlist(userId);
     },
-
-    async getWishlistItemById(_, { id }) {
-      try {
-        return await WishlistService.getWishlistItemById(id);
-      } catch (error) {
-        throw new Error('Error fetching wishlist item by ID: ' + error.message);
-      }
-    },
+    
   },
 
   Mutation: {
-    async addToWishlist(_, { userId, productId }, context) {
-      if (!context.user) {
-        throw new Error('You must be logged in to add items to the wishlist');
-      }
 
-      try {
-        return await WishlistService.addToWishlist(userId, productId);
-      } catch (error) {
-        throw new Error('Error adding item to wishlist: ' + error.message);
+    // addToWishlist: (_, { userId, item }) => {
+    //   return WishlistService.addToWishlist(userId, item);
+    // },
+
+
+    addToWishlist: async (_, { item }, context) => {
+      const userId = context.user?.id; // Extract `id` from the `user` object in context
+      console.log(userId,"llll")
+
+      if (!userId) {
+        throw new Error("You must be logged in to add to the wishlist");
       }
+    
+      return WishlistService.addToWishlist(userId, item);
     },
+    
 
-    async removeFromWishlist(_, { userId, productId }, context) {
-      if (!context.user) {
-        throw new Error('You must be logged in to remove items from the wishlist');
-      }
 
-      try {
-        return await WishlistService.removeFromWishlist(userId, productId);
-      } catch (error) {
-        throw new Error('Error removing item from wishlist: ' + error.message);
+
+    // removeFromWishlist: (_, { userId, productId, variantId },) => {
+    //   return WishlistService.removeFromWishlist(userId, productId, variantId);
+    // },
+
+
+    removeFromWishlist: async (_, { productId, variantId }, context) => {
+      const userId = context.user?.id; // Extract `id` from the `user` object in context
+      console.log(userId, "Removing from wishlist");
+    
+      if (!userId) {
+        throw new Error("You must be logged in to remove items from the wishlist");
       }
+    
+      return WishlistService.removeFromWishlist(userId, productId, variantId);
+    },
+    
+
+
+
+
+
+    clearWishlist: (_, { userId }) => {
+      return WishlistService.clearWishlist(userId);
     },
   },
 };
 
-module.exports = wishlistResolvers;
+module.exports = wishlistResolver;

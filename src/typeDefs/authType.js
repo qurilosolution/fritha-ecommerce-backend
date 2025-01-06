@@ -10,7 +10,6 @@ const authType = gql`
     gender: String
     birthDate: String
   }
-
   type AuthResponse {
     success: Boolean
     message: String

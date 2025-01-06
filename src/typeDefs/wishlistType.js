@@ -1,22 +1,35 @@
-const { gql } = require('apollo-server-express');
+const { gql } = require("apollo-server-express");
 
 const wishlistType = gql`
   type WishlistItem {
-    id: ID!
-    userId: ID!
-    productId: ID!
+    product:Product!
+    variant: Variant
     addedAt: String!
   }
 
-  type Query {
-    getWishlistByUser(userId: ID!): [WishlistItem!]!
-    getWishlistItemById(id: ID!): WishlistItem
+  type Wishlist {
+    id: ID!
+    userId: ID!
+    items: [WishlistItem!]!
+  }
+
+  input WishlistItemInput {
+    product: ID!
+    variant: ID # variant is now optional
+  }
+
+   type Query {
+    getWishlist: Wishlist # userId is now inferred from context
   }
 
   type Mutation {
-    addToWishlist(userId: ID!, productId: ID!): WishlistItem!
-    removeFromWishlist(userId: ID!, productId: ID!): WishlistItem!
+    addToWishlist(item: WishlistItemInput!): Wishlist # userId is now inferred from context
+    removeFromWishlist(productId: ID!, variantId: ID!): Wishlist # userId is now inferred from context
+    clearWishlist: Wishlist # userId is now inferred from context
   }
+
 `;
 
 module.exports = wishlistType;
+
+ 

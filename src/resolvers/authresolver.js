@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const { AuthModel } = require("../models/authmodel");
+const { CustomerModel } = require("../models/customerModel");
 const { genPassword, comparePassword } = require("../utils/auth");
 const { v4: uuidv4 } = require("uuid");
 const sendMail = require("../utils/mailer"); // Adjusted to use the sendMail function
@@ -19,7 +19,7 @@ const authResolvers = {
     //     if(!context.user.role.includes("admin"))
     //       throw Error("You must be an admin to create a  user");
         
-    //     const user = await AuthModel.findOne({ email });
+    //     const user = await CustomerModel.findOne({ email });
     //     if (!user) {
     //       throw new Error("User not found");
     //     }
@@ -47,7 +47,7 @@ const authResolvers = {
     //     }
 
     //     // If we already have the user in context (via authMiddleware), use it
-    //     const user = context.user || await AuthModel.findById(decoded.id);
+    //     const user = context.user || await CustomerModel.findById(decoded.id);
 
     //     if (!user) {
     //       throw new Error("User not found");
@@ -79,7 +79,7 @@ const authResolvers = {
     //       throw new Error("Invalid or expired user. Please log in again.");
     //     }
     
-    //     const user = context.user || await AuthModel.findById(decoded.id);
+    //     const user = context.user || await CustomerModel.findById(decoded.id);
     
     //     if (!user) {
     //       throw new Error("User not found");
@@ -111,7 +111,7 @@ const authResolvers = {
         const { id } = context.user;
     
         // Find the user in the database using the extracted ID
-        const user = await AuthModel.findById(id);
+        const user = await CustomerModel.findById(id);
     
         if (!user) {
           throw new Error("User not found");
@@ -134,12 +134,12 @@ const authResolvers = {
       { firstName, lastName, email, phoneNumber, password, gender, birthDate ,role }
     ) => {
       try {
-        const existingUser = await AuthModel.findOne({ email });
+        const existingUser = await CustomerModel.findOne({ email });
         if (existingUser) {
           throw new Error("User already exists with this email");
         }
         const hashedPassword = await genPassword(password);
-        const newUser = new AuthModel({
+        const newUser = new CustomerModel({
           firstName,
           lastName,
           email,
@@ -161,7 +161,7 @@ const authResolvers = {
     },
     login: async (_, { email, password }, { res }) => {
       try {
-        const user = await AuthModel.findOne({ email });
+        const user = await CustomerModel.findOne({ email });
         if (!user) {
           throw new Error("User not found");
         }
@@ -175,7 +175,7 @@ const authResolvers = {
             id: user._id,
             name: user.firstName + user.lastName,
             email: user.email,
-            role: user.role,
+            role: "customer"
           },
           process.env.SECRET_KEY,
           { expiresIn: "24h" }
@@ -233,6 +233,7 @@ const authResolvers = {
       }
     },
 
+    
     resetPasswordWithOtp: async (_, { newPassword }, { req }) => {
       try {
         // Get the token from cookies
@@ -245,7 +246,7 @@ const authResolvers = {
         // Retrieve the email from the token payload
         const { email } = decoded;
         // Fetch the user
-        const user = await AuthModel.findOne({ email });
+        const user = await CustomerModel.findOne({ email });
         if (!user) {
           throw new Error("User not found");
         }
@@ -276,7 +277,7 @@ const authResolvers = {
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
         const userId = decoded.user_id;
         // Find the user in the database
-        const user = await AuthModel.findById(userId);
+        const user = await CustomerModel.findById(userId);
         if (!user) {
           throw new Error("User not found");
         }
