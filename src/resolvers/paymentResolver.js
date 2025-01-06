@@ -1,124 +1,139 @@
- 
+const OrderService = require("../services/paymentService");
+const Order = require("../models/Order"); // Order model for database operations
 
-const razorpay = require("../config/RazorpayConfig"); // Razorpay instance
-const crypto = require("crypto");
-
-const paymetResolvers = {
+const paymentResolvers = {
   Query: {
     hello: () => "Welcome to Razorpay GraphQL Integration!",
-  },
 
-  Mutation: {
-    // Create an order in Razorpay
-    createOrder: async (_, { amount, currency }) => {
+    getOrders: async () => {
       try {
-        console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID); // Check if the key ID is correct
-        console.log("RAZORPAY_SECRET_KEY:", process.env.RAZORPAY_SECRET_KEY); // Check if the secret key is correct
-
-        console.log("Razorpay Instance:", razorpay); // Log razorpay instance to check if it's initialized correctly
-        if (!razorpay || !razorpay.orders) {
-          throw new Error("Razorpay orders API not available.");
-        }
-
-        const options = {
-          amount: amount * 100, // Amount in paise (1 INR = 100 paise)
-          currency: currency || "INR",
-          receipt: `receipt_${Date.now()}`, // Unique receipt ID
-        };
-
-        const order = await razorpay.orders.create(options); // Create the order
-
-        console.log("Order Created:", order); // Log the created order to see razorpayOrderId
-        console.log("razorpayOrderId:", order.id); // Log razorpayOrderId
-
-        return {
-          id: order.id,
-          entity: order.entity,
-          amount: order.amount,
-          amount_paid: order.amount_paid,
-          amount_due: order.amount_due,
-          currency: order.currency,
-          receipt: order.receipt,
-          status: order.status,
-          attempts: order.attempts,
-          created_at: order.created_at,
-        };
+       const order = await OrderService.getOrders();
+       return order
       } catch (error) {
-        console.error("Error creating order:", error); // Log detailed error
-        throw new Error("Failed to create order. Please try again.");
+        throw new Error(error.message);
       }
     },
 
-    // Verify payment
-    // verifyPayment: async (
-    //   _,
-    //   { razorpayOrderId, razorpayPaymentId, razorpaySignature }
-    // ) => {
-    //   try {
-    //     const generatedSignature = crypto
-    //       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-    //       .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-    //       .digest("hex");
-
-    //     console.log("Generated Signature:", generatedSignature);
-    //     console.log("Received Razorpay Signature:", razorpaySignature);
-
-    //     if (generatedSignature === razorpaySignature) {
-    //       return {
-    //         success: true,
-    //         message: "Payment verified successfully!",
-    //       };
-    //     } else {
-    //       return {
-    //         success: false,
-    //         message: "Payment verification failed. Invalid signature.",
-    //       };
-    //     }
-    //   } catch (error) {
-    //     console.error("Error verifying payment:", error);
-    //     throw new Error("Failed to verify payment. Please try again.");
-    //   }
-    // },
-  
-  
-    verifyPayment: async (
-        _,
-        { razorpayOrderId, razorpayPaymentId, razorpaySignature }
-      ) => {
-        try {
-          const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
-      
-          // Check if the key secret is available
-          if (!razorpayKeySecret) {
-            throw new Error("RAZORPAY_KEY_SECRET is not defined in environment variables.");
-          }
-      
-          const generatedSignature = crypto
-            .createHmac("sha256", razorpayKeySecret)
-            .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-            .digest("hex");
-      
-          console.log("Generated Signature:", generatedSignature);
-          console.log("Received Razorpay Signature:", razorpaySignature);
-      
-          if (generatedSignature === razorpaySignature) {
-            return {
-              success: true,
-              message: "Payment verified successfully!",
-            };
-          } else {
-            return {
-              success: false,
-              message: "Payment verification failed. Invalid signature.",
-            };
-          }
-        } catch (error) {
-          console.error("Error verifying payment:", error);
-          throw new Error("Failed to verify payment. Please try again.");
-        }
+    // Fetch order by ID
+    getOrderById: async (_, { id }) => {
+      try {
+        return await OrderService.getOrderById(id);
+      } catch (error) {
+        throw new Error(error.message);
       }
+    },
+  },
+
+  Mutation: {
+     createOrder :async (_, { userId, items, totalAmount,paymentId, status, paymentMode, paymentStatus ,shippingAddress } ,context) => {
+      try {
+       
+        
+        console.log("User context:", context.user);
       
+        // Ensure the user is logged in and has the "admin" role
+        if (!context.user) {
+          throw new Error("You must be logged in to update a order.");
+        }
+        if (!context.user.role.includes("admin") && !context.user.role.includes("user")) {
+          throw new Error("You must be an admin or a user to update an order.");
+        }
+        
+       
+        // Call the OrderService to handle order creation
+        const order = await OrderService.createOrder(
+          userId,
+          items,
+          totalAmount,
+          paymentId,
+          status,
+          paymentMode,
+          paymentStatus,
+          shippingAddress
+        );
+       
+        return order;
+      } catch (error) {
+        console.error("Error in createOrder resolver:", error);
+        throw new Error(error.message || "Failed to create order.");
+      }
+    },
+
+    verifyPayment: async (_, { razorpayOrderId, razorpayPaymentId, razorpaySignature }) => {
+      try {
+        const verificationResult = await OrderService.verifyPayment(
+          
+          razorpayOrderId,
+          razorpayPaymentId,
+          razorpaySignature
+        );
+
+        if (verificationResult.success) {
+          // Update the order status in the database to "Paid"
+          await Order.findOneAndUpdate(
+            { orderId: razorpayOrderId },
+            { status: "Paid", paymentId: razorpayPaymentId }
+          );
+        }
+
+        return verificationResult;
+      } catch (error) {
+        console.error("Error in verifyPayment resolver:", error);
+        throw new Error(error.message || "Failed to verify payment.");
+      }
+    },
+
+    // Update order status
+    updateOrderStatus: async (_, { id, status }) => {
+      try {
+        return await OrderService.updateOrderStatus(id, status);
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+
+    // Delete an order
+    deleteOrder: async (_, { id }) => {
+      try {
+        const deletedOrder = await OrderService.deleteOrder(id);
+    
+        if (!deletedOrder) {
+          throw new Error(`Order with ID ${id} not found.`);
+        }
+    
+        // Return the DeletionResponse object
+        return {
+          success: true,
+          message: `Order with ID ${id} successfully deleted.`,
+        };
+      } catch (error) {
+        throw new Error("Failed to delete order: " + error.message);
+      }
+    },
+
+    updatePaymentStatus: async (_, { orderId, paymentStatus }) => {
+      try {
+        const updatedOrder = await OrderService.updatePaymentStatus(orderId, paymentStatus);
+        return updatedOrder;
+      } catch (error) {
+        throw new Error("Failed to update payment status: " + error.message);
+      }
+    },
+    
+
+    
+
+    // Cancel an order
+    cancelOrder: async (_, { id }) => {
+      try {
+        return await OrderService.cancelOrder(id);
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+
+   
   },
 };
 
-module.exports = paymetResolvers;
+module.exports = paymentResolvers;

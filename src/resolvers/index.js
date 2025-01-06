@@ -5,7 +5,7 @@ const subcategoryResolver = require('./subcategoryResolver');
 const productResolver = require('./productResolver');
 const authResolver=require('./authResolver')
 const reviewResolver=require("./reviewResolver")
-const orderResolver = require("./orderResolver")
+
 const variantResolver = require("./variantResolver")
 
 
@@ -14,7 +14,7 @@ const wishlistResolver = require("./wishlistResolver");
 const paymentResolver = require("./paymentResolver");
 
 
-const resolvers = mergeResolvers([categoryResolver, subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,orderResolver,wishlistResolver,paymentResolver ]);
+const resolvers = mergeResolvers([categoryResolver, subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,wishlistResolver,paymentResolver ]);
 
 
 

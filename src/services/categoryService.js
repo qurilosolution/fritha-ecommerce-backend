@@ -1,12 +1,37 @@
 const Category = require("../models/category");
 const Subcategory = require("../models/Subcategory");
 const uploadImageToCloudinary = require("../utils/fileUpload");
+
+
 const getCategories = async () => {
-  return await Category.find().populate("subcategories products");
+  try {
+    return await Category.find()
+      .populate("subcategories") 
+      .populate({
+        path: "products",
+        populate: {
+          path: "variants", 
+        },
+      });
+  } catch (error) {
+    throw new Error("Failed to fetch categories: " + error.message);
+  }
 };
+
+
 const getCategoryById = async (parent, { id }) => {
   try {
-    return await Category.findById(id).populate("subcategories products");
+    console.log(getCategoryById);
+    return await Category.findById(id)
+    .populate("subcategories")
+    .populate({
+      path: "products",
+      populate: {
+        path: "variants", 
+      },
+    });
+
+
   } catch (error) {
     console.error("Error fetching subcategory by ID:", error);
     return null;

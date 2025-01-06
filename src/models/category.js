@@ -24,7 +24,10 @@ const categorySchema = new mongoose.Schema(
         ref: 'Product', // Links products to this category
       },
     ],
-    
+    variants:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:'Variant',
+    }],
     bannerImageUrl: {
       type: [String], // Optional images for the category
       trim: true,
