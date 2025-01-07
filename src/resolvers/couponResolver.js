@@ -21,6 +21,28 @@ const couponResolvers = {
     },
 
     
+
+    validateCoupon: async (_, { couponCode }) => {
+      try {
+        const validCoupon = await couponService.checkCouponValidity(couponCode);
+        return {
+          isValid: true,
+          coupon: validCoupon,
+        };
+      } catch (error) {
+        return {
+          isValid: false,
+          message: error.message,
+        };
+      }
+    },
+
+
+
+
+
+
+    
     
   },
 

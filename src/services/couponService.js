@@ -119,6 +119,40 @@ updateCoupon: async (id, updateData) => {
 },
 
 
+checkCouponValidity: async (couponCode) => {
+  try {
+    // Check if the coupon code already exists
+    const existingCoupon = await Coupon.findOne({ code: couponCode, deletedAt: null });
+    if (!existingCoupon) {
+      throw new Error("Coupon code does not exist or has been deleted.");
+    }
+
+    // Check if the coupon is within the valid date range
+    const currentDate = new Date();
+    if (new Date(existingCoupon.startDate) > currentDate || new Date(existingCoupon.endDate) < currentDate) {
+      throw new Error("Coupon is not valid at this time.");
+    }
+
+    // Check if the coupon ID has been used (assuming you have an Order model)
+    const usedCoupon = await Order.findOne({ couponId: existingCoupon._id });
+    if (usedCoupon) {
+      throw new Error("Coupon has already been used.");
+    }
+
+    // Check the coupon status (active or inactive)
+    if (existingCoupon.status !== "active") {
+      throw new Error("Coupon is inactive.");
+    }
+
+    // If all checks pass, return the coupon
+    return existingCoupon;
+
+  } catch (error) {
+    throw new Error(`Coupon validation failed: ${error.message}`);
+  }
+},
+
+
 
 
 
