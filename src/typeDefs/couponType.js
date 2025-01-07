@@ -1,4 +1,3 @@
- 
 // const { gql } = require('apollo-server-express');
 
 // const couponType = gql`
@@ -8,20 +7,20 @@
 //   }
 
 //   type Coupon {
-//     id: ID!                             
-//     code: String!                        
-//     discountPercentage: Float!          
-//     applicableProducts: [Product!]       
-//     startDate: String!                    
-//     endDate: String!                    
-//     maxUsage: Int!                       
-//     status: String!                       
-//     deletedAt: String                    
+//     id: ID!
+//     code: String!
+//     discountPercentage: Float!
+//     applicableProducts: [Product!]
+//     startDate: String!
+//     endDate: String!
+//     maxUsage: Int!
+//     status: String!
+//     deletedAt: String
 //   }
 
 //   type Query {
-//     getCoupon(id: ID!): Coupon           
-//     listCoupons: [Coupon!]            
+//     getCoupon(id: ID!): Coupon
+//     listCoupons: [Coupon!]
 //   }
 
 //   type Mutation {
@@ -33,7 +32,7 @@
 //       endDate: String!
 //       maxUsage: Int!
 //       status: String
-//     ): Coupon                          
+//     ): Coupon
 
 //     updateCoupon(
 //       id: ID!
@@ -44,14 +43,13 @@
 //       endDate: String
 //       maxUsage: Int
 //       status: String
-//     ): Coupon                            
+//     ): Coupon
 
-//     deleteCoupon(id: ID!): Coupon       
+//     deleteCoupon(id: ID!): Coupon
 //   }
 // `;
 
 // module.exports = couponType;
-
 
 // const { gql } = require('apollo-server-express');
 
@@ -109,31 +107,37 @@
 
 // module.exports = couponType;
 
-
-const { gql } = require('apollo-server-express');
+const { gql } = require("apollo-server-express");
 
 const couponType = gql`
   type Coupon {
-  id: ID!
-  code: String!
-  discountPercentage: Float
-  flatDiscount: Float
-  applicableProducts: [Product!]   # Change from [ID!] to [Product!]
-  startDate: String!
-  endDate: String!
-  maxUsage: Int!
-  status: String!
-  deletedAt: String
-}
+    id: ID!
+    code: String!
+    discountPercentage: Float
+    flatDiscount: Float
+    applicableProducts: [Product!] # Change from [ID!] to [Product!]
+    startDate: String!
+    endDate: String!
+    maxUsage: Int!
+    status: String!
+    deletedAt: String
+  }
 
-type Product {
-  id: ID!
-  name: String!
-}
-  
+  type Product {
+    id: ID!
+    name: String!
+  }
+
+  type CouponValidationResponse {
+    isValid: Boolean!
+    message: String
+    coupon: Coupon
+  }
+
   type Query {
-    getCoupon(id: ID!): Coupon            # Fetch a single coupon by ID
-    listCoupons: [Coupon!]                # List all coupons
+    getCoupon(id: ID!): Coupon # Fetch a single coupon by ID
+    listCoupons: [Coupon!] # List all coupons
+    validateCoupon(couponCode: String!): CouponValidationResponse! # Validate a coupon
   }
 
   type Mutation {
@@ -146,8 +150,7 @@ type Product {
       endDate: String!
       maxUsage: Int!
       status: String
-    ): Coupon                             # Create a new coupon
-
+    ): Coupon # Create a new coupon
     updateCoupon(
       id: ID!
       code: String
@@ -158,9 +161,8 @@ type Product {
       endDate: String
       maxUsage: Int
       status: String
-    ): Coupon                             # Update an existing coupon
-
-    deleteCoupon(id: ID!): Coupon         # Soft delete a coupon by ID
+    ): Coupon # Update an existing coupon
+    deleteCoupon(id: ID!): Coupon # Soft delete a coupon by ID
   }
 `;
 

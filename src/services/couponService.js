@@ -52,28 +52,31 @@ const couponService = {
   //   }
   // },
 
-
   createCoupon: async (data) => {
     try {
-      // Validate applicable product IDs if provided
-      if (data.applicableProducts?.length > 0) {
-        const validProducts = await Product.find({
-          _id: { $in: data.applicableProducts },
-        }).select('_id');
-        if (validProducts.length !== data.applicableProducts.length) {
-          throw new Error('Some product IDs are invalid');
-        }
+      // Ensure applicableProducts is an array of ObjectIds (if it's passed as an array of string IDs)
+      if (data.applicableProducts) {
+        data.applicableProducts = data.applicableProducts.map((productId) =>
+          productId.toString()
+        );
       }
   
-      // Create and save the new coupon
+      // Create a new coupon
       const newCoupon = new Coupon(data);
+      console.log(newCoupon,"lololololololo")
+  
+      // Save the new coupon to the database
       await newCoupon.save();
   
-      // Populate applicableProducts and return the created coupon
-      return await Coupon.findById(newCoupon._id).populate({
+      // Populate applicableProducts to fetch the product names
+      await newCoupon.populate({
         path: 'applicableProducts',
-        select: 'id name',
+        select: 'name', // Only select the 'name' field from the products
+        model: 'Product', // Specify the model for the 'applicableProducts' reference
       });
+  
+      // Return the newly created coupon with populated applicableProducts
+      return newCoupon;
     } catch (error) {
       throw new Error(`Error creating coupon: ${error.message}`);
     }

@@ -1,5 +1,4 @@
 const couponService = require('../services/couponService');
-const Product = require('../models/Product'); // Adjust path if necessary
 
 const couponResolvers = {
   Query: {
@@ -20,53 +19,26 @@ const couponResolvers = {
         throw new Error('Error adding item to coupon: ' + error.message);
       }
     },
+
+    
     
   },
 
   Mutation: {
     // Create a new coupon
-    // createCoupon: async (_, args, context) => {
-    //   if (!context) {
-    //     throw new Error('You must be logged in to add items to the coupon');
-    //   }
-    //   try{
-    //     return couponService.createCoupon(args);
-    //   }catch(error){
-    //     throw new Error('Error adding item to coupon: ' + error.message);
-
-    //   }
-    // },
-
-    createCoupon : async (_, args, context) => {
+    createCoupon: async (_, args, context) => {
       if (!context) {
         throw new Error('You must be logged in to add items to the coupon');
       }
-    
-      try {
-        // Create the coupon with the provided data
-        const createdCoupon = await couponService.createCoupon(args);
-    
-        // Populate the applicableProducts field with full product details
-        if (createdCoupon.applicableProducts && createdCoupon.applicableProducts.length > 0) {
-          const populatedProducts = await Product.find({
-            '_id': { $in: createdCoupon.applicableProducts },
-          }).exec();
-    
-          createdCoupon.applicableProducts = populatedProducts.map(product => ({
-            id: product._id.toString(),
-            name: product.name,  // Ensure this field is present and not null
-            // You can add other product fields here as needed
-          }));
-
-          
-        }
-    
-        return createdCoupon;
-      } catch (error) {
+      try{
+        return couponService.createCoupon(args);
+      }catch(error){
         throw new Error('Error adding item to coupon: ' + error.message);
+
       }
     },
-    
+
+   
     
     
 
