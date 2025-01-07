@@ -11,14 +11,22 @@ const productResolvers = {
         throw new Error(`Error fetching products: ${error.message}`);
       }
     },
-    // Fetch a single product by ID
-    getProductById: async (_, { id }) => {
-      try {
-        return await productService.getProductById(id);
-      } catch (error) {
-        throw new Error(`Error fetching product by ID: ${error.message}`);
-      }
-    },
+      // Fetch a single product by ID
+      getProductById: async (_, { id }) => {
+        try {
+          return await productService.getProductById(id);
+        } catch (error) {
+          throw new Error(`Error fetching product by ID: ${error.message}`);
+        }
+      },
+      getProductByName: async (_, { name }) => {
+        try {
+          return await productService.getProductByName(name);
+        } catch (error) {
+          throw new Error(`Error fetching product by name: ${error.message}`);
+        }
+      },
+      
     // Fetch best sellers
     getBestSellers: async () => {
       try {

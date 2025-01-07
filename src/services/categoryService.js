@@ -7,11 +7,14 @@ const getCategories = async () => {
   try {
     return await Category.find()
       .populate("subcategories") 
+     
       .populate({
         path: "products",
         populate: {
-          path: "variants", 
-        },
+          path: "variants",
+          
+          
+        }
       });
   } catch (error) {
     throw new Error("Failed to fetch categories: " + error.message);

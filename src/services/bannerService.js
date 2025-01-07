@@ -2,14 +2,15 @@ const cloudinary = require("../config/cloudinary"); // Make sure to set up Cloud
 const Banner = require("../models/bannerModel");
 const uploadImageToCloudinary = require("../utils/fileUpload");
 
-const getBanners = async (type) => {
-  try {
-    return await Banner.find(type ? { type } : {});
-  } catch (error) {
-    throw new Error("Error fetching banners");
-  }
-};
-
+const getBanners = async () => {
+    try {
+      // Fetch all banners without filtering by type
+      return await Banner.find({});
+    } catch (error) {
+      throw new Error("Error fetching banners");
+    }
+  };
+  
 // Service to get a single banner by ID
 const getBannerById = async (id) => {
   try {
@@ -20,33 +21,53 @@ const getBannerById = async (id) => {
 };
 
 // Service to create a new banner
-const createBanner = async (bannerData, imageUrl) => {
+// const createBanner = async (bannerData, imageUrl) => {
+//   try {
+//     const uploadedImages = [];
+
+//     // Upload each image to Cloudinary
+//     for (const image of imageUrl) {
+//       try {
+//         const uploadedImage = await uploadImageToCloudinary(image);
+//         console.log("Uploaded Image:", uploadedImage);
+//         if (!uploadedImage) {
+//           throw new Error("Uploaded image does not contain a URL");
+//         }
+//         uploadedImages.push(uploadedImage);
+//       } catch (error) {
+//         console.error("Error uploading image:", error.message);
+//         throw new Error("Image upload failed.");
+//       }
+//     }
+
+//     // Create the banner with the uploaded image URLs
+//     const banner = new Banner({ ...bannerData, imageUrl: uploadedImages });
+//     console.log("Banner", banner);
+//     return await banner.save();
+//   } catch (error) {
+//     throw new Error(`Error creating banner: ${error.message}`);
+//   }
+// };
+
+
+const createBanner = async (bannerData, images) => {
   try {
-    const uploadedImages = [];
+    // Create and save the banner
+    const banner = new Banner({
+      ...bannerData,
+      imageUrl: images, // Save uploaded images
+    });
 
-    // Upload each image to Cloudinary
-    for (const image of imageUrl) {
-      try {
-        const uploadedImage = await uploadImageToCloudinary(image);
-        console.log("Uploaded Image:", uploadedImage);
-        if (!uploadedImage) {
-          throw new Error("Uploaded image does not contain a URL");
-        }
-        uploadedImages.push(uploadedImage);
-      } catch (error) {
-        console.error("Error uploading image:", error.message);
-        throw new Error("Image upload failed.");
-      }
-    }
-
-    // Create the banner with the uploaded image URLs
-    const banner = new Banner({ ...bannerData, imageUrl: uploadedImages });
-    console.log("Banner", banner);
-    return await banner.save();
+    const savedBanner = await banner.save();
+    console.log("Banner saved successfully:", savedBanner);
+    return savedBanner;
   } catch (error) {
+    console.error("Error creating banner:", error.message);
     throw new Error(`Error creating banner: ${error.message}`);
   }
 };
+
+
 
 // Service to update an existing banner
 // const updateBanner = async (id, bannerData, image) => {
@@ -129,11 +150,23 @@ const updateBanner = async (id, data) => {
 // Service to delete a banner by ID
 const deleteBanner = async (id) => {
   try {
-    return await Banner.findByIdAndDelete(id);
+    // Update the banner to mark it as deleted by setting the deletedAt field
+    const banner = await Banner.findByIdAndUpdate(
+      id,
+      { deletedAt: new Date() },  // Mark the banner as deleted by adding a timestamp
+      { new: true }  // Return the updated document
+    );
+
+    if (!banner) {
+      throw new Error("Banner not found.");
+    }
+
+    return banner;  // Return the updated banner with the deletedAt field
   } catch (error) {
-    throw new Error("Error deleting banner");
+    throw new Error("Error updating banner to soft delete: " + error.message);
   }
 };
+
 
 module.exports = {
   getBanners,

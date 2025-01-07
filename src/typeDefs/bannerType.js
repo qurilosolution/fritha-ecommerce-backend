@@ -1,7 +1,6 @@
-const { gql } = require('apollo-server-express');
+const { gql } = require("apollo-server-express");
 
 const bannerType = gql`
-
   scalar Upload
 
   enum BannerType {
@@ -14,44 +13,53 @@ const bannerType = gql`
     NEWSLETTER_SIGNUP
     SEASONAL
   }
-  
+
+  type Image {
+    url: String
+    redirectUrl: String!
+  }
+
   type Banner {
     id: ID!
     title: String!
-    imageUrl: [String]
+    imageUrl: [Image]
     description: String
     position: Int
     type: BannerType!
-    redirectUrl: String
+    deletedAt: String
+    createdAt: String!
+    updatedAt: String!
   }
-  
+
   type Query {
-    banners(type: BannerType): [Banner]
+    banners: [Banner]
     banner(id: ID!): Banner
-   
   }
 
   type Mutation {
     createBanner(
       title: String!
-      imageUrl: [Upload]
+      imageUrl: [ImageInput]
       description: String
       position: Int
       type: BannerType!
-      redirectUrl: String!
     ): Banner
 
     updateBanner(
       id: ID!
       title: String
-      imageUrl: [Upload]
+      imageUrl: [ImageInput]
       description: String
       position: Int
       type: BannerType
-      redirectUrl: String
     ): Banner
 
     deleteBanner(id: ID!): Banner
+  }
+
+  input ImageInput {
+    image: [Upload]
+    redirectUrl: String!
   }
 `;
 

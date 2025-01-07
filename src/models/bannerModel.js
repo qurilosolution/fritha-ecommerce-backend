@@ -1,8 +1,13 @@
 const mongoose = require('mongoose');
 
+const imageSchema = new mongoose.Schema({
+  url: { type: String, required: true },  
+  redirectUrl: { type: String }  
+});
+
 const bannerSchema = new mongoose.Schema({
   title: { type: String, required: true },
-  imageUrl: { type: [String], default: [] },
+  imageUrl: { type: [imageSchema], default: [] },  
   description: { type: String },
   position: { type: Number },
   type: { 
@@ -10,8 +15,9 @@ const bannerSchema = new mongoose.Schema({
     enum: ['HERO', 'PROMOTIONAL', 'CATEGORY', 'TESTIMONIAL', 'PRODUCT_SPOTLIGHT', 'EVENT_ANNOUNCEMENT', 'NEWSLETTER_SIGNUP', 'SEASONAL'], 
     default: 'HERO' 
   },
-  redirectUrl: { type: String }
-});
+  deletedAt: { type: Date, default: null }, 
+ 
+}, { timestamps: true });
 
 const Banner = mongoose.model('Banner', bannerSchema);
 

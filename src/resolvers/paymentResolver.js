@@ -35,8 +35,8 @@ const paymentResolvers = {
         if (!context.user) {
           throw new Error("You must be logged in to update a order.");
         }
-        if (!context.user.role.includes("admin") && !context.user.role.includes("user")) {
-          throw new Error("You must be an admin or a user to update an order.");
+        if (!context.user.role.includes("admin") && !context.user.role.includes("customer")) {
+          throw new Error("You must be an admin or a customer to update an order.");
         }
         
        
@@ -84,8 +84,16 @@ const paymentResolvers = {
     },
 
     // Update order status
-    updateOrderStatus: async (_, { id, status }) => {
+    updateOrderStatus: async (_, { id, status } , context) => {
       try {
+         // Ensure the user is logged in and has the "admin" role
+         if (!context.user) {
+          throw new Error("You must be logged in to update a order.");
+        }
+        if (!context.user.role.includes("admin") && !context.user.role.includes("customer")) {
+          throw new Error("You must be an admin or a customer to update an order.");
+        }
+        
         return await OrderService.updateOrderStatus(id, status);
       } catch (error) {
         throw new Error(error.message);
@@ -93,8 +101,16 @@ const paymentResolvers = {
     },
 
     // Delete an order
-    deleteOrder: async (_, { id }) => {
+    deleteOrder: async (_, { id } ,context) => {
       try {
+         // Ensure the user is logged in and has the "admin" role
+         if (!context.user) {
+          throw new Error("You must be logged in to update a order.");
+        }
+        if (!context.user.role.includes("admin") && !context.user.role.includes("customer")) {
+          throw new Error("You must be an admin or a customer to update an order.");
+        }
+        
         const deletedOrder = await OrderService.deleteOrder(id);
     
         if (!deletedOrder) {

@@ -18,9 +18,9 @@ const cartResolver=require("./cartResolver")
 
 const addressResolver=require("./addressResolver")
 
-const orderResolver = require('./orderResolver');
 
-const resolvers = mergeResolvers([categoryResolver,addressResolver,bannerResolver, subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,orderResolver,wishlistResolver,paymentResolver,cartResolver ]);
+
+const resolvers = mergeResolvers([categoryResolver,addressResolver,bannerResolver, subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,wishlistResolver,paymentResolver,cartResolver ]);
 
 
 
