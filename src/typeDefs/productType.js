@@ -193,6 +193,7 @@ const productType = gql`
   extend type Query {
     getProducts: [Product]
     getProductById(id: ID!): Product
+    getProductByName(name: String!): Product
     getBestSellers: [Product]
   }
 

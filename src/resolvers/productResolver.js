@@ -19,6 +19,14 @@ const productResolvers = {
         throw new Error(`Error fetching product by ID: ${error.message}`);
       }
     },
+    getProductByName: async (_, { name }) => {
+      try {
+        return await productService.getProductByName(name);
+      } catch (error) {
+        throw new Error(`Error fetching product by name: ${error.message}`);
+      }
+    },
+
     // Fetch best sellers
     getBestSellers: async () => {
       try {
