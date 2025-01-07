@@ -409,6 +409,18 @@ const getProductById = async (id) => {
   }
 };
 
+const getProductByName = async (name) => {
+  try {
+    return await Product.findOne({ name })
+         .populate("category")
+         .populate("subcategory")
+         .populate("variants");
+  } catch (error) {
+    throw new Error(`Error fetching product by name: ${error.message}`);
+  }
+};
+
+
 
 
 const updateProduct = async (id, input) => {
@@ -612,6 +624,7 @@ module.exports = {
   uploadImageToCloudinary,
   updateProductImage,
   uploadImagesForVariants,
+  getProductByName
   
 
 

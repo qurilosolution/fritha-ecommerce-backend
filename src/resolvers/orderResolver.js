@@ -14,6 +14,7 @@ const paymentResolvers = {
       }
     },
 
+
     // Fetch order by ID
     getOrderById: async (_, { id }) => {
       try {
@@ -23,6 +24,7 @@ const paymentResolvers = {
       }
     },
   },
+
 
   Mutation: {
     createOrder: async (
@@ -89,10 +91,12 @@ const paymentResolvers = {
     ) => {
       try {
         const verificationResult = await OrderService.verifyPayment(
+          
           razorpayOrderId,
           razorpayPaymentId,
           razorpaySignature
         );
+
 
         if (verificationResult.success) {
           // Update the order status in the database to "Paid"
@@ -102,12 +106,14 @@ const paymentResolvers = {
           );
         }
 
+
         return verificationResult;
       } catch (error) {
         console.error("Error in verifyPayment resolver:", error);
         throw new Error(error.message || "Failed to verify payment.");
       }
     },
+
 
     // Update order status
     updateOrderStatus: async (_, { id, status }) => {
@@ -117,6 +123,7 @@ const paymentResolvers = {
         throw new Error(error.message);
       }
     },
+
 
     // Delete an order
     deleteOrder: async (_, { id }) => {
@@ -133,12 +140,16 @@ const paymentResolvers = {
           message: `Order with ID ${id} successfully deleted.`,
           success: true,
           message: `Order with ID ${id} successfully deleted.`,
+          success: true,
+          message: `Order with ID ${id} successfully deleted.`,
         };
       } catch (error) {
         throw new Error("Failed to delete order: " + error.message);
         throw new Error("Failed to delete order: " + error.message);
+        throw new Error("Failed to delete order: " + error.message);
       }
     },
+
 
     updatePaymentStatus: async (_, { orderId, paymentStatus }) => {
       try {
@@ -151,6 +162,10 @@ const paymentResolvers = {
         throw new Error("Failed to update payment status: " + error.message);
       }
     },
+    
+
+    
+
     // Cancel an order
     cancelOrder: async (_, { id }) => {
       try {
@@ -159,7 +174,11 @@ const paymentResolvers = {
         throw new Error(error.message);
       }
     },
+
+   
   },
 };
 
+
 module.exports = paymentResolvers;
+
