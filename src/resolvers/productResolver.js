@@ -37,62 +37,7 @@ const productResolvers = {
     },
   },
   Mutation: {
-  //  createProduct: async (_, args, context) => {
-      
-  //     console.log(context.user);
-  //     if (!context.user)
-  //       throw Error("You must be logged in to create a category");
-  //     if (!context.user.role.includes("admin"))
-  //       throw Error("You must be an admin to create a category");
-  //     try {
-  //       if (!args || !args.input) {
-  //         throw new Error("Input is required for creating a product.");
-  //       }
-  //       const { input } = args;
-  //       console.log("Received input for product:", input);
-  //       const variants = Array.isArray(input.variants) ? input.variants : []; 
-  //       // console.log("Input variants:", variants); 
-  //       // Resolve imageUrl if provided
-  //       // let resolvedImageUrl = null;
-  //       // if (imageUrl) {
-  //       //   resolvedImageUrl = await imageUrl;
-  //       //   console.log("Resolved imageUrl:", resolvedImageUrl);
-  //       // }
-  //       // Handle variant image uploads
-  //       const processedVariants = await Promise.all(
-  //         (Array.isArray(variants) ? variants : []).map(async (variant) => {
-  //           if (variant.imageUrl) {
-  //             console.log("variant is" , variant);
-  //             const variantImageUrl = await productService.uploadImageToCloudinary(
-  //               variant.imageUrl
-  //             );
-  //             console.log(variantImageUrl,"images")
-  //             return { ...variant, imageUrl: variantImageUrl };
-  //           }
-  //           return variant;
-  //         })
-  //       );
-  //       console.log("Processed variants:", processedVariants);
-
-
-  //       // Prepare product data
-  //       const productData = {
-  //         ...input,
-  //        variants:processedVariants,
-         
-  //       };
-  //       console.log("Final product data to save:", productData);
-  //       // Create the product
-  //       const product = await productService.createProduct(productData);
-  //       console.log("Product successfully created:", product);
-  //       return product;
-  //     } catch (error) {
-  //       console.error("Error creating product:", error.message);
-  //       throw new Error(
-  //         `Controller error while creating product: ${error.message}`
-  //       );
-  //     }
-  //   },
+  
   
   createProduct: async (_, { input }, context) => {
     try {

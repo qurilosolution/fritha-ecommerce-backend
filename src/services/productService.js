@@ -624,6 +624,7 @@ module.exports = {
   uploadImageToCloudinary,
   updateProductImage,
   uploadImagesForVariants,
+  getProductByName
   
 
 
