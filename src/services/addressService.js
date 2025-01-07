@@ -73,9 +73,10 @@ exports.deleteAddress = async (userId, addressId) => {
         if (addressIndex === -1) {
             throw new Error("Address not found");
         }
+        const deleteAddress = customer.addresses[addressIndex];
         customer.addresses.splice(addressIndex, 1);
         await customer.save();
-        return { success: true, message: "Address deleted successfully" };
+        return deleteAddress;
     }
     catch(err){
         throw new Error(err.message);
