@@ -8,9 +8,14 @@ const getSubcategories = async () => {
   .populate('category')
   .populate({
     path: "products",
-    populate: {
-      path: "variants", 
-    },
+    populate: [
+      {
+        path: "variants", 
+      },
+      {
+        path: "reviews", 
+      },
+    ],
   });
 };
 const getSubcategoryById = async (parent, { id }) =>  {
@@ -20,9 +25,14 @@ const getSubcategoryById = async (parent, { id }) =>  {
     .populate('category')
     .populate({
       path:"products",
-      populate:{
-        path:"variants",
-      },
+      populate: [
+        {
+          path: "variants", 
+        },
+        {
+          path: "reviews", 
+        },
+      ],
     });
   } 
   catch (error) {

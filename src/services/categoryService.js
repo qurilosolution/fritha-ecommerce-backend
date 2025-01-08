@@ -3,20 +3,25 @@ const Subcategory = require("../models/Subcategory");
 const uploadImageToCloudinary = require("../utils/fileUpload");
 
 
-const getCategories = async () => {
-  try {
-    return await Category.find()
-      .populate("subcategories") 
-      .populate({
-        path: "products",
-        populate: {
-          path: "variants", 
-        },
-      });
-  } catch (error) {
-    throw new Error("Failed to fetch categories: " + error.message);
-  }
-};
+  const getCategories = async () => {
+    try {
+      return await Category.find()
+        .populate("subcategories") 
+        .populate({
+          path: "products",
+          populate: [
+          {
+            path: "variants", 
+          },
+          {
+            path: "reviews", 
+          },
+        ],
+        });
+    } catch (error) {
+      throw new Error("Failed to fetch categories: " + error.message);
+    }
+  };
 
 
 const getCategoryById = async (parent, { id }) => {
@@ -26,9 +31,14 @@ const getCategoryById = async (parent, { id }) => {
     .populate("subcategories")
     .populate({
       path: "products",
-      populate: {
-        path: "variants", 
-      },
+      populate: [
+        {
+          path: "variants", 
+        },
+        {
+          path: "reviews", 
+        },
+      ],
     });
 
 
