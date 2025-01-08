@@ -54,6 +54,7 @@ const paymentResolvers = {
         // ) {
         //   throw new Error("You must be an admin or a user to update an order.");
         // }
+        
         console.log( process.env.RAZORPAY_KEY_ID,process.env.RAZORPAY_SECRET_KEY)
         var instance = new Razorpay({
           key_id: process.env.RAZORPAY_KEY_ID,

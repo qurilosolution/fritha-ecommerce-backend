@@ -172,7 +172,7 @@ const OrderService = {
   ) => {
     try {
        
-       
+      //  console.log(razorpayOrderId,razorpayPaymentId,razorpaySignature)
       const razorpayKeySecret = process.env.RAZORPAY_SECRET_KEY;
       console.log("", razorpayKeySecret);
       if (!razorpayKeySecret) {
