@@ -58,7 +58,7 @@ const bannerType = gql`
   }
 
   input ImageInput {
-    image: [Upload]
+    image: Upload
     redirectUrl: String!
   }
 `;
