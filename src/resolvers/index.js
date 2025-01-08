@@ -11,14 +11,13 @@ const variantResolver = require("./variantResolver")
 
 
 const wishlistResolver = require("./wishlistResolver");
-
-const orderResolver = require("./orderResolver");
-
+const paymentResolver = require("./paymentResolver");
+const orderResolver=require("./orderResolver")
 const cartResolver=require("./cartResolver")
 
 const addressResolver=require("./addressResolver")
 
-const resolvers = mergeResolvers([categoryResolver,addressResolver, subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,orderResolver,wishlistResolver,cartResolver ]);
+const resolvers = mergeResolvers([categoryResolver,addressResolver, subcategoryResolver, productResolver ,reviewResolver,orderResolver,variantResolver,authResolver,wishlistResolver,paymentResolver,cartResolver ]);
 
 
 

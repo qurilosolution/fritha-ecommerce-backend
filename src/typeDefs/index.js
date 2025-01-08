@@ -12,7 +12,7 @@ const paymentType = require("./paymentType")
 
 const cartType=require("./cartType");
 const addressType = require('./addressType');
-
+const orderType =require('./orderType')
 const typeDefs = gql`
   ${baseType}
   ${categoryType}
@@ -20,7 +20,7 @@ const typeDefs = gql`
   ${productType}
   ${variantType}
   ${reviewType}
-
+  ${orderType}
   ${authType}
   ${wishlistType}
   ${paymentType}
