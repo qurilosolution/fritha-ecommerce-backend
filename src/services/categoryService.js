@@ -38,6 +38,23 @@ const getCategoryById = async (parent, { id }) => {
   }
 };
 
+const getCategoryByName = async (name) => {
+  try {
+    return await Category.findOne({name})
+    .populate('subcategories')
+    .populate({
+      path:"products",
+      populate:{
+        path:"variants",
+      },
+    });
+  } 
+  catch (error) {
+    throw new Error(`Error fetching product by name: ${error.message}`);
+  }
+};
+
+
 const createCategory = async (categoryData) => {
   try {
     const { name, description,bannerImageUrl ,cardImageUrl ,products, subcategories } =
@@ -144,25 +161,25 @@ const addProductToCategory = async (category, productsId) => {
 };
 
 
-const uploadImages = async (imageUrls) => {
-  try {
-    const uploadedImages = [];
-    if (imageUrls && imageUrls.length > 0) {
-      const images = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
-      for (const image of images) {
-        const uploadedImage = await uploadImageToCloudinary(image);
-        if (!uploadedImage) {
-          throw new Error("Uploaded image does not contain a URL.");
-        }
-        uploadedImages.push(uploadedImage);
-      }
-    }
-    return uploadedImages;
-  } catch (error) {
-    console.error("Error uploading images:", error.message);
-    throw new Error("Image upload failed.");
-  }
-};
+// const uploadImages = async (imageUrls) => {
+//   try {
+//     const uploadedImages = [];
+//     if (imageUrls && imageUrls.length > 0) {
+//       const images = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
+//       for (const image of images) {
+//         const uploadedImage = await uploadImageToCloudinary(image);
+//         if (!uploadedImage) {
+//           throw new Error("Uploaded image does not contain a URL.");
+//         }
+//         uploadedImages.push(uploadedImage);
+//       }
+//     }
+//     return uploadedImages;
+//   } catch (error) {
+//     console.error("Error uploading images:", error.message);
+//     throw new Error("Image upload failed.");
+//   }
+// };
 
 
 const handleImageUpload = async (imageUrls) => {
@@ -258,4 +275,5 @@ module.exports = {
   changeSubcategoryCategory,
   addProductToCategory,
   handleImageUpload,
+  getCategoryByName
 };

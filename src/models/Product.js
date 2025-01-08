@@ -27,6 +27,7 @@ const productSchema = new mongoose.Schema(
         ref: "Variant",
       },
     ],
+    
     specialPrice: {
       type: Number,
     },
@@ -75,9 +76,12 @@ const productSchema = new mongoose.Schema(
         type: String,
       },
     ],
-    review: {
-      type: Number,
-    },
+    reviews: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Review",
+      },
+    ],
     keyFeatures: {
       type: String,
     },

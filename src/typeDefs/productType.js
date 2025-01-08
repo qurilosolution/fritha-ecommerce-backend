@@ -148,7 +148,7 @@ const productType = gql`
     mrp: Int
     isStock: Boolean
     keyBenefits: [String]
-    review: Int
+    reviews: [Review!]
     imageUrl: [String]
     discount: Int
     inclusiveOfTaxes: Boolean
@@ -174,7 +174,7 @@ const productType = gql`
     subcategory: ID!
     description: String
     keyBenefits: [String]
-    review: Int
+    reviews: [ReviewInput!]
     price: Int
     mrp: Int
     imageUrl: [Upload]

@@ -16,7 +16,7 @@ scalar Upload
 
   }
   
-   type DeletionResponse {
+  type DeletionResponse {
     success: Boolean!
     message: String
   }
@@ -24,6 +24,7 @@ scalar Upload
   extend type Query {
     getCategories: [Category]
     getCategoryById(id: ID!): Category
+    getCategoryByName(name: String!):Category
   }
   
   extend type Mutation {
