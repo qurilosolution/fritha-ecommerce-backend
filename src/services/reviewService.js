@@ -1,5 +1,5 @@
 const Review =require("../models/review");
-
+const Product = require('../models/Product');
 async function getReviewsByProduct(productId) {
   try {
     return await Review.find({ productId });
@@ -21,8 +21,13 @@ async function getReviewById(id) {
 async function createReview(input) {
   try {
     const newReview = new Review(input);
-    console.log(newReview);
     await newReview.save();
+
+    // Add the review ID to the associated product's `reviews` field
+    await Product.findByIdAndUpdate(input.productId, {
+      $push: { reviews: newReview._id },
+    });
+
     return newReview;
   } catch (error) {
     throw new Error('Error creating review: ' + error.message);

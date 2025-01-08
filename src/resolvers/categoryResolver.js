@@ -6,7 +6,15 @@ const categoryResolver = {
   Query: {
     getCategories: categoryService.getCategories,
     getCategoryById: categoryService.getCategoryById,
-  },
+    getCategoryByName: async (_, { name }) => {
+              try {
+                return await categoryService.getCategoryByName(name);
+              } catch (error) {
+                throw new Error(`Error fetching product by name: ${error.message}`);
+              }
+            },
+      },
+
   Mutation: {
     
     createCategory: async (_, { name, description, bannerImageUrl, cardImageUrl }, context) => {

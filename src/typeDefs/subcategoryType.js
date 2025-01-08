@@ -17,6 +17,7 @@ const subcategoryType = gql`
   extend type Query {
     getSubcategories: [Subcategory]
     getSubcategoryById(id: ID!): Subcategory
+    getSubcategoryByName(name: String!): Subcategory
   }
 
 

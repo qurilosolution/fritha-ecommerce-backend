@@ -139,6 +139,7 @@ const productType = gql`
   type Product {
     id: ID!
     name: String!
+    slugName: String!
     category: Category
     subcategory: Subcategory
     description: String
@@ -147,7 +148,7 @@ const productType = gql`
     mrp: Int
     isStock: Boolean
     keyBenefits: [String]
-    review: Int
+    reviews: [Review!]
     imageUrl: [String]
     discount: Int
     inclusiveOfTaxes: Boolean
@@ -168,11 +169,12 @@ const productType = gql`
   input CreateProductInput {
     id: ID
     name: String!
+    slugName: String
     category: ID!
     subcategory: ID!
     description: String
     keyBenefits: [String]
-    review: Int
+    reviews: [ReviewInput!]
     price: Int
     mrp: Int
     imageUrl: [Upload]
@@ -193,7 +195,7 @@ const productType = gql`
   extend type Query {
     getProducts: [Product]
     getProductById(id: ID!): Product
-    getProductByName(name: String!): Product
+    getProductByslugName(slugName: String!): Product
     getBestSellers: [Product]
   }
 

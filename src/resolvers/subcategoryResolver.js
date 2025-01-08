@@ -7,6 +7,13 @@ const subcategoryResolver = {
   Query: {
     getSubcategories: subcategoryService.getSubcategories,
     getSubcategoryById: subcategoryService.getSubcategoryById,
+    getSubcategoryByName: async (_, { name }) => {
+          try {
+            return await subcategoryService.getSubcategoryByName(name);
+          } catch (error) {
+            throw new Error(`Error fetching product by name: ${error.message}`);
+          }
+        },
   },
   Mutation: {
     createSubcategory : async (_, { name, description, imageUrl, categoryId }, context) => {

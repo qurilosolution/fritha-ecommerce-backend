@@ -8,9 +8,14 @@ const getSubcategories = async () => {
   .populate('category')
   .populate({
     path: "products",
-    populate: {
-      path: "variants", 
-    },
+    populate: [
+      {
+        path: "variants", 
+      },
+      {
+        path: "reviews", 
+      },
+    ],
   });
 };
 const getSubcategoryById = async (parent, { id }) =>  {
@@ -20,9 +25,14 @@ const getSubcategoryById = async (parent, { id }) =>  {
     .populate('category')
     .populate({
       path:"products",
-      populate:{
-        path:"variants",
-      },
+      populate: [
+        {
+          path: "variants", 
+        },
+        {
+          path: "reviews", 
+        },
+      ],
     });
   } 
   catch (error) {
@@ -30,6 +40,23 @@ const getSubcategoryById = async (parent, { id }) =>  {
     return null;
   }
 };
+const getSubcategoryByName = async (name) => {
+  try {
+    return await Subcategory.findOne({name})
+    .populate('category')
+    .populate({
+      path:"products",
+      populate:{
+        path:"variants",
+      },
+    });
+  } 
+  catch (error) {
+    throw new Error(`Error fetching product by name: ${error.message}`);
+  }
+};
+
+
 const createSubcategory = async (subcategoryData) => {
     try {
     const { name, description, imageUrl, categoryId } = subcategoryData;
@@ -171,4 +198,5 @@ module.exports = {
   deleteSubcategory,
   addProductToSubCategory,
   handleImageUploads,
+  getSubcategoryByName
 };
