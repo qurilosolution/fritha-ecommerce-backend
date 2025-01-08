@@ -409,9 +409,9 @@ const getProductById = async (id) => {
   }
 };
 
-const getProductByName = async (name) => {
+const getProductByslugName = async (slugName) => {
   try {
-    return await Product.findOne({ name })
+    return await Product.findOne({ slugName })
          .populate("category")
          .populate("subcategory")
          .populate("variants");
@@ -624,7 +624,7 @@ module.exports = {
   uploadImageToCloudinary,
   updateProductImage,
   uploadImagesForVariants,
-  getProductByName
+  getProductByslugName
   
 
 
