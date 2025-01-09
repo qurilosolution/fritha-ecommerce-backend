@@ -15,6 +15,13 @@ scalar Upload
     
 
   }
+
+  type PaginatedCategories {
+    categories: [Category]
+    currentPage: Int!
+    totalPages: Int!
+    totalCategories: Int!
+  }
   
   type DeletionResponse {
     success: Boolean!
@@ -22,7 +29,7 @@ scalar Upload
   }
   
   extend type Query {
-    getCategories: [Category]
+    getCategories(page: Int, limit: Int): PaginatedCategories
     getCategoryById(id: ID!): Category
     getCategoryByName(name: String!):Category
   }

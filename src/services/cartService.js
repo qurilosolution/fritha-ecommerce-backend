@@ -1,4 +1,4 @@
-    const Cart = require('../models/cartModel');
+const Cart = require('../models/cartModel');
 const Product=require('../models/Product');
 const Variant = require('../models/Variant');
 exports.getCart = async (userId) => {

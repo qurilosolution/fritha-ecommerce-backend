@@ -228,7 +228,7 @@ const createProduct = async (input) => {
       keyBenefits,
       imageUrl,
       netContent,
-      review,
+      reviews,
       variants,
       usp,
       mrp,
@@ -268,7 +268,7 @@ const createProduct = async (input) => {
       description,
       keyBenefits,
       netContent,
-      review,
+      reviews,
       variants: [],
       usp,
       mrp,
@@ -296,7 +296,7 @@ const createProduct = async (input) => {
     }
     
     // Populate relations (category and subcategory)
-    await savedProduct.populate("category subcategory variants");
+    await savedProduct.populate("category subcategory variants reviews");
 
    
 
@@ -319,80 +319,35 @@ const uploadImagesForVariants = async (variants) => {
   );
 };
 
+// const getProducts = async () => {
+//   try {
+//     return await Product.find().populate("category").populate("subcategory"); // Populate both fields
+//   } catch (error) {
+//     throw new Error(`Error fetching products: ${error.message}`);
+//   }
+// };
 
-// const createProduct = async (input) => {
-//   try {
-//     if (!input || !input.name || !input.category) {
-//       throw new Error("Name and Category are required fields.");
-//     }
-//     const {
-//       name,
-//       category,
-//       subcategory,
-//       description,
-//       keyBenefits,
-//       netContent,
-//       priceDetails,
-//       usp,
-//       ingredients,
-//       keyFeatures,
-//       additionalDetails,
-//       totalReviews,
-//       averageRating,
-//       isBestSeller,
-//       imageUrl,
-//       variants,
-//     } = input;
-//     const productData = {
-//       name,
-//       category,
-//       subcategory,
-//       description,
-//       keyBenefits,
-//       netContent,
-//       priceDetails,
-//       usp,
-//       ingredients,
-//       keyFeatures,
-//       additionalDetails,
-//       totalReviews,
-//       averageRating,
-//       isBestSeller,
-//       imageUrl: imageUrl ? await uploadImageToCloudinary(imageUrl) : [],
-//       variants: variants ? await uploadImagesForVariants(variants) : [],
-//     };
-//     const product = new Product(productData);
-//     await product.save();
-//     return product;
-//   } catch (error) {
-//     console.error("Error creating product:", error.message);
-//     throw new Error(`Service error while creating product: ${error.message}`);
-//   }
-// };
-// const uploadImagesForVariants = async (variants) => {
-//   try {
-//     if (!Array.isArray(variants)) throw new Error("Variants should be an array.");
-//     const processedVariants = await Promise.all(
-//       variants.map(async (variant) => {
-//         if (!variant.imageUrl) return variant;
-//         const uploadedImages = await Promise.all(
-//           variant.imageUrl.map((image) => uploadImageToCloudinary(image))
-//         );
-//         return {
-//           ...variant,
-//           imageUrl: uploadedImages,
-//         };
-//       })
-//     );
-//     return processedVariants;
-//   } catch (error) {
-//     console.error("Error uploading images for variants:", error.message);
-//     throw error;
-//   }
-// };
-const getProducts = async () => {
+// Fetch all products with pagination
+const getProducts =async (page = 1) => { 
   try {
-    return await Product.find().populate("category").populate("subcategory"); // Populate both fields
+    const limit = 10; 
+    const skip = (page - 1) * limit; 
+
+    const products = await Product.find()
+      .populate("category")
+      .populate("subcategory")
+      .limit(limit)
+      .skip(skip);
+
+    const totalProducts = await Product.countDocuments(); // Total number of products
+    const totalPages = Math.ceil(totalProducts / limit); // Calculate total pages
+
+    return {
+      products,
+      currentPage: page,
+      totalPages,
+      totalProducts,
+    };
   } catch (error) {
     throw new Error(`Error fetching products: ${error.message}`);
   }

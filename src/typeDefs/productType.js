@@ -47,7 +47,7 @@
 //     totalReviews: Int
 //     averageRating: Float
 //     isBestSeller: Boolean
-//     publicIds:[String] 
+//     publicIds:[String]
 //     newImages:[String]
 //   }
 //   extend type Query {
@@ -94,7 +94,7 @@
 //   deleteProduct(id: ID!): DeletionResponse!
 //   refreshBestSellers: RefreshResponse
 // }
-  
+
 //   scalar Upload
 //   type DeletionResponse {
 //     success: Boolean!
@@ -126,7 +126,7 @@
 //     isOnSale: Boolean
 //     publicIds: [String]
 //     newImages:[Upload]
-    
+
 //   }
 // `;
 // module.exports = productType;
@@ -153,7 +153,7 @@ const productType = gql`
     discount: Int
     inclusiveOfTaxes: Boolean
     netContent: String
-    variants: [Variant!] 
+    variants: [Variant!]
     usp: String
     ingredients: [String]
     keyFeatures: String
@@ -164,6 +164,12 @@ const productType = gql`
     isBestSeller: Boolean
     publicIds: [String]
     newImages: [String]
+  }
+  type PaginatedProducts {
+    products: [Product]
+    currentPage: Int!
+    totalPages: Int!
+    totalProducts: Int!
   }
 
   input CreateProductInput {
@@ -193,7 +199,8 @@ const productType = gql`
   }
 
   extend type Query {
-    getProducts: [Product]
+    getProducts(page: Int, limit: Int): PaginatedProducts
+    
     getProductById(id: ID!): Product
     getProductByslugName(slugName: String!): Product
     getBestSellers: [Product]

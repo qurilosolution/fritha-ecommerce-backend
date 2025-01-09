@@ -3,21 +3,58 @@ const Subcategory = require('../models/Subcategory');
 const categoryService = require('../services/categoryService');
 const uploadImageToCloudinary = require('../utils/fileUpload');
 // Fetch all subcategories
-const getSubcategories = async () => {
-  return await Subcategory.find()
-  .populate('category')
-  .populate({
-    path: "products",
-    populate: [
-      {
-        path: "variants", 
-      },
-      {
-        path: "reviews", 
-      },
-    ],
-  });
+// const getSubcategories = async () => {
+//   return await Subcategory.find()
+//   .populate('category')
+//   .populate({
+//     path: "products",
+//     populate: [
+//       {
+//         path: "variants", 
+//       },
+//       {
+//         path: "reviews", 
+//       },
+//     ],
+//   });
+// };
+
+const getSubcategories = async (page = 1) => {
+  try {
+    const limit = 10; 
+    const skip = (page - 1) * limit; 
+
+    const subcategories = await Subcategory.find()
+      .skip(skip)
+      .limit(limit)
+      .populate("category")
+      .populate({
+        path: "products",
+        populate: [
+          {
+            path: "variants",
+          },
+          {
+            path: "reviews",
+          },
+        ],
+      });
+
+    const totalSubcategories = await Subcategory.countDocuments(); // Count total subcategories
+    const totalPages = Math.ceil(totalSubcategories / limit);
+
+    return {
+      subcategories,
+      currentPage: page,
+      totalPages,
+      totalSubcategories,
+    };
+  } catch (error) {
+    throw new Error("Failed to fetch subcategories: " + error.message);
+  }
 };
+
+
 const getSubcategoryById = async (parent, { id }) =>  {
   console.log("Fetching subcategory", id);
   try {

@@ -3,26 +3,61 @@ const Subcategory = require("../models/Subcategory");
 const uploadImageToCloudinary = require("../utils/fileUpload");
 
 
-  const getCategories = async () => {
+  // const getCategories = async () => {
+  //   try {
+  //     return await Category.find()
+  //       .populate("subcategories") 
+  //       .populate({
+  //         path: "products",
+  //         populate: [
+  //         {
+  //           path: "variants", 
+  //         },
+  //         {
+  //           path: "reviews", 
+  //         },
+  //       ],
+  //       });
+  //   } catch (error) {
+  //     throw new Error("Failed to fetch categories: " + error.message);
+  //   }
+  // };
+
+  const getCategories = async (parent, args) => {
+    const { page } = args;
+    const limit = 10; // Fixed limit
+    const skip = (page - 1) * limit;
+  
     try {
-      return await Category.find()
-        .populate("subcategories") 
+      const categories = await Category.find()
+        .skip(skip)
+        .limit(limit)
+        .populate("subcategories")
         .populate({
           path: "products",
           populate: [
-          {
-            path: "variants", 
-          },
-          {
-            path: "reviews", 
-          },
-        ],
+            {
+              path: "variants",
+            },
+            {
+              path: "reviews",
+            },
+          ],
         });
+  
+      const totalCategories = await Category.countDocuments();
+  
+      return {
+        categories,
+        currentPage: page,
+        totalPages: Math.ceil(totalCategories / limit),
+        totalCategories,
+      };
     } catch (error) {
       throw new Error("Failed to fetch categories: " + error.message);
     }
   };
-
+  
 
 const getCategoryById = async (parent, { id }) => {
   try {
@@ -53,10 +88,15 @@ const getCategoryByName = async (name) => {
     return await Category.findOne({name})
     .populate('subcategories')
     .populate({
-      path:"products",
-      populate:{
-        path:"variants",
-      },
+      path: "products",
+      populate: [
+        {
+          path: "variants", 
+        },
+        {
+          path: "reviews", 
+        },
+      ],
     });
   } 
   catch (error) {
@@ -141,7 +181,7 @@ const addSubcategoryToCategory = async (categoryId, subcategoryId) => {
       { $push: { subcategories: subcategoryId } },
       { new: true } // Return the updated document
     );
-    if (!updatedCategory) {
+    if (!updatedCategory) { 
       throw new Error("Category not found or failed to update.");
     }
     console.log("Updated category with new subcategory:", updatedCategory);
