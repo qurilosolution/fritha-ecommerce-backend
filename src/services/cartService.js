@@ -4,6 +4,7 @@ const Variant = require('../models/Variant');
 exports.getCart = async (userId) => {
     try {
       const cart = await Cart.findOne({ userId }).populate({path:'items.product',model:Product}).populate({path:'items.variant',model:Variant});
+      console.log(cart,"cart")
       return cart;
     } catch (error) {
       throw new Error('Error fetching cart: ' + error.message);

@@ -5,6 +5,7 @@ const cartResolver={
             try{
               if(!context.user)
                 throw Error("You must be logged in to get categories");
+              console.log(context.user.id,"id");
               return await cartService.getCart(context.user.id);
             }catch(err){
               throw err
