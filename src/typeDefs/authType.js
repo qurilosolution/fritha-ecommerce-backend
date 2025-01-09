@@ -30,11 +30,11 @@ const authType = gql`
       password: String!
       gender: String
       birthDate: String
-      role:String
     ): AuthResponse
 
+    adminSignup(firstName:String!,lastName:String,email:String!,password:String!): AuthResponse
+    adminLogin(email: String!, password: String!): AuthResponse
     login(email: String!, password: String!): AuthResponse
-
     resetPassword(
       oldPassword: String!
       newPassword: String!
@@ -45,6 +45,8 @@ const authType = gql`
     verifyOtp(email: String!, otp: String!): AuthResponse
 
     resetPasswordWithOtp(email: String!, newPassword: String!): AuthResponse
+
+    
   }
 `;
 

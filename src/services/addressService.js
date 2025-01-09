@@ -44,13 +44,12 @@ exports.updateAddress = async (userId,addressId, address) => {
         }
         else {
             const prevDefaultAddress = customer.addresses.find(address => address.isDefault === true);
-            console.log(customer.addresses,"customer.addresses");
-            console.log(prevDefaultAddress,"elseblock");
+            
             if(prevDefaultAddress&&prevDefaultAddress._id.toString() === addressId.toString()){
                 address.isDefault = true;
             }
         }
-        console.log(address,"sf");
+        address._id=addressId
         customer.addresses[addressIndex] = address;
         await customer.save();
         

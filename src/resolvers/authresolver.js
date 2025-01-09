@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require("uuid");
 const sendMail = require("../utils/mailer"); // Adjusted to use the sendMail function
 const { generateToken } = require("../utils/token");
 const { verifyToken } = require("../utils/token");
-
+const AuthService=require('../services/authService');
 const otpStore = {};
 const OTP_EXPIRY_TIME = 3 * 60 * 1000; // 1 minute expiry
 const authResolvers = {
@@ -159,6 +159,15 @@ const authResolvers = {
         throw new Error(`Error during signup: ${error.message}`);
       }
     },
+    adminSignup:async(_,{firstName,lastName,email,password})=>{
+      try {
+        
+        const response=await AuthService.adminSignup(firstName,lastName,email,password);
+        return response
+      } catch (error) {
+        throw new Error(`Error during signup: ${error.message}`);
+      }
+    },
     login: async (_, { email, password }, { res }) => {
       try {
         const user = await CustomerModel.findOne({ email });
@@ -204,8 +213,15 @@ const authResolvers = {
         throw new Error(`Error during login: ${error.message}`);
       }
     },
-    
-
+    adminLogin: async (_, { email, password }, { res }) => {
+      try{
+        const response=await AuthService.adminLogin(email,password);
+        return response;
+      }
+      catch(error){
+        throw new Error(`Error during login:${error.message}`)
+      }
+    },
     verifyOtp: async (_, { email, otp }, { res }) => {
       try {
         const storedOtp = otpStore[email];
