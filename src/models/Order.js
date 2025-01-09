@@ -30,7 +30,7 @@ const OrderSchema = new mongoose.Schema(
     status: { type: String, enum: ["Pending", "Placed", "Cancelled"], default: "Pending" },
     shippingAddress: {type :ShippingAddressSchema, required : true},
     orderId: { type: String, default: uuidv4 },
-    paymentId: { type: String ,required: true}, 
+    paymentId: { type: String }, 
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 

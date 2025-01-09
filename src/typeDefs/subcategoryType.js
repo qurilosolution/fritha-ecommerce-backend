@@ -10,13 +10,20 @@ const subcategoryType = gql`
     category: Category!
     products: [Product]
   }
+  type PaginatedSubcategories {
+    subcategories: [Subcategory]
+    currentPage: Int!
+    totalPages: Int!
+    totalSubcategories: Int!
+  }
   type DeletionResponse { 
     success: Boolean!
     message: String
   }
   extend type Query {
-    getSubcategories: [Subcategory]
+    getSubcategories(page: Int, limit: Int): PaginatedSubcategories
     getSubcategoryById(id: ID!): Subcategory
+    getSubcategoryByName(name: String!): Subcategory
   }
 
 

@@ -47,7 +47,7 @@
 //     totalReviews: Int
 //     averageRating: Float
 //     isBestSeller: Boolean
-//     publicIds:[String] 
+//     publicIds:[String]
 //     newImages:[String]
 //   }
 //   extend type Query {
@@ -94,7 +94,7 @@
 //   deleteProduct(id: ID!): DeletionResponse!
 //   refreshBestSellers: RefreshResponse
 // }
-  
+
 //   scalar Upload
 //   type DeletionResponse {
 //     success: Boolean!
@@ -126,7 +126,7 @@
 //     isOnSale: Boolean
 //     publicIds: [String]
 //     newImages:[Upload]
-    
+
 //   }
 // `;
 // module.exports = productType;
@@ -139,6 +139,7 @@ const productType = gql`
   type Product {
     id: ID!
     name: String!
+    slugName: String!
     category: Category
     subcategory: Subcategory
     description: String
@@ -147,12 +148,12 @@ const productType = gql`
     mrp: Int
     isStock: Boolean
     keyBenefits: [String]
-    review: Int
+    reviews: [Review!]
     imageUrl: [String]
     discount: Int
     inclusiveOfTaxes: Boolean
     netContent: String
-    variants: [Variant!] 
+    variants: [Variant!]
     usp: String
     ingredients: [String]
     keyFeatures: String
@@ -164,15 +165,22 @@ const productType = gql`
     publicIds: [String]
     newImages: [String]
   }
+  type PaginatedProducts {
+    products: [Product]
+    currentPage: Int!
+    totalPages: Int!
+    totalProducts: Int!
+  }
 
   input CreateProductInput {
     id: ID
     name: String!
+    slugName: String
     category: ID!
     subcategory: ID!
     description: String
     keyBenefits: [String]
-    review: Int
+    reviews: [ReviewInput!]
     price: Int
     mrp: Int
     imageUrl: [Upload]
@@ -191,8 +199,10 @@ const productType = gql`
   }
 
   extend type Query {
-    getProducts: [Product]
+    getProducts(page: Int, limit: Int): PaginatedProducts
+    
     getProductById(id: ID!): Product
+    getProductByslugName(slugName: String!): Product
     getBestSellers: [Product]
   }
 
