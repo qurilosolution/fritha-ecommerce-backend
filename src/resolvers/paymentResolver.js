@@ -10,6 +10,8 @@ const paymentResolvers = {
     
     verifyPayment: async (_, { razorpayOrderId, razorpayPaymentId, razorpaySignature }) => {
       try {
+       console.log(razorpayOrderId,razorpayPaymentId,razorpaySignature)
+
         const verificationResult = await OrderService.verifyPayment(
           
           razorpayOrderId,
@@ -21,7 +23,7 @@ const paymentResolvers = {
           // Update the order status in the database to "Paid"
           await Order.findOneAndUpdate(
             { orderId: razorpayOrderId },
-            { status: "Paid", paymentId: razorpayPaymentId }
+            { paymentId: razorpayPaymentId }
           );
         }
 
