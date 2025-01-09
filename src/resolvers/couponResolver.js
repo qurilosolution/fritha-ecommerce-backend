@@ -22,9 +22,24 @@ const couponResolvers = {
 
     
 
-    validateCoupon: async (_, { couponCode }) => {
+    // validateCoupon: async (_, { couponCode }) => {
+    //   try {
+    //     const validCoupon = await couponService.checkCouponValidity(couponCode);
+    //     return {
+    //       isValid: true,
+    //       coupon: validCoupon,
+    //     };
+    //   } catch (error) {
+    //     return {
+    //       isValid: false,
+    //       message: error.message,
+    //     };
+    //   }
+    // },
+
+    validateCoupon: async (_, { couponCode, customerId }) => {
       try {
-        const validCoupon = await couponService.checkCouponValidity(couponCode);
+        const validCoupon = await couponService.checkCouponValidity(couponCode, customerId);
         return {
           isValid: true,
           coupon: validCoupon,
@@ -36,8 +51,7 @@ const couponResolvers = {
         };
       }
     },
-
-
+    
 
 
 

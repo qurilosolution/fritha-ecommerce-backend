@@ -137,7 +137,7 @@ const couponType = gql`
   type Query {
     getCoupon(id: ID!): Coupon # Fetch a single coupon by ID
     listCoupons: [Coupon!] # List all coupons
-    validateCoupon(couponCode: String!): CouponValidationResponse! # Validate a coupon
+    validateCoupon(couponCode: String!, customerId: ID!): CouponValidationResponse! # Validate a coupon with customer ID
   }
 
   type Mutation {
