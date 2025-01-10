@@ -164,17 +164,63 @@ updateCoupon: async (id, updateData) => {
  
  
 
-  checkCouponValidity: async (couponCode, customerId) => {
-    // console.log(customerId,)
+  // checkCouponValidity: async (couponCode, customerId) => {
+  //   // console.log(customerId,)
     
+  //   try {
+  //     // Check if the coupon code already exists
+  //     const existingCoupon = await Coupon.findOne({ code: couponCode, deletedAt: null });
+  //     if (!existingCoupon) {
+  //       throw new Error("Coupon code does not exist or has been deleted.");
+  //     }
+  
+  //     // Check the coupon status (active or inactive)
+  //     if (existingCoupon.status !== "active") {
+  //       throw new Error("Coupon is inactive.");
+  //     }
+  
+  //     // Check if the coupon is within the valid date range
+  //     const currentDate = new Date();
+  //     if (new Date(existingCoupon.startDate) > currentDate || new Date(existingCoupon.endDate) < currentDate) {
+  //       throw new Error("Coupon is not valid at this time.");
+  //     }
+  //     console.log(customerId,"lololololololol");
+
+  //     // Check if the coupon ID has been used by the customer already
+  //     const customer = await CustomerModel.findById(customerId);
+  //     console.log(customer,"lololololololol");
+  //     if (!customer) {
+  //       throw new Error("Customer not found.");
+  //     }
+  
+  //     const couponUsed = customer.couponUsed.find(coupon => coupon.couponId.toString() === existingCoupon._id.toString());
+  //     if (couponUsed) {
+  //       throw new Error("Coupon has already been used .");
+  //     }
+  
+  //     // If all checks pass, associate the coupon with the customer
+  //     // customer.couponUsed.push({ couponId: existingCoupon._id, usedAt: new Date() });
+  //     // await customer.save();
+  
+  //     // Return the coupon information
+  //     return existingCoupon;
+  //   } catch (error) {
+  //     throw new Error(`Coupon validation failed: ${error.message}`);
+  //   }
+  // },
+  
+
+
+ 
+    checkCouponValidity : async (couponCode, customerId) => {
     try {
-      // Check if the coupon code already exists
+      // Check if the coupon code exists and is not deleted
       const existingCoupon = await Coupon.findOne({ code: couponCode, deletedAt: null });
       if (!existingCoupon) {
         throw new Error("Coupon code does not exist or has been deleted.");
       }
   
-      // Check the coupon status (active or inactive)
+      // Check if the coupon status is active
       if (existingCoupon.status !== "active") {
         throw new Error("Coupon is inactive.");
       }
@@ -184,32 +230,54 @@ updateCoupon: async (id, updateData) => {
       if (new Date(existingCoupon.startDate) > currentDate || new Date(existingCoupon.endDate) < currentDate) {
         throw new Error("Coupon is not valid at this time.");
       }
-      console.log(customerId,"lololololololol");
-
-      // Check if the coupon ID has been used by the customer already
+  
+      // Retrieve the customer
       const customer = await CustomerModel.findById(customerId);
-      console.log(customer,"lololololololol");
       if (!customer) {
         throw new Error("Customer not found.");
       }
   
-      const couponUsed = customer.couponUsed.find(coupon => coupon.couponId.toString() === existingCoupon._id.toString());
-      if (couponUsed) {
-        throw new Error("Coupon has already been used .");
+       // Check if the customer has already used this coupon
+      // const couponUsed = customer.couponUsed.find(
+      //   (coupon) => coupon.couponId.toString() === existingCoupon._id.toString()
+      // );
+      // if (couponUsed) {
+      //   throw new Error("Coupon has already been used by the customer.");
+      // }
+  
+      // Count the total number of times the coupon has been used across all customers
+
+
+      const allCustomers = await CustomerModel.find({
+        "couponUsed.couponId": existingCoupon._id,
+      });
+      
+      const totalUsage = allCustomers.reduce((count, cust) => {
+        const usage = cust.couponUsed.find(
+          (coupon) => coupon.couponId.toString() === existingCoupon._id.toString()
+        );
+        return count + (usage ? usage.couponUsageCount : 0);
+      }, 0);
+      
+      console.log( totalUsage,"lolololooo")
+
+      console.log(existingCoupon.maxUsage,"lolololooo")
+
+
+
+      // Check if the total usage exceeds maxUsage
+      if (totalUsage >= existingCoupon.maxUsage) {
+        throw new Error("Coupon usage limit has been reached.");
       }
   
-      // If all checks pass, associate the coupon with the customer
-      // customer.couponUsed.push({ couponId: existingCoupon._id, usedAt: new Date() });
-      // await customer.save();
-  
-      // Return the coupon information
+
+      // If all checks pass, return the coupon information
       return existingCoupon;
     } catch (error) {
       throw new Error(`Coupon validation failed: ${error.message}`);
     }
   },
   
- 
  
  
  
