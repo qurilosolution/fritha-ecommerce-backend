@@ -27,17 +27,17 @@ const OrderService = {
       throw new Error("Failed to fetch orders for admin: " + error.message);
     }
   },
-  getOrdersByCustomer: async (page, userId) => {
+  getOrdersByCustomer: async (page=1) => {
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const orders = await Order.find({ userId })
+    const orders = await Order.find()
       .skip(skip)
       .limit(limit)
       .populate("items.product")
       .populate("items.variant");
 
-    const totalOrders = await Order.countDocuments({ customerId });
+    const totalOrders = await Order.countDocuments();
     const totalPages = Math.ceil(totalOrders / limit);
 
     return {

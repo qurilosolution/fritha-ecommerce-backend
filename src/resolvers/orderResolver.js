@@ -28,7 +28,7 @@ const paymentResolvers = {
         }
 
         // Fetch orders for the logged-in customer
-        const orderData = await OrderService.getOrdersByCustomer(page, user._id);
+        const orderData = await OrderService.getOrdersByCustomer(page);
         return orderData;
     } catch (error) {
         throw new Error("Failed to fetch orders for customer: " + error.message);
