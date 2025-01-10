@@ -193,7 +193,6 @@ const authResolvers = {
         return {
           success: true,
           message: "Login successful",
-          
           user: {
             id: user._id,
             firstName: user.firstName,
@@ -202,9 +201,7 @@ const authResolvers = {
             phoneNumber: user.phoneNumber,
             gender: user.gender,
             birthDate: user.birthDate,
-            role: user.role,
-          },
-          
+          },  
           token,
           
         };

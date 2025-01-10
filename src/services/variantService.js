@@ -57,6 +57,8 @@ const addVariant = async (productId, variantData) => {
     }
   };
 
+
+
   const updateVariant = async (variantId, updateData) => {
     try {
       if (!variantId || !updateData) {
@@ -189,7 +191,7 @@ const addVariant = async (productId, variantData) => {
   module.exports ={
     addVariant,
     getVariantsByProduct,
-   
+    
     updateVariant,
     deleteVariant,
     addMultipleVariants
