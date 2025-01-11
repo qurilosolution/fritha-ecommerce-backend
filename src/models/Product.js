@@ -82,9 +82,11 @@ const productSchema = new mongoose.Schema(
         ref: "Review",
       },
     ],
-    keyFeatures: {
-      type: String,
-    },
+    keyFeatures:[
+      {
+        type: String,
+      },
+    ],
     additionalDetails: {
       type: String,
     },

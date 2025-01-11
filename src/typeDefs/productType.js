@@ -148,15 +148,15 @@ const productType = gql`
     mrp: Int
     isStock: Boolean
     keyBenefits: [String]
-    reviews: [Review!]
+    reviews: [Review!]!
     imageUrl: [String]
     discount: Int
     inclusiveOfTaxes: Boolean
     netContent: String
-    variants: [Variant!]
+    variants: [Variant!]!
     usp: String
     ingredients: [String]
-    keyFeatures: String
+    keyFeatures: [String]
     additionalDetails: String
     createdAt: String
     totalReviews: Int
@@ -180,7 +180,7 @@ const productType = gql`
     subcategory: ID!
     description: String
     keyBenefits: [String]
-    reviews: [ReviewInput!]
+    reviews: ID!
     price: Int
     mrp: Int
     imageUrl: [Upload]
@@ -188,10 +188,10 @@ const productType = gql`
     isStock: Boolean
     netContent: String
     discount: Int
-    variants: [VariantInput!]
+    variants: ID!
     usp: String
     ingredients: [String]
-    keyFeatures: String
+    keyFeatures: [String]
     additionalDetails: String
     totalReviews: Int
     averageRating: Float
@@ -200,7 +200,6 @@ const productType = gql`
 
   extend type Query {
     getProducts(page: Int, limit: Int): PaginatedProducts
-    
     getProductById(id: ID!): Product
     getProductByslugName(slugName: String!): Product
     getBestSellers: [Product]

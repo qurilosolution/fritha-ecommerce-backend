@@ -269,7 +269,7 @@ const createProduct = async (input) => {
       keyBenefits,
       netContent,
       reviews,
-      variants: [],
+      variants,
       usp,
       mrp,
       price,
@@ -294,6 +294,8 @@ const createProduct = async (input) => {
     if (subcategory) {
       await subcategoryService.addProductToSubCategory(subcategory, savedProduct._id);
     }
+     
+    
     
     // Populate relations (category and subcategory)
     await savedProduct.populate("category subcategory variants reviews");

@@ -5,14 +5,36 @@ require("dotenv").config()
 
 const paymentResolvers = {
   Query: {
-    getOrders: async () => {
+    getOrdersByAdmin: async (_, { page = 1 }, { user }) => {
       try {
-        const order = await OrderService.getOrders();
-        return order;
+          // Check if the user is an admin
+          if (user.role !== 'admin') {
+              throw new Error("Access denied. Only admins can view all orders.");
+          }
+  
+          // Fetch orders for admin
+          const orderData = await OrderService.getOrdersByAdmin(page);
+          return orderData;
       } catch (error) {
-        throw new Error(error.message);
+          throw new Error("Failed to fetch orders for admin: " + error.message);
       }
-    },
+  },
+
+  getOrdersByCustomer: async (_, { page = 1 }, { user }) => {
+    try {
+        // Check if the user is a customer
+        if (user.role !== 'customer') {
+            throw new Error("Access denied. Only customers can view their orders.");
+        }
+
+        // Fetch orders for the logged-in customer
+        const orderData = await OrderService.getOrdersByCustomer(page);
+        return orderData;
+    } catch (error) {
+        throw new Error("Failed to fetch orders for customer: " + error.message);
+    }
+},
+    
 
 
     // Fetch order by ID
@@ -43,7 +65,6 @@ const paymentResolvers = {
       try {
         console.log("create Order")
         console.log("User context:", context.user);
-
         // // Ensure the user is logged in and has the "admin" role
         // if (!context.user) {
         //   throw new Error("You must be logged in to update a order.");
@@ -54,7 +75,6 @@ const paymentResolvers = {
         // ) {
         //   throw new Error("You must be an admin or a user to update an order.");
         // }
-
         console.log( process.env.RAZORPAY_KEY_ID,process.env.RAZORPAY_SECRET_KEY)
         var instance = new Razorpay({
           key_id: process.env.RAZORPAY_KEY_ID,
@@ -78,7 +98,6 @@ const paymentResolvers = {
           paymentStatus,
           shippingAddress
         );
-
         return order;
       } catch (error) {
         console.error("Error in createOrder resolver:", error);

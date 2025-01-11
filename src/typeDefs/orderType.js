@@ -55,10 +55,15 @@ const razorpayType = gql`
     zip: String!
     country: String!
   }
+  type PaginatedOrders {
+    orders: [Order!]!
+    totalPages: Int!
+    currentPage: Int!
+  }
 
   extend type Query {
-    hello : String
-    getOrders: [Order!]!
+    getOrdersByCustomer(page: Int): PaginatedOrders
+    getOrdersByAdmin(page: Int): PaginatedOrders
     getOrderById(id: ID!): Order
   }
 
