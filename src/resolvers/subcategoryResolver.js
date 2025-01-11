@@ -16,7 +16,7 @@ const subcategoryResolver = {
         },
   },
   Mutation: {
-    createSubcategory : async (_, { name, description, imageUrl, categoryId }, context) => {
+    createSubcategory : async (_, { name, description, imageUrl, categoryId ,meta }, context) => {
       try {
         // Check user authentication and authorization
         if (!context.user) {
@@ -32,6 +32,7 @@ const subcategoryResolver = {
           description,
           imageUrl: Array.isArray(imageUrl) ? imageUrl : [imageUrl], // Ensure imageUrl is an array
           categoryId,
+          meta
         };
     
         // Call the service to create the subcategory
@@ -45,9 +46,9 @@ const subcategoryResolver = {
       }
     },
    
-    updateSubcategory : async (_, { id, name, description, imageUrl, categoryId }, context) => {
+    updateSubcategory : async (_, { id, name, description, imageUrl, meta ,categoryId }, context) => {
       try {
-        console.log("Input args received in resolver:", { id, name, description, imageUrl, categoryId });
+        console.log("Input args received in resolver:", { id, name, description, imageUrl, meta ,categoryId });
     
         // Check user authentication and authorization
         if (!context.user) {
@@ -75,6 +76,7 @@ const subcategoryResolver = {
           name,
           description,
           imageUrl: uploadedImages.length > 0 ? uploadedImages : undefined,
+          meta,
           categoryId,
         });
     

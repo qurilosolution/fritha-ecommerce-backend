@@ -1,6 +1,41 @@
 const mongoose = require("mongoose");
 
 // Product Schema
+
+const additionalDetailsSchema = new mongoose.Schema({
+  genericName: {
+    type: String,
+    required: true,
+  },
+  dimensions: {
+    type: String,
+    required: true,
+  },
+  marketedBy: {
+    type: String,
+    required: true,
+  },
+  countryOfOrigin: {
+    type: String,
+    required: true,
+  },
+  bestBefore: {
+    type: Date,
+  },
+  manufacture: {
+    type: String,
+    required: true,
+  },
+  licenseNo: {
+    type: String,
+    required: true,
+  },
+  customerCareDetails: {
+    type: String,
+    required: true,
+  },
+});
+
 const productSchema = new mongoose.Schema(
   {
     name: {
@@ -52,6 +87,9 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    title : {
+      type: String,
+    },
     description: {
       type: String,
     },
@@ -87,9 +125,7 @@ const productSchema = new mongoose.Schema(
         type: String,
       },
     ],
-    additionalDetails: {
-      type: String,
-    },
+    additionalDetails: additionalDetailsSchema,
     createdAt: {
       type: Date,
       default: Date.now,

@@ -17,7 +17,7 @@ const categoryResolver = {
 
   Mutation: {
     
-    createCategory: async (_, { name, description, bannerImageUrl, cardImageUrl }, context) => {
+    createCategory: async (_, { name, description, bannerImageUrl, cardImageUrl ,meta }, context) => {
       console.log(context.user);
     
       // Ensure the user is logged in and has the "admin" role
@@ -35,6 +35,7 @@ const categoryResolver = {
           description,
           bannerImageUrl,
           cardImageUrl,
+          meta,
         });
     
         console.log("Category successfully created:", category);

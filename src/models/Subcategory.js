@@ -26,7 +26,22 @@ const subcategorySchema = new mongoose.Schema(
     imageUrl: {
       type: [String],
       trim: true,
+    },
+    meta: {
+      title: {
+        type: String,
+        trim: true,
+      },
+      description: {
+        type: String,
+        trim: true,
+      },
+      keywords: {
+        type: [String], // Array to store multiple keywords
+        trim: true,
+      },
     }
+   
   },
   {
     timestamps: true,

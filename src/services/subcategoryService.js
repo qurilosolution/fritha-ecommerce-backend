@@ -96,8 +96,8 @@ const getSubcategoryByName = async (name) => {
 
 const createSubcategory = async (subcategoryData) => {
     try {
-    const { name, description, imageUrl, categoryId } = subcategoryData;
-    console.log("Received inputs:", { name, description, imageUrl, categoryId });
+    const { name, description, imageUrl, categoryId ,meta } = subcategoryData;
+    console.log("Received inputs:", { name, description, imageUrl, categoryId ,meta });
     // Validate required fields
     if (!categoryId) {
       throw new Error("categoryId is required to create a subcategory.");
@@ -108,6 +108,7 @@ const createSubcategory = async (subcategoryData) => {
       description: description || null,
       imageUrl: [],
       category: categoryId,
+      meta
     });
    // Handle image upload if imageUrl is provided
    if (imageUrl && imageUrl.length > 0) {
@@ -160,8 +161,8 @@ const handleImageUploads = async (imageUrls) => {
 
 const updateSubcategory = async (id, data) => {
   try {
-    const { name, description, imageUrl, categoryId } = data;
-    console.log("Received inputs for update:", { id, name, description, imageUrl, categoryId });
+    const { name, description, imageUrl, categoryId ,meta } = data;
+    console.log("Received inputs for update:", { id, name, description, imageUrl, categoryId ,meta });
 
     // Validate the subcategory ID
     if (!id) throw new Error("Subcategory ID is required to update.");
@@ -176,7 +177,9 @@ const updateSubcategory = async (id, data) => {
     // Prepare updated data
     const updatedData = {
       name: name || existingSubcategory.name,
+      
       description: description || existingSubcategory.description,
+      meta: meta || existingSubcategory.meta,
       imageUrl: uploadedImages.length > 0 ? uploadedImages : existingSubcategory.imageUrl,
       category: categoryId || existingSubcategory.category,
     };

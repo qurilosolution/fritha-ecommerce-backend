@@ -8,12 +8,21 @@ scalar Upload
     id: ID!
     name: String!
     description: String
+    createdAt: String
+    updatedAt:String
     subcategories: [Subcategory]
     products: [Product]
     bannerImageUrl:[String]
     cardImageUrl: [String]
+    meta: Meta
     
 
+  }
+
+  type Meta {
+    title: String
+    description: String
+    keywords: [String]
   }
 
   type PaginatedCategories {
@@ -27,6 +36,11 @@ scalar Upload
     success: Boolean!
     message: String
   }
+  input MetaInput {
+    title: String
+    description: String
+    keywords: [String]
+  }
   
   extend type Query {
     getCategories(page: Int, limit: Int): PaginatedCategories
@@ -36,8 +50,8 @@ scalar Upload
   
   extend type Mutation {
 
-    createCategory(name: String!, description: String,  ,bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]!): Category
-    updateCategory(id: ID!, name: String, description: String , bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]!): Category
+    createCategory(name: String!, description: String,  ,bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]! ,meta: MetaInput): Category
+    updateCategory(id: ID!, name: String, description: String , bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]! ,meta: MetaInput): Category
     deleteCategory(id: ID!): DeletionResponse!
 
   }
