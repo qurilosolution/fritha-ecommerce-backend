@@ -30,6 +30,7 @@ const OrderService = {
   getOrdersByCustomer: async (page=1) => {
     const limit = 10;
     const skip = (page - 1) * limit;
+
     const orders = await Order.find()
       .skip(skip)
       .limit(limit)
@@ -38,6 +39,7 @@ const OrderService = {
 
     const totalOrders = await Order.countDocuments();
     const totalPages = Math.ceil(totalOrders / limit);
+
     return {
       orders,
       totalPages,
