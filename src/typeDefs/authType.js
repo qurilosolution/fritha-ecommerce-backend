@@ -32,7 +32,7 @@ const authType = gql`
       birthDate: String
     ): AuthResponse
 
-    adminSignup(firstName:String!,lastName:String,email:String!,password:String!): AuthResponse
+    adminSignup(firstName:String!,lastName:String,aemail:String!,password:String!): AuthResponse
     adminLogin(email: String!, password: String!): AuthResponse
     login(email: String!, password: String!): AuthResponse
     resetPassword(

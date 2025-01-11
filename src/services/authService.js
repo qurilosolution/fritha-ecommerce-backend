@@ -145,7 +145,7 @@ exports.adminLogin=async(email,password)=>{
             throw new Error('Password do not match');
         const token=jwt.sign({
             id:adminUser.id,
-            name:adminUser.firstName+adminUser.lastName,
+            name:(adminUser.firstName)+(adminUser.lastName),
             email:adminUser.email,
             role:"admin"
         },JWT_SECRET_KEY,{expiresIn:'24h'})
