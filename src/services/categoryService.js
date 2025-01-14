@@ -34,6 +34,20 @@ const uploadImageToCloudinary = require("../utils/fileUpload");
         .limit(limit)
         .populate("subcategories")
         .populate({
+          path: "subcategories",
+          populate: {
+            path: "products",
+            populate: [
+              {
+                path: "variants",
+              },
+              {
+                path: "reviews",
+              },
+            ],
+          },
+        })
+        .populate({
           path: "products",
           populate: [
             {
@@ -65,6 +79,20 @@ const getCategoryById = async (parent, { id }) => {
     return await Category.findById(id)
     .populate("subcategories")
     .populate({
+      path: "subcategories",
+      populate: {
+        path: "products",
+        populate: [
+          {
+            path: "variants",
+          },
+          {
+            path: "reviews",
+          },
+        ],
+      },
+    })
+    .populate({
       path: "products",
       populate: [
         {
@@ -87,6 +115,20 @@ const getCategoryByName = async (name) => {
   try {
     return await Category.findOne({name})
     .populate('subcategories')
+    .populate({
+      path: "subcategories",
+      populate: {
+        path: "products",
+        populate: [
+          {
+            path: "variants",
+          },
+          {
+            path: "reviews",
+          },
+        ],
+      },
+    })
     .populate({
       path: "products",
       populate: [
@@ -247,10 +289,10 @@ const handleImageUpload = async (imageUrls) => {
 };
 
 const updateCategory = async (id, data) => {
-  const { name, description, bannerImageUrl, cardImageUrl } = data;
+  const { name, description, bannerImageUrl, cardImageUrl ,meta } = data;
 
   try {
-    console.log("Received inputs for update:", { id, name, description, bannerImageUrl, cardImageUrl });
+    console.log("Received inputs for update:", { id, name, description, bannerImageUrl, cardImageUrl , meta});
 
     if (!id) throw new Error("Category ID is required to update.");
 
@@ -268,6 +310,7 @@ const updateCategory = async (id, data) => {
       description: description || existingCategory.description,
       bannerImageUrl: uploadedBannerImages.length > 0 ? uploadedBannerImages : existingCategory.bannerImageUrl,
       cardImageUrl: uploadedCardImages.length > 0 ? uploadedCardImages : existingCategory.cardImageUrl,
+      meta: meta || existingCategory.meta,
     };
 
     // Update the category

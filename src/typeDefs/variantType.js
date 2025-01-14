@@ -8,6 +8,7 @@ const variantType = gql`
     size: Int
     pack: Int
     price: Int
+    usp: String
     mrp: Float
     stock: Int
     discount: Float
@@ -41,6 +42,7 @@ const variantType = gql`
     id: ID
     size: Int
     pack: Int
+    usp: String
     price: Int
     mrp: Float
     stock: Int

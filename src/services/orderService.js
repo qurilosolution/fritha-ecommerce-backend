@@ -52,12 +52,12 @@ const OrderService = {
     try {
       const order = await Order.findById(id)
         .populate({
-          path: "items.product",
-          path: "items.product",
+          path: "items.product"
+       
         })
         .populate({
-          path: "items.variant",
-          path: "items.variant",
+          path: "items.variant"
+         
         });
       if (!order) {
         throw new Error(`Order with ID ${id} not found.`);

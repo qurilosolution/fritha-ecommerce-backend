@@ -364,6 +364,8 @@ const getProducts =async (page = 1) => {
     const products = await Product.find()
       .populate("category")
       .populate("subcategory")
+      .populate("variants")
+      .populate("reviews")
       .limit(limit)
       .skip(skip);
 
@@ -386,7 +388,8 @@ const getProductById = async (id) => {
     return await Product.findById(id)
          .populate("category")
          .populate("subcategory")
-         .populate("variants");
+         .populate("variants")
+         .populate("reviews");
   } catch (error) {
     throw new Error(`Error fetching product by ID: ${error.message}`);
   }
@@ -397,7 +400,8 @@ const getProductByslugName = async (slugName) => {
     return await Product.findOne({ slugName })
          .populate("category")
          .populate("subcategory")
-         .populate("variants");
+         .populate("variants")
+         .populate("reviews");
   } catch (error) {
     throw new Error(`Error fetching product by name: ${error.message}`);
   }
@@ -547,6 +551,7 @@ const updateProduct = async (id, input) => {
       description,
       keyBenefits,
       netContent,
+      discount,
       variants,
       review,
       usp,
@@ -577,6 +582,7 @@ const updateProduct = async (id, input) => {
       keyBenefits,
       netContent,
       review,
+      discount,
       variants, // Keep the reference or update variants properly
       imageUrl,
       usp,
@@ -651,14 +657,15 @@ const deleteProduct = async (id) => {
   }
 };
 // Function to fetch best seller products
-async function getBestSellers() {
-  try {
-    return await Product.find({ isBestSeller: true });
-  } catch (err) {
-    console.error("Error fetching best sellers:", err);
-    throw err;
+  async function getBestSellers() {
+    try {
+      return await Product.find({ isBestSeller: true })
+      .populate('variants');
+    } catch (err) {
+      console.error("Error fetching best sellers:", err);
+      throw err;
+    }
   }
-}
 // Function to update best seller status for all products
 async function updateBestSellers() {
   try {
