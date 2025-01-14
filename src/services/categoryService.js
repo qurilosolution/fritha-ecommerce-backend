@@ -107,13 +107,14 @@ const getCategoryByName = async (name) => {
 
 const createCategory = async (categoryData) => {
   try {
-    const { name, description,bannerImageUrl ,cardImageUrl ,products, subcategories } =
+    const { name, description,bannerImageUrl ,cardImageUrl ,meta , products, subcategories } =
       categoryData;
     console.log("Received category data:", categoryData);
     // Create the category document
     const newCategory = new Category({
       name,
       description,
+      meta,
       products,
       subcategories,
     });

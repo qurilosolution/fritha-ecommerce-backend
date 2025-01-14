@@ -1,6 +1,7 @@
 const Product = require("../models/Product");
 const cloudinary = require("../config/cloudinary");
 const uploadImageToCloudinary = require("../utils/fileUpload");
+const Variant = require("../models/Variant");
 const review = require("../models/review");
 const Category = require("../models/category");
 
@@ -222,6 +223,8 @@ const createProduct = async (input) => {
 
     const {
       name,
+      slugName,
+      title,
       category,
       subcategory,
       description,
@@ -263,13 +266,15 @@ const createProduct = async (input) => {
     // Prepare product data
     const productData = { 
       name,
+      slugName,
+      title,
       category,
       subcategory,
       description,
       keyBenefits,
       netContent,
       reviews,
-      variants,
+      variants:[],
       usp,
       mrp,
       price,
@@ -288,6 +293,27 @@ const createProduct = async (input) => {
     // Create the product
     const product = new Product(productData);
     const savedProduct = await product.save();
+
+    if (variants && variants.length > 0) {
+      const createdVariants = await Promise.all(
+        variants.map(async (variant) => {
+          // Process images for each variant
+          const variantImages = variant.imageUrl
+            ? await Promise.all(
+                (Array.isArray(variant.imageUrl) ? variant.imageUrl : [variant.imageUrl])
+                  .filter(Boolean)
+                  .map((image) => uploadImageToCloudinary(image))
+              )
+            : [];
+
+          // Create new variant with processed image URLs
+          const newVariant = new Variant({ ...variant, imageUrl: variantImages, productId: savedProduct._id });
+          return await newVariant.save();
+        })
+      );
+      savedProduct.variants = createdVariants.map((variant) => variant._id);
+      await savedProduct.save();
+    }
 
     // Delegate category updates
     await categoryService.addProductToCategory(category, savedProduct._id);
@@ -380,6 +406,134 @@ const getProductByslugName = async (slugName) => {
 
 
 
+// const updateProduct = async (id, input) => {
+//   try {
+//     if (!id || !input) {
+//       throw new Error("Product ID and update data are required.");
+//     }
+
+//     const {
+//       name,
+//       category,
+//       subcategory,
+//       description,
+//       keyBenefits,
+//       netContent,
+//       variants,
+//       review,
+//       usp,
+//       mrp,
+//       price,
+//       stock,
+//       imageUrl,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//       publicIds,
+//       newImages,
+//     } = input;
+
+//     // Validate required fields
+//     if (!name || !category) {
+//       throw new Error("Name and Category are required fields.");
+//     }
+
+//     const productData = {
+//       name,
+//       category,
+//       subcategory,
+//       description,
+//       keyBenefits,
+//       netContent,
+//       review,
+//       variants,
+//       imageUrl,
+//       usp,
+//       mrp,
+//       price,
+//       stock,
+//       ingredients,
+//       keyFeatures,
+//       additionalDetails,
+//       totalReviews,
+//       averageRating,
+//       isBestSeller,
+//     };
+
+//     // Handle product-level image updates
+//     if (newImages && Array.isArray(newImages) && newImages.length > 0) {
+//       // Delete old images if public IDs are provided
+//       console.log("New images received:", newImages);
+//       if (publicIds && Array.isArray(publicIds) && publicIds.length > 0) {
+//         await Promise.all(
+//           publicIds.map((publicId) =>
+//             deleteImageFromCloudinary(publicId)
+//           )
+//         );
+//       }
+
+//       // Upload new images to Cloudinary
+//       const uploadedImages = await Promise.all(
+//         newImages.map((image) =>uploadImageToCloudinary(image))
+//       );
+//       console.log("Uploaded images for product:", uploadedImages);
+//       productData.imageUrl = uploadedImages; // Update product images
+//     }
+
+//     // Handle variant updates
+//     if (variants && Array.isArray(variants)) {
+//       console.log("Variants before update:", variants);
+//       productData.variants = await Promise.all(
+//         variants.map(async (variant) => {
+          
+//           console.log("Variant newImages:", variant.newImages);
+//           if (variant.newImages && Array.isArray(variant.newImages)) {
+//             if (variant.publicIds && Array.isArray(variant.publicIds)) {
+//               await Promise.all(
+//                 variant.publicIds.map((publicId) =>
+//                   deleteImageFromCloudinary(publicId)
+//                 )
+//               );
+//             }
+
+//             const uploadedVariantImages = await Promise.all(
+//               variant.newImages.map((image) =>
+//                 uploadImageToCloudinary(image)
+//               )
+//             );
+//             console.log("Uploaded variant images:", uploadedVariantImages);
+//             return {
+//               ...variant,
+//               imageUrl: uploadedVariantImages, // Update variant images
+//             };
+//           }
+//           return variant; // Return unchanged variant if no new images
+//         })
+//       );
+//     }
+
+//     // Update the product in the database
+//     const updatedProduct = await Product.findByIdAndUpdate(id, productData, {
+//       new: true,
+//       runValidators: true,
+//     })
+//       .populate("category")
+//       .populate("subcategory");
+
+//     if (!updatedProduct) {
+//       throw new Error("Product not found or update failed.");
+//     }
+
+//     return updatedProduct;
+//   } catch (error) {
+//     console.error("Error updating product:", error.message);
+//     throw new Error(`Error updating product: ${error.message}`);
+//   }
+// };
+
 const updateProduct = async (id, input) => {
   try {
     if (!id || !input) {
@@ -423,7 +577,7 @@ const updateProduct = async (id, input) => {
       keyBenefits,
       netContent,
       review,
-      variants,
+      variants, // Keep the reference or update variants properly
       imageUrl,
       usp,
       mrp,
@@ -439,46 +593,24 @@ const updateProduct = async (id, input) => {
 
     // Handle product-level image updates
     if (newImages && Array.isArray(newImages) && newImages.length > 0) {
-      // Delete old images if public IDs are provided
-      console.log("New images received:", newImages);
       if (publicIds && Array.isArray(publicIds) && publicIds.length > 0) {
-        await Promise.all(
-          publicIds.map((publicId) =>
-            deleteImageFromCloudinary(publicId)
-          )
-        );
+        await Promise.all(publicIds.map((publicId) => deleteImageFromCloudinary(publicId)));
       }
-
-      // Upload new images to Cloudinary
-      const uploadedImages = await Promise.all(
-        newImages.map((image) =>uploadImageToCloudinary(image))
-      );
-      console.log("Uploaded images for product:", uploadedImages);
+      const uploadedImages = await Promise.all(newImages.map((image) => uploadImageToCloudinary(image)));
       productData.imageUrl = uploadedImages; // Update product images
     }
 
     // Handle variant updates
     if (variants && Array.isArray(variants)) {
-      console.log("Variants before update:", variants);
       productData.variants = await Promise.all(
         variants.map(async (variant) => {
-          
-          console.log("Variant newImages:", variant.newImages);
           if (variant.newImages && Array.isArray(variant.newImages)) {
             if (variant.publicIds && Array.isArray(variant.publicIds)) {
               await Promise.all(
-                variant.publicIds.map((publicId) =>
-                  deleteImageFromCloudinary(publicId)
-                )
+                variant.publicIds.map((publicId) => deleteImageFromCloudinary(publicId))
               );
             }
-
-            const uploadedVariantImages = await Promise.all(
-              variant.newImages.map((image) =>
-                uploadImageToCloudinary(image)
-              )
-            );
-            console.log("Uploaded variant images:", uploadedVariantImages);
+            const uploadedVariantImages = await Promise.all(variant.newImages.map((image) => uploadImageToCloudinary(image)));
             return {
               ...variant,
               imageUrl: uploadedVariantImages, // Update variant images
