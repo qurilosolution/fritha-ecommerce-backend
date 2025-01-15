@@ -25,7 +25,7 @@ const productType = gql`
   type Product {
     id: ID!
     name: String!
-    title:String!
+    title:String
     slugName: String!
     category: Category
     subcategory: Subcategory
@@ -33,11 +33,12 @@ const productType = gql`
     price: Int
     stock: Int
     mrp: Int
+    discount: Int
     isStock: Boolean
     keyBenefits: [String]
     reviews: [Review!]!
     imageUrl: [String]
-    discount: Int
+    
     inclusiveOfTaxes: Boolean
     netContent: String
     variants: [Variant!]!
@@ -67,20 +68,21 @@ const productType = gql`
   input CreateProductInput {
     id: ID
     name: String!
-    title:String!
+    title:String
     slugName: String
     category: ID!
     subcategory: ID!
     description: String
     keyBenefits: [String]
     reviews: ID
+    discount : Int
     price: Int
     mrp: Int
     imageUrl: [Upload]
     stock: Int
     isStock: Boolean
     netContent: String
-    discount: Int
+    
     variants: [VariantInput]
     usp: String
     ingredients: [String]
