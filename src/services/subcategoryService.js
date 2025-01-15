@@ -29,6 +29,20 @@ const getSubcategories = async (page = 1) => {
       .limit(limit)
       .populate("category")
       .populate({
+        path: "category",
+        populate: {
+          path: "products",
+          populate: [
+            {
+              path: "variants",
+            },
+            {
+              path: "reviews",
+            },
+          ],
+        },
+      })
+      .populate({
         path: "products",
         populate: [
           {
@@ -61,6 +75,20 @@ const getSubcategoryById = async (parent, { id }) =>  {
     return await Subcategory.findById(id)
     .populate('category')
     .populate({
+      path: "category",
+      populate: {
+        path: "products",
+        populate: [
+          {
+            path: "variants",
+          },
+          {
+            path: "reviews",
+          },
+        ],
+      },
+    })
+    .populate({
       path:"products",
       populate: [
         {
@@ -82,10 +110,29 @@ const getSubcategoryByName = async (name) => {
     return await Subcategory.findOne({name})
     .populate('category')
     .populate({
-      path:"products",
-      populate:{
-        path:"variants",
+      path: "category",
+      populate: {
+        path: "products",
+        populate: [
+          {
+            path: "variants",
+          },
+          {
+            path: "reviews",
+          },
+        ],
       },
+    })
+    .populate({
+      path:"products",
+      populate: [
+        {
+          path: "variants",
+        },
+        {
+          path: "reviews",
+        },
+      ],
     });
   } 
   catch (error) {

@@ -11,8 +11,13 @@ const generateToken = (payload, expiresIn = '10m') => {
 const verifyToken = (token) => {
   return jwt.verify(token, JWT_SECRET);
 };
-
+const generateOtp=()=>{
+  return Math.floor(1000 + Math.random() * 9000);
+}
 module.exports = {
   generateToken,
   verifyToken,
+  generateOtp
 };
+
+

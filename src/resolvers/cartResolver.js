@@ -45,7 +45,7 @@ const cartResolver={
           } 
       }
       catch(error){
-          throw new Error('Error adding to cart: ' + error.message);
+          throw new Error('Error removing to cart: ' + error.message);
       }
       },
         updateCart:async(_,{productId,variantId,quantity},context)=>{

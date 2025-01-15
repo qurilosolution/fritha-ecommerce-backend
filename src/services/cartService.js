@@ -77,7 +77,7 @@ exports.removeFromCart=async(userId,productId,variantId)=>{
             }
             const variant=await Variant.findById(variantId);
           
-            const existingItem=cart.items.find(item=>item.product.toString()===productId.toString()&&(item.variant?item.variant.toString()===variantId.toString():true));
+            const existingItem=cart.items.find(item=>productId?.toString()==item.product?.toString()&&(variantId?item.variant?.toString()===variantId?.toString():true));
             console.log(existingItem,"existingItemasds")
             if(existingItem){
                 cart.items=cart.items.filter(item=>item._id.toString()!==existingItem._id.toString());
@@ -93,7 +93,7 @@ exports.removeFromCart=async(userId,productId,variantId)=>{
             }
         }
     }catch(error){
-        throw new Error('Error removing from cart: ' + error.message);
+        throw new Error( error.message);
     }
 }
 exports.updateCart=async(userId,productId,variantId,quantity)=>{

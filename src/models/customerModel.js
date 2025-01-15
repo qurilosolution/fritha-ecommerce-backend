@@ -19,7 +19,9 @@ const customerSchema = new mongoose.Schema({
   phoneNumber: { type: String  , required: false},
   password: { type: String, required: true },
   gender: { type: String , required:false },
-  birthDate: { type: String  , required:false},
+  birthDate: { type: Date  , required:false},
+  otp:{type:String,required:false},
+  expiry:{type:Date,required:false},
   addresses:[{type:AddressSchema}]
 });
 

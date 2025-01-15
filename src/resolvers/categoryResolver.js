@@ -61,7 +61,7 @@ const categoryResolver = {
       }
     
       try {
-        const { id, name, description, bannerImageUrl, cardImageUrl } = args;
+        const { id, name, description, bannerImageUrl, cardImageUrl , meta} = args;
     
         // Validate ID
         if (!id || typeof id !== "string") {
@@ -75,6 +75,7 @@ const categoryResolver = {
           description,
           bannerImageUrl,
           cardImageUrl,
+          meta
         });
     
         console.log("Category successfully updated:", updatedCategory);
