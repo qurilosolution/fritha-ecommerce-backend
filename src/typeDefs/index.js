@@ -12,7 +12,6 @@ const orderType = require("./orderType");
 const couponType = require("./couponType");
 const cartType=require("./cartType");
 const addressType = require('./addressType');
-const orderType =require('./orderType')
 
 const typeDefs = gql`
   ${baseType}

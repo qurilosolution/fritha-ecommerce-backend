@@ -121,7 +121,7 @@ const authResolvers = {
             id: user._id,
             name: user.firstName + user.lastName,
             email: user.email,
-            role: "admin"
+            role: "customer"
           },
           process.env.SECRET_KEY,
           { expiresIn: "24h" }
