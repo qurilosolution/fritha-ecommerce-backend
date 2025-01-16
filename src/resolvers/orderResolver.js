@@ -98,6 +98,20 @@ const paymentResolvers = {
           paymentStatus,
           shippingAddress
         );
+         // Update the coupon usage for the user
+          await Customer.findByIdAndUpdate(
+            userId,
+            {
+              $push: {
+                couponUsed: {
+                  couponId: coupon._id,
+                  usedAt: new Date(),
+                  couponUsageCount: 1,
+                },
+              },
+            },
+            { new: true }
+          );
         return order;
       } catch (error) {
         console.error("Error in createOrder resolver:", error);

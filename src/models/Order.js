@@ -33,6 +33,7 @@ const OrderSchema = new mongoose.Schema(
     paymentId: { type: String }, 
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+    
 
   },
   { timestamps: true } 

@@ -68,7 +68,7 @@ const authResolvers = {
   Mutation: {
     signup: async (
       _,
-      { firstName, lastName, email, phoneNumber, password, gender, birthDate ,role }
+      { firstName, lastName, email, phoneNumber, password, gender, birthDate  }
     ) => {
       try {
         const existingUser = await CustomerModel.findOne({ email });
@@ -84,7 +84,7 @@ const authResolvers = {
           password: hashedPassword,
           gender,
           birthDate,
-          role,
+          
         });
         await newUser.save();
         return {
@@ -121,7 +121,7 @@ const authResolvers = {
             id: user._id,
             name: user.firstName + user.lastName,
             email: user.email,
-            role: "customer"
+            role: "admin"
           },
           process.env.SECRET_KEY,
           { expiresIn: "24h" }
