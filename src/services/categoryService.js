@@ -3,21 +3,75 @@ const Subcategory = require("../models/Subcategory");
 const uploadImageToCloudinary = require("../utils/fileUpload");
 
 
-const getCategories = async () => {
-  try {
-    return await Category.find()
-      .populate("subcategories") 
-      .populate({
-        path: "products",
-        populate: {
-          path: "variants", 
-        },
-      });
-  } catch (error) {
-    throw new Error("Failed to fetch categories: " + error.message);
-  }
-};
+  // const getCategories = async () => {
+  //   try {
+  //     return await Category.find()
+  //       .populate("subcategories") 
+  //       .populate({
+  //         path: "products",
+  //         populate: [
+  //         {
+  //           path: "variants", 
+  //         },
+  //         {
+  //           path: "reviews", 
+  //         },
+  //       ],
+  //       });
+  //   } catch (error) {
+  //     throw new Error("Failed to fetch categories: " + error.message);
+  //   }
+  // };
 
+  const getCategories = async (parent, args) => {
+    const { page } = args;
+    const limit = 10; // Fixed limit
+    const skip = (page - 1) * limit;
+  
+    try {
+      const categories = await Category.find()
+        .skip(skip)
+        .limit(limit)
+        .populate("subcategories")
+        .populate({
+          path: "subcategories",
+          populate: {
+            path: "products",
+            populate: [
+              {
+                path: "variants",
+              },
+              {
+                path: "reviews",
+              },
+            ],
+          },
+        })
+        .populate({
+          path: "products",
+          populate: [
+            {
+              path: "variants",
+            },
+            {
+              path: "reviews",
+            },
+          ],
+        });
+  
+      const totalCategories = await Category.countDocuments();
+  
+      return {
+        categories,
+        currentPage: page,
+        totalPages: Math.ceil(totalCategories / limit),
+        totalCategories,
+      };
+    } catch (error) {
+      throw new Error("Failed to fetch categories: " + error.message);
+    }
+  };
+  
 
 const getCategoryById = async (parent, { id }) => {
   try {
@@ -25,10 +79,29 @@ const getCategoryById = async (parent, { id }) => {
     return await Category.findById(id)
     .populate("subcategories")
     .populate({
-      path: "products",
+      path: "subcategories",
       populate: {
-        path: "variants", 
+        path: "products",
+        populate: [
+          {
+            path: "variants",
+          },
+          {
+            path: "reviews",
+          },
+        ],
       },
+    })
+    .populate({
+      path: "products",
+      populate: [
+        {
+          path: "variants", 
+        },
+        {
+          path: "reviews", 
+        },
+      ],
     });
 
 
@@ -38,15 +111,52 @@ const getCategoryById = async (parent, { id }) => {
   }
 };
 
+const getCategoryByName = async (name) => {
+  try {
+    return await Category.findOne({name})
+    .populate('subcategories')
+    .populate({
+      path: "subcategories",
+      populate: {
+        path: "products",
+        populate: [
+          {
+            path: "variants",
+          },
+          {
+            path: "reviews",
+          },
+        ],
+      },
+    })
+    .populate({
+      path: "products",
+      populate: [
+        {
+          path: "variants", 
+        },
+        {
+          path: "reviews", 
+        },
+      ],
+    });
+  } 
+  catch (error) {
+    throw new Error(`Error fetching product by name: ${error.message}`);
+  }
+};
+
+
 const createCategory = async (categoryData) => {
   try {
-    const { name, description,bannerImageUrl ,cardImageUrl ,products, subcategories } =
+    const { name, description,bannerImageUrl ,cardImageUrl ,meta , products, subcategories } =
       categoryData;
     console.log("Received category data:", categoryData);
     // Create the category document
     const newCategory = new Category({
       name,
       description,
+      meta,
       products,
       subcategories,
     });
@@ -114,7 +224,7 @@ const addSubcategoryToCategory = async (categoryId, subcategoryId) => {
       { $push: { subcategories: subcategoryId } },
       { new: true } // Return the updated document
     );
-    if (!updatedCategory) {
+    if (!updatedCategory) { 
       throw new Error("Category not found or failed to update.");
     }
     console.log("Updated category with new subcategory:", updatedCategory);
@@ -144,25 +254,25 @@ const addProductToCategory = async (category, productsId) => {
 };
 
 
-const uploadImages = async (imageUrls) => {
-  try {
-    const uploadedImages = [];
-    if (imageUrls && imageUrls.length > 0) {
-      const images = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
-      for (const image of images) {
-        const uploadedImage = await uploadImageToCloudinary(image);
-        if (!uploadedImage) {
-          throw new Error("Uploaded image does not contain a URL.");
-        }
-        uploadedImages.push(uploadedImage);
-      }
-    }
-    return uploadedImages;
-  } catch (error) {
-    console.error("Error uploading images:", error.message);
-    throw new Error("Image upload failed.");
-  }
-};
+// const uploadImages = async (imageUrls) => {
+//   try {
+//     const uploadedImages = [];
+//     if (imageUrls && imageUrls.length > 0) {
+//       const images = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
+//       for (const image of images) {
+//         const uploadedImage = await uploadImageToCloudinary(image);
+//         if (!uploadedImage) {
+//           throw new Error("Uploaded image does not contain a URL.");
+//         }
+//         uploadedImages.push(uploadedImage);
+//       }
+//     }
+//     return uploadedImages;
+//   } catch (error) {
+//     console.error("Error uploading images:", error.message);
+//     throw new Error("Image upload failed.");
+//   }
+// };
 
 
 const handleImageUpload = async (imageUrls) => {
@@ -179,10 +289,10 @@ const handleImageUpload = async (imageUrls) => {
 };
 
 const updateCategory = async (id, data) => {
-  const { name, description, bannerImageUrl, cardImageUrl } = data;
+  const { name, description, bannerImageUrl, cardImageUrl ,meta } = data;
 
   try {
-    console.log("Received inputs for update:", { id, name, description, bannerImageUrl, cardImageUrl });
+    console.log("Received inputs for update:", { id, name, description, bannerImageUrl, cardImageUrl , meta});
 
     if (!id) throw new Error("Category ID is required to update.");
 
@@ -200,6 +310,7 @@ const updateCategory = async (id, data) => {
       description: description || existingCategory.description,
       bannerImageUrl: uploadedBannerImages.length > 0 ? uploadedBannerImages : existingCategory.bannerImageUrl,
       cardImageUrl: uploadedCardImages.length > 0 ? uploadedCardImages : existingCategory.cardImageUrl,
+      meta: meta || existingCategory.meta,
     };
 
     // Update the category
@@ -258,4 +369,5 @@ module.exports = {
   changeSubcategoryCategory,
   addProductToCategory,
   handleImageUpload,
+  getCategoryByName
 };

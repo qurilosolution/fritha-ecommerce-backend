@@ -19,13 +19,21 @@ const reviewType = gql`
     description: String!
   }
 
+  type ReviewPage {
+    reviews: [Review]!
+    totalCount: Int!
+    page: Int!
+    totalPages: Int!
+  }
+
   extend type Query {
-    getReviewsByProduct(productId: ID!): [Review]
+    getReviewsByProduct(productId: ID!, page: Int, limit: Int): ReviewPage
     getReviewById(id: ID!): Review
   }
 
   extend type Mutation {
     createReview(input: ReviewInput): Review
+    updateReview(id: ID!, input: ReviewInput): Review
   }
 `;
 

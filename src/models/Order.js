@@ -21,7 +21,7 @@ const OrderSchema = new mongoose.Schema(
         quantity: { type: Number, required: true }, 
         price: { type: Number, required: true },
         discount: { type: Number, required: true }, 
-        mrp: { type: Number, required: true }, 
+        mrp: { type: Number, required: true },    
       },
     ],
     totalAmount: { type: Number, required: true }, 
@@ -30,11 +30,7 @@ const OrderSchema = new mongoose.Schema(
     status: { type: String, enum: ["Pending", "Placed", "Cancelled"], default: "Pending" },
     shippingAddress: {type :ShippingAddressSchema, required : true},
     orderId: { type: String, default: uuidv4 },
-    paymentId: { type: String ,required: true}, 
-    coupon: {
-      code: { type: String, default: null }, // Coupon code applied
-      discountAmount: { type: Number, default: 0 }, // Discount applied through coupon
-    },
+    paymentId: { type: String }, 
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     

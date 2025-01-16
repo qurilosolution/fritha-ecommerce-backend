@@ -10,10 +10,9 @@ const wishlistType = require("./wishlistType");
 const paymentType = require("./paymentType");
 const orderType = require("./orderType");
 const couponType = require("./couponType");
-const testing = require("./testing");
-
-const cartType = require("./cartType");
-const addressType = require("./addressType");
+const cartType=require("./cartType");
+const addressType = require('./addressType');
+const orderType =require('./orderType')
 
 const typeDefs = gql`
   ${baseType}
@@ -22,13 +21,13 @@ const typeDefs = gql`
   ${productType}
   ${variantType}
   ${reviewType}
+  ${orderType}
   ${authType}
   ${wishlistType}
   ${paymentType}
   ${cartType}
   ${addressType}
   ${couponType}
-  ${testing}
 `;
 
 module.exports = typeDefs;

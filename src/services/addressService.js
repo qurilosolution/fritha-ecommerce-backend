@@ -44,13 +44,12 @@ exports.updateAddress = async (userId,addressId, address) => {
         }
         else {
             const prevDefaultAddress = customer.addresses.find(address => address.isDefault === true);
-            console.log(customer.addresses,"customer.addresses");
-            console.log(prevDefaultAddress,"elseblock");
+            
             if(prevDefaultAddress&&prevDefaultAddress._id.toString() === addressId.toString()){
                 address.isDefault = true;
             }
         }
-        console.log(address,"sf");
+        address._id=addressId
         customer.addresses[addressIndex] = address;
         await customer.save();
         
@@ -73,9 +72,10 @@ exports.deleteAddress = async (userId, addressId) => {
         if (addressIndex === -1) {
             throw new Error("Address not found");
         }
+        const deleteAddress = customer.addresses[addressIndex];
         customer.addresses.splice(addressIndex, 1);
         await customer.save();
-        return { success: true, message: "Address deleted successfully" };
+        return deleteAddress;
     }
     catch(err){
         throw new Error(err.message);

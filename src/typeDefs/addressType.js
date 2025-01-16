@@ -3,7 +3,8 @@ const {gql}=require('apollo-server-express');
 const addressType=gql`
 type Address {
     id: ID!
-    name: String!
+    firstName: String!
+    lastName: String
     streetAddress: String!
     city: String!
     state: String!
@@ -16,7 +17,8 @@ type Address {
     createdAt: String!
 }
 input AddressInput {
-    name: String!
+    firstName: String!
+    lastName: String
     streetAddress: String!
     city: String!
     state: String!
@@ -38,7 +40,7 @@ type DeletionResponse {
   extend type Mutation {
     createAddress(input: AddressInput): Address
     updateAddress(id,:ID!,input: AddressInput): Address
-    deleteAddress(id: ID!): DeletionResponse
+    deleteAddress(id: ID!): Address
     
 }
 `;

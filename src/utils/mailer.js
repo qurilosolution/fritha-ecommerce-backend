@@ -3,8 +3,8 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 // Log the email and password (be cautious with logging sensitive data in production)
-console.log("GMAIL_USER:", process.env.GMAIL_USER);
-console.log("GMAIL_PASSWORD:", process.env.GMAIL_PASSWORD);
+// console.log("GMAIL_USER:", process.env.GMAIL_USER);
+// console.log("GMAIL_PASSWORD:", process.env.GMAIL_PASSWORD);
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -25,7 +25,7 @@ async function sendMail(to, subject, text, html) {
     console.log(`HTML Content: ${html}`);
 
     const info = await transporter.sendMail({
-      from: `"Fritha" <${process.env.GMAIL_USER}>`, // Sender name and email
+      from: `"Fritha Costmetics" <${process.env.GMAIL_USER}>`, // Sender name and email
       to, // Recipient email
       subject, // Email subject
       text, // Plain text (optional)
@@ -37,9 +37,9 @@ async function sendMail(to, subject, text, html) {
     return info.messageId; // Optional, to return the ID
   } catch (error) {
     // Log the error details
-    console.error("Error sending mail:", error.message);
-    throw new Error("Email sending failed");
+    console.error("Error in    sending mail:", error.message);
+    throw new Error("Error in sending mail");
   }
-}
+} 
 
 module.exports = sendMail;

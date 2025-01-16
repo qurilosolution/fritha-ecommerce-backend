@@ -36,6 +36,20 @@ const categorySchema = new mongoose.Schema(
       type: [String], // Optional images for the category
       trim: true,
     },
+    meta: {
+      title: {
+        type: String,
+        trim: true,
+      },
+      description: {
+        type: String,
+        trim: true,
+      },
+      keywords: {
+        type: [String], // Array to store multiple keywords
+        trim: true,
+      },
+    },
     
   },
   {

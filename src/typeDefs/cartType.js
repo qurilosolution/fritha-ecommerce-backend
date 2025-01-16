@@ -3,7 +3,7 @@ const {gql}=require('apollo-server-express');
 const cartType=gql`
 type CartItem {
     id: ID
-    product: Product!
+    product: Product
     variant: Variant
     quantity: Int!
 }

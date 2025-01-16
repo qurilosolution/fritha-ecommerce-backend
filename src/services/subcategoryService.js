@@ -3,26 +3,101 @@ const Subcategory = require('../models/Subcategory');
 const categoryService = require('../services/categoryService');
 const uploadImageToCloudinary = require('../utils/fileUpload');
 // Fetch all subcategories
-const getSubcategories = async () => {
-  return await Subcategory.find()
-  .populate('category')
-  .populate({
-    path: "products",
-    populate: {
-      path: "variants", 
-    },
-  });
+// const getSubcategories = async () => {
+//   return await Subcategory.find()
+//   .populate('category')
+//   .populate({
+//     path: "products",
+//     populate: [
+//       {
+//         path: "variants", 
+//       },
+//       {
+//         path: "reviews", 
+//       },
+//     ],
+//   });
+// };
+
+const getSubcategories = async (page = 1) => {
+  try {
+    const limit = 10; 
+    const skip = (page - 1) * limit; 
+
+    const subcategories = await Subcategory.find()
+      .skip(skip)
+      .limit(limit)
+      .populate("category")
+      .populate({
+        path: "category",
+        populate: {
+          path: "products",
+          populate: [
+            {
+              path: "variants",
+            },
+            {
+              path: "reviews",
+            },
+          ],
+        },
+      })
+      .populate({
+        path: "products",
+        populate: [
+          {
+            path: "variants",
+          },
+          {
+            path: "reviews",
+          },
+        ],
+      });
+
+    const totalSubcategories = await Subcategory.countDocuments(); // Count total subcategories
+    const totalPages = Math.ceil(totalSubcategories / limit);
+
+    return {
+      subcategories,
+      currentPage: page,
+      totalPages,
+      totalSubcategories,
+    };
+  } catch (error) {
+    throw new Error("Failed to fetch subcategories: " + error.message);
+  }
 };
+
+
 const getSubcategoryById = async (parent, { id }) =>  {
   console.log("Fetching subcategory", id);
   try {
     return await Subcategory.findById(id)
     .populate('category')
     .populate({
-      path:"products",
-      populate:{
-        path:"variants",
+      path: "category",
+      populate: {
+        path: "products",
+        populate: [
+          {
+            path: "variants",
+          },
+          {
+            path: "reviews",
+          },
+        ],
       },
+    })
+    .populate({
+      path:"products",
+      populate: [
+        {
+          path: "variants", 
+        },
+        {
+          path: "reviews", 
+        },
+      ],
     });
   } 
   catch (error) {
@@ -30,10 +105,46 @@ const getSubcategoryById = async (parent, { id }) =>  {
     return null;
   }
 };
+const getSubcategoryByName = async (name) => {
+  try {
+    return await Subcategory.findOne({name})
+    .populate('category')
+    .populate({
+      path: "category",
+      populate: {
+        path: "products",
+        populate: [
+          {
+            path: "variants",
+          },
+          {
+            path: "reviews",
+          },
+        ],
+      },
+    })
+    .populate({
+      path:"products",
+      populate: [
+        {
+          path: "variants",
+        },
+        {
+          path: "reviews",
+        },
+      ],
+    });
+  } 
+  catch (error) {
+    throw new Error(`Error fetching product by name: ${error.message}`);
+  }
+};
+
+
 const createSubcategory = async (subcategoryData) => {
     try {
-    const { name, description, imageUrl, categoryId } = subcategoryData;
-    console.log("Received inputs:", { name, description, imageUrl, categoryId });
+    const { name, description, imageUrl, categoryId ,meta } = subcategoryData;
+    console.log("Received inputs:", { name, description, imageUrl, categoryId ,meta });
     // Validate required fields
     if (!categoryId) {
       throw new Error("categoryId is required to create a subcategory.");
@@ -44,6 +155,7 @@ const createSubcategory = async (subcategoryData) => {
       description: description || null,
       imageUrl: [],
       category: categoryId,
+      meta
     });
    // Handle image upload if imageUrl is provided
    if (imageUrl && imageUrl.length > 0) {
@@ -96,8 +208,8 @@ const handleImageUploads = async (imageUrls) => {
 
 const updateSubcategory = async (id, data) => {
   try {
-    const { name, description, imageUrl, categoryId } = data;
-    console.log("Received inputs for update:", { id, name, description, imageUrl, categoryId });
+    const { name, description, imageUrl, categoryId ,meta } = data;
+    console.log("Received inputs for update:", { id, name, description, imageUrl, categoryId ,meta });
 
     // Validate the subcategory ID
     if (!id) throw new Error("Subcategory ID is required to update.");
@@ -112,7 +224,9 @@ const updateSubcategory = async (id, data) => {
     // Prepare updated data
     const updatedData = {
       name: name || existingSubcategory.name,
+      
       description: description || existingSubcategory.description,
+      meta: meta || existingSubcategory.meta,
       imageUrl: uploadedImages.length > 0 ? uploadedImages : existingSubcategory.imageUrl,
       category: categoryId || existingSubcategory.category,
     };
@@ -171,4 +285,5 @@ module.exports = {
   deleteSubcategory,
   addProductToSubCategory,
   handleImageUploads,
+  getSubcategoryByName
 };

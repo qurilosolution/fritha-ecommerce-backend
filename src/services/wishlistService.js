@@ -19,12 +19,11 @@ const WishlistService = {
         .populate({
           path: 'items.product', // Correct path for the product
           model: 'Product', // Explicitly mention the model (optional but good practice)
-          select: 'name', // Only fetch the name of the product
         })
         .populate({
           path: 'items.variant', // Correct path for the variant
           model: 'Variant', // Explicitly mention the model (optional but good practice)
-          select: 'pack', // Only fetch the pack of the variant
+         
         });
   
       if (!wishlist) {
@@ -96,15 +95,13 @@ const WishlistService = {
   addToWishlist: async (userId, item) => {
     try {
       // Check if variant is provided and if it's a valid ObjectId
-      let variantObjectId = null;
-      if (item.variant) {
-        if (!mongoose.Types.ObjectId.isValid(item.variant)) {
+      if(!mongoose.Types.ObjectId.isValid(item.product))
+        throw new Error('Invalid product ID');
+      
+        if (!item.variant||!mongoose.Types.ObjectId.isValid(item.variant)) {
           throw new Error('Invalid variant ID');
         }
-        // Convert variant to ObjectId if valid
-        variantObjectId = new mongoose.Types.ObjectId(item.variant);
-      }
-  
+       
       // Find the user's wishlist
       let wishlist = await WishlistItem.findOne({ userId });
   
@@ -112,9 +109,11 @@ const WishlistService = {
       if (!wishlist) {
         wishlist = await WishlistItem.create({ userId, items: [] });
       }
-  
+      const existingItem=wishlist.items.filter((wishlistItem)=>wishlistItem.product==item.product&&(item.variant?wishlistItem.variant==item.variant:1));
+      if(existingItem)
+        throw Error("Item Already added to wishlist")
       // Add the new item to the wishlist with variant or null if no variant
-      wishlist.items.push({ ...item, variant: variantObjectId });
+      wishlist.items.push(item);
       await wishlist.save();
   
       // Populate the product and variant fields
