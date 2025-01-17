@@ -8,7 +8,8 @@ const subcategoryType = gql`
     description: String
     createdAt: String
     updatedAt: String
-    imageUrl: [String]
+    bannerImageUrl:[String]
+    cardImageUrl: [String]
     category: Category!
     products: [Product]
     meta: Meta
@@ -41,8 +42,8 @@ const subcategoryType = gql`
 
 
   extend type Mutation {  
-    createSubcategory(name: String!, description: String, imageUrl: [Upload!]! ,categoryId: ID!, meta:MetaInput): Subcategory
-    updateSubcategory(id: ID!, name: String, description: String, imageUrl: [Upload!]! , categoryId: ID! , meta:MetaInput): Subcategory
+    createSubcategory(name: String!, description: String,  bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]!, categoryId: ID!, meta:MetaInput): Subcategory
+    updateSubcategory(id: ID!, name: String, description: String, bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]!, categoryId: ID! , meta:MetaInput): Subcategory
     deleteSubcategory(subcategoryId: ID!, categoryId: ID!): DeletionResponse!
 
   }

@@ -9,10 +9,11 @@ const variantResolver = require("./variantResolver")
 const wishlistResolver = require("./wishlistResolver");
 const paymentResolver = require("./paymentResolver");
 const cartResolver=require("./cartResolver")
+const orderStatsResolver = require("./orderStatsResolver");
 
 const addressResolver=require("./addressResolver")
 const orderResolver=require("./orderResolver")
-const resolvers = mergeResolvers([categoryResolver,addressResolver, subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,orderResolver,wishlistResolver,paymentResolver,cartResolver ]);
+const resolvers = mergeResolvers([categoryResolver,addressResolver,orderStatsResolver,subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,orderResolver,wishlistResolver,paymentResolver,cartResolver ]);
 
 
 

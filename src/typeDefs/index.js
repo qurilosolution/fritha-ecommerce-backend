@@ -13,8 +13,10 @@ const paymentType = require("./paymentType")
 const cartType=require("./cartType");
 const addressType = require('./addressType');
 const orderType =require('./orderType')
+const orderStat= require('./orderStat')
 const typeDefs = gql`
   ${baseType}
+  ${orderStat}
   ${categoryType}
   ${subcategoryType}
   ${productType}
@@ -26,6 +28,7 @@ const typeDefs = gql`
   ${paymentType}
   ${cartType}
   ${addressType}
+  
 `;
 
 module.exports = typeDefs;

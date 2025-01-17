@@ -6,7 +6,7 @@ const cloudinary = require("../config/cloudinary");
 
 const getVariantsByProduct =async (productId) =>{
   try {
-    const variants = await Variant.find({ productId });
+    const variants = await Variant.find({ productId , deletedAt: null });
     console.log('Variants:', variants);
     return variants
   } catch (err) {
@@ -111,13 +111,17 @@ const addVariant = async (productId, variantData) => {
 
   const deleteVariant = async (variantId) => {
     try {
-      // Find and delete the variant
-      const variant = await Variant.findByIdAndDelete(variantId);
-  
+      // Find the variant by ID
+      const variant = await Variant.findById(variantId);
+      
       if (!variant) {
         throw new Error("Variant not found.");
       }
-   
+  
+      
+      variant.deletedAt = new Date();
+      await variant.save(); 
+  
       // Remove the variant ID from the associated product
       const product = await Product.findById(variant.productId);
       if (product) {
@@ -127,12 +131,13 @@ const addVariant = async (productId, variantData) => {
         await product.save();
       }
   
-      return { success: true, message: "Variant successfully deleted." };
+      return { success: true, message: "Variant successfully marked as deleted." };
     } catch (error) {
-      console.error("Error deleting variant:", error.message);
-      throw new Error("Failed to delete variant.");
+      console.error("Error marking variant as deleted:", error.message);
+      throw new Error("Failed to mark variant as deleted.");
     }
   };
+  
 
   // Function to delete an image from Cloudinary
   const deleteImageFromCloudinary = async (publicId) => {

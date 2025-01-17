@@ -23,9 +23,17 @@ const subcategorySchema = new mongoose.Schema(
         ref: 'Product',
       },
     ],
-    imageUrl: {
-      type: [String],
+    bannerImageUrl: {
+      type: [String], 
       trim: true,
+    },
+    cardImageUrl: {
+      type: [String], 
+      trim: true,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
     },
     meta: {
       title: {

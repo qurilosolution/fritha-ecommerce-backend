@@ -1,4 +1,5 @@
-const { gql } = require('apollo-server-express');
+const { gql } = require("apollo-server-express");
+
 const razorpayType = gql`
   type PaymentVerificationResponse {
     success: Boolean!
@@ -18,7 +19,23 @@ const razorpayType = gql`
     paymentId: String
     createdAt: String!
     updatedAt: String!
+    orderSummary: OrderSummary
+    
+  }
 
+  type OrderSummary {
+    couponDiscount: String!
+    subTotal: Float!
+    discount: Float!
+    deliveryCharge: Float!
+    totalAmount: Float!
+  }
+  input OrderSummaryInput {
+    couponDiscount: String!
+    subTotal: Float!
+    discount: Float!
+    deliveryCharge: Float!
+    totalAmount: Float!
   }
 
   type OrderProduct {
@@ -40,6 +57,10 @@ const razorpayType = gql`
   }
 
   input ShippingAddressInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    phoneNumber: String!
     address: String!
     city: String!
     state: String!
@@ -47,14 +68,19 @@ const razorpayType = gql`
     country: String!
   }
 
+
   type ShippingAddress {
-    
+    firstName: String!
+    lastName: String!
+    email: String!
+    phoneNumber: String!
     address: String!
     city: String!
     state: String!
     zip: String!
     country: String!
   }
+
   type PaginatedOrders {
     orders: [Order!]!
     totalPages: Int!
@@ -67,30 +93,43 @@ const razorpayType = gql`
     getOrderById(id: ID!): Order
   }
 
-  extend type Mutation { 
+  extend type Mutation {
     createOrder(
       userId: String!
-      items: [OrderProductInput!]!  
+      items: [OrderProductInput!]!
       totalAmount: Float!
       status: String
       paymentMode: String!
       paymentStatus: String!
       shippingAddress: ShippingAddressInput!
+      orderSummary: OrderSummaryInput!
+     
+      
     ): Order
-    updateOrderStatus(id: ID!, status: String!): Order
     
+  
+  updateOrder(
+    orderId: ID!,
+    userId: String!,
+    items: [OrderProductInput!]!
+    status: String,
+    paymentMode: String!
+    paymentStatus: String!,
+    shippingAddress: ShippingAddressInput!
+    orderSummary: OrderSummaryInput!
+    
+  ): Order
+
+
+    updateOrderStatus(id: ID!, status: String!): Order
     deleteOrder(id: ID!): DeletionResponse!
     verifyPayment(
       razorpayOrderId: String!
       razorpayPaymentId: String!
       razorpaySignature: String!
     ): PaymentVerificationResponse
-
-    
-    
     updatePaymentStatus(orderId: ID!, paymentStatus: String!): Order
     cancelOrder(id: ID!): Order
-   
   }
 
   type DeletionResponse {
@@ -98,4 +137,5 @@ const razorpayType = gql`
     message: String
   }
 `;
+
 module.exports = razorpayType;

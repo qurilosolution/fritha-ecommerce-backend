@@ -142,8 +142,12 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
     publicIds: [{ type: String }],
-    newImages: [{ type: String }],
+   
   },
   { timestamps: true }
 );

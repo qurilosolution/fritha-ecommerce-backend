@@ -47,7 +47,7 @@ cron.schedule('* * * * *', async () => {
   } catch (error) {
     console.error('Error managing product sales:', error);
   }
-});
+}); 
 
 const server = new ApolloServer({ typeDefs, resolvers ,uploads:true , context:authMiddleware,
 });  

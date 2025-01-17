@@ -29,7 +29,7 @@ const uploadImageToCloudinary = require("../utils/fileUpload");
     const skip = (page - 1) * limit;
   
     try {
-      const categories = await Category.find()
+      const categories = await Category.find({ deletedAt: null })
         .skip(skip)
         .limit(limit)
         .populate("subcategories")
@@ -76,7 +76,7 @@ const uploadImageToCloudinary = require("../utils/fileUpload");
 const getCategoryById = async (parent, { id }) => {
   try {
     console.log(getCategoryById);
-    return await Category.findById(id)
+    return await Category.findById({ _id: id, deletedAt: null })
     .populate("subcategories")
     .populate({
       path: "subcategories",
@@ -113,7 +113,7 @@ const getCategoryById = async (parent, { id }) => {
 
 const getCategoryByName = async (name) => {
   try {
-    return await Category.findOne({name})
+    return await Category.findOne({ name, deletedAt: null })
     .populate('subcategories')
     .populate({
       path: "subcategories",
@@ -355,10 +355,15 @@ const changeSubcategoryCategory = async (
   }
 };
 const deleteCategory = async (id) => {
-  await Subcategory.deleteMany({ category: id });
-  const result = await Category.findByIdAndDelete(id);
-  return !!result;
+  try {
+    await Subcategory.updateMany({ category: id }, { deletedAt: new Date() });
+    const result = await Category.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true });
+    return !!result;
+  } catch (error) {
+    throw new Error(`Error deleting category: ${error.message}`);
+  }
 };
+
 module.exports = {
   getCategories,
   getCategoryById,

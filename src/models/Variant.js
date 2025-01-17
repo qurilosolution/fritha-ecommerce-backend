@@ -68,6 +68,10 @@ const variantSchema = new mongoose.Schema({
   saleEndDate: {
     type: Date,
   },
+  deletedAt: {
+    type: Date,
+    default: null,
+  },
   publicIds: [{ type: String }],
   newImages: [{ type: String }],
 }, { timestamps: true });
