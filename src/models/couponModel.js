@@ -5,6 +5,7 @@ const couponSchema = new mongoose.Schema({
   discountPercentage: { type: Number,  min: 0, max: 100 },  // Discount percentage (e.g., 25)
   flatDiscount: { type: Number, min: 0 }, // Flat discount amount (e.g., $50)
   applicableProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],  // List of applicable products
+  couponType:{type: String},
   startDate: { type: Date, required: true },  // Coupon start date
   endDate: { type: Date, required: true },  // Coupon expiry date
   maxUsage: { type: Number, default: 1 },  // Max usage per coupon
