@@ -296,6 +296,8 @@ updateCoupon: async (id, updateData) => {
         { deletedAt: new Date() },
         { new: true }
       );
+
+      console.log(deletedCoupon,"ffkjhdskjf")
       if (!deletedCoupon) {
         throw new Error("Coupon not found or has already been deleted");
       }
