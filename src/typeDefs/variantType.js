@@ -23,7 +23,7 @@ const variantType = gql`
     saleEndDate: Date
     isOnSale: Boolean
     publicIds: [String]
-    newImages: [String]
+    
   }
 
   type VariantResponse {
@@ -58,7 +58,7 @@ const variantType = gql`
     saleEndDate: Date
     isOnSale: Boolean
     publicIds: [String]
-    newImages: [Upload]
+   
   }
 
   type Query {

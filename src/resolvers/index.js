@@ -11,9 +11,9 @@ const variantResolver = require("./variantResolver")
 const wishlistResolver = require("./wishlistResolver");
 const paymentResolver = require("./paymentResolver");
 const cartResolver=require("./cartResolver")
+const couponResolver = require("./couponResolver");
 const addressResolver=require("./addressResolver")
 const orderResolver=require("./orderResolver")
-const couponResolver = require("./couponResolver");
 
 const resolvers = mergeResolvers([categoryResolver,addressResolver, subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,orderResolver,wishlistResolver,paymentResolver,cartResolver,couponResolver ]);
 

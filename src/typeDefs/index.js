@@ -12,10 +12,10 @@ const orderType = require("./orderType");
 const couponType = require("./couponType");
 const cartType=require("./cartType");
 const addressType = require('./addressType');
-const orderType =require('./orderType')
 
 const typeDefs = gql`
   ${baseType}
+  ${couponType}
   ${categoryType}
   ${subcategoryType}
   ${productType}
@@ -27,7 +27,6 @@ const typeDefs = gql`
   ${paymentType}
   ${cartType}
   ${addressType}
-  ${couponType}
 `;
 
 module.exports = typeDefs;

@@ -9,10 +9,6 @@ const variantService = require("../services/variantService");
 const categoryService = require("../services/categoryService");
 const subcategoryService = require("../services/subcategoryService");
 
-
-
-
-
 // const createProduct = async (input) => {
 //   try {
 //     if (!input || Object.keys(input).length === 0) {
@@ -113,7 +109,6 @@ const subcategoryService = require("../services/subcategoryService");
 //     throw new Error(`Service error while creating product: ${error.message}`);
 //   }
 // };
-
 
 // const createProduct = async (input) => {
 //   try {
@@ -252,19 +247,22 @@ const createProduct = async (input) => {
       throw new Error("Name and Category are required fields.");
     }
 
+    const publicIds = [];
     // Process product images
     const processedImages = imageUrl
       ? await Promise.all(
           (Array.isArray(imageUrl) ? imageUrl : [imageUrl])
             .filter(Boolean)
-            .map((image) => uploadImageToCloudinary(image))
+            .map(async (image) => {
+              const uploadResponse = await uploadImageToCloudinary(image);
+              publicIds.push(uploadResponse.public_id); // Store the public_id
+              return uploadResponse.secure_url; // Return the URL for processed images
+            })
         )
       : [];
 
-   
-
     // Prepare product data
-    const productData = { 
+    const productData = {
       name,
       slugName,
       title,
@@ -274,7 +272,7 @@ const createProduct = async (input) => {
       keyBenefits,
       netContent,
       reviews,
-      variants:[],
+      variants: [],
       usp,
       mrp,
       price,
@@ -288,6 +286,7 @@ const createProduct = async (input) => {
       averageRating,
       isBestSeller,
       imageUrl: processedImages,
+      publicIds, // Include publicIds in the product data
     };
 
     // Create the product
@@ -298,16 +297,31 @@ const createProduct = async (input) => {
       const createdVariants = await Promise.all(
         variants.map(async (variant) => {
           // Process images for each variant
-          const variantImages = variant.imageUrl
-            ? await Promise.all(
-                (Array.isArray(variant.imageUrl) ? variant.imageUrl : [variant.imageUrl])
-                  .filter(Boolean)
-                  .map((image) => uploadImageToCloudinary(image))
-              )
-            : [];
+          const variantImages = [];
+          const variantPublicIds = [];
 
-          // Create new variant with processed image URLs
-          const newVariant = new Variant({ ...variant, imageUrl: variantImages, productId: savedProduct._id });
+          if (variant.imageUrl) {
+            await Promise.all(
+              (Array.isArray(variant.imageUrl)
+                ? variant.imageUrl
+                : [variant.imageUrl]
+              )
+                .filter(Boolean)
+                .map(async (image) => {
+                  const uploadResponse = await uploadImageToCloudinary(image);
+                  variantImages.push(uploadResponse.secure_url);
+                  variantPublicIds.push(uploadResponse.public_id); // Store variant public_id
+                })
+            );
+          }
+
+          // Create new variant with processed image URLs and public IDs
+          const newVariant = new Variant({
+            ...variant,
+            imageUrl: variantImages,
+            publicIds: variantPublicIds, // Add variant public IDs
+            productId: savedProduct._id,
+          });
           return await newVariant.save();
         })
       );
@@ -318,15 +332,14 @@ const createProduct = async (input) => {
     // Delegate category updates
     await categoryService.addProductToCategory(category, savedProduct._id);
     if (subcategory) {
-      await subcategoryService.addProductToSubCategory(subcategory, savedProduct._id);
+      await subcategoryService.addProductToSubCategory(
+        subcategory,
+        savedProduct._id
+      );
     }
-     
-    
-    
+
     // Populate relations (category and subcategory)
     await savedProduct.populate("category subcategory variants reviews");
-
-   
 
     return savedProduct;
   } catch (error) {
@@ -334,6 +347,7 @@ const createProduct = async (input) => {
     throw new Error(`Service error while creating product: ${error.message}`);
   }
 };
+
 
 const uploadImagesForVariants = async (variants) => {
   return await Promise.all(
@@ -356,20 +370,45 @@ const uploadImagesForVariants = async (variants) => {
 // };
 
 // Fetch all products with pagination
-const getProducts =async (page = 1) => { 
+const getProducts = async ({ page = 1, search, sort }) => {
   try {
-    const limit = 10; 
-    const skip = (page - 1) * limit; 
+    const limit = 10;
+    const skip = (page - 1) * limit;
 
-    const products = await Product.find()
+    const query = { deletedAt: null };
+
+    // Add search filter
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { slugName: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Sorting logic
+    let sortOptions = {};
+    if (sort === "PRICE_HIGH_TO_LOW") {
+      sortOptions.price = -1;
+    } else if (sort === "PRICE_LOW_TO_HIGH") {
+      sortOptions.price = 1;
+    } else if (sort === "RATING") {
+      sortOptions.rating = -1;
+    }
+
+    console.log(
+      `Fetching page ${page} with limit ${limit} and skip ${skip}, Search: ${search}, Sort: ${sort}`
+    );
+    const products = await Product.find(query)
       .populate("category")
       .populate("subcategory")
       .populate("variants")
       .populate("reviews")
       .limit(limit)
-      .skip(skip);
+      .skip(skip)
+      .sort(sortOptions);
 
-    const totalProducts = await Product.countDocuments(); // Total number of products
+    const totalProducts = await Product.countDocuments(query); // Apply query filter
     const totalPages = Math.ceil(totalProducts / limit); // Calculate total pages
 
     return {
@@ -385,11 +424,11 @@ const getProducts =async (page = 1) => {
 
 const getProductById = async (id) => {
   try {
-    return await Product.findById(id)
-         .populate("category")
-         .populate("subcategory")
-         .populate("variants")
-         .populate("reviews");
+    return await Product.findById({ _id: id, deletedAt: null })
+      .populate("category")
+      .populate("subcategory")
+      .populate("variants")
+      .populate("reviews");
   } catch (error) {
     throw new Error(`Error fetching product by ID: ${error.message}`);
   }
@@ -397,146 +436,16 @@ const getProductById = async (id) => {
 
 const getProductByslugName = async (slugName) => {
   try {
-    return await Product.findOne({ slugName })
-         .populate("category")
-         .populate("subcategory")
-         .populate("variants")
-         .populate("reviews");
+    return await Product.findOne({ slugName, deletedAt: null })
+      .populate("category")
+      .populate("subcategory")
+      .populate("variants")
+      .populate("reviews");
   } catch (error) {
     throw new Error(`Error fetching product by name: ${error.message}`);
   }
 };
 
-
-
-
-// const updateProduct = async (id, input) => {
-//   try {
-//     if (!id || !input) {
-//       throw new Error("Product ID and update data are required.");
-//     }
-
-//     const {
-//       name,
-//       category,
-//       subcategory,
-//       description,
-//       keyBenefits,
-//       netContent,
-//       variants,
-//       review,
-//       usp,
-//       mrp,
-//       price,
-//       stock,
-//       imageUrl,
-//       ingredients,
-//       keyFeatures,
-//       additionalDetails,
-//       totalReviews,
-//       averageRating,
-//       isBestSeller,
-//       publicIds,
-//       newImages,
-//     } = input;
-
-//     // Validate required fields
-//     if (!name || !category) {
-//       throw new Error("Name and Category are required fields.");
-//     }
-
-//     const productData = {
-//       name,
-//       category,
-//       subcategory,
-//       description,
-//       keyBenefits,
-//       netContent,
-//       review,
-//       variants,
-//       imageUrl,
-//       usp,
-//       mrp,
-//       price,
-//       stock,
-//       ingredients,
-//       keyFeatures,
-//       additionalDetails,
-//       totalReviews,
-//       averageRating,
-//       isBestSeller,
-//     };
-
-//     // Handle product-level image updates
-//     if (newImages && Array.isArray(newImages) && newImages.length > 0) {
-//       // Delete old images if public IDs are provided
-//       console.log("New images received:", newImages);
-//       if (publicIds && Array.isArray(publicIds) && publicIds.length > 0) {
-//         await Promise.all(
-//           publicIds.map((publicId) =>
-//             deleteImageFromCloudinary(publicId)
-//           )
-//         );
-//       }
-
-//       // Upload new images to Cloudinary
-//       const uploadedImages = await Promise.all(
-//         newImages.map((image) =>uploadImageToCloudinary(image))
-//       );
-//       console.log("Uploaded images for product:", uploadedImages);
-//       productData.imageUrl = uploadedImages; // Update product images
-//     }
-
-//     // Handle variant updates
-//     if (variants && Array.isArray(variants)) {
-//       console.log("Variants before update:", variants);
-//       productData.variants = await Promise.all(
-//         variants.map(async (variant) => {
-          
-//           console.log("Variant newImages:", variant.newImages);
-//           if (variant.newImages && Array.isArray(variant.newImages)) {
-//             if (variant.publicIds && Array.isArray(variant.publicIds)) {
-//               await Promise.all(
-//                 variant.publicIds.map((publicId) =>
-//                   deleteImageFromCloudinary(publicId)
-//                 )
-//               );
-//             }
-
-//             const uploadedVariantImages = await Promise.all(
-//               variant.newImages.map((image) =>
-//                 uploadImageToCloudinary(image)
-//               )
-//             );
-//             console.log("Uploaded variant images:", uploadedVariantImages);
-//             return {
-//               ...variant,
-//               imageUrl: uploadedVariantImages, // Update variant images
-//             };
-//           }
-//           return variant; // Return unchanged variant if no new images
-//         })
-//       );
-//     }
-
-//     // Update the product in the database
-//     const updatedProduct = await Product.findByIdAndUpdate(id, productData, {
-//       new: true,
-//       runValidators: true,
-//     })
-//       .populate("category")
-//       .populate("subcategory");
-
-//     if (!updatedProduct) {
-//       throw new Error("Product not found or update failed.");
-//     }
-
-//     return updatedProduct;
-//   } catch (error) {
-//     console.error("Error updating product:", error.message);
-//     throw new Error(`Error updating product: ${error.message}`);
-//   }
-// };
 
 const updateProduct = async (id, input) => {
   try {
@@ -565,8 +474,7 @@ const updateProduct = async (id, input) => {
       totalReviews,
       averageRating,
       isBestSeller,
-      publicIds,
-      newImages,
+      publicIds = [],
     } = input;
 
     // Validate required fields
@@ -583,8 +491,6 @@ const updateProduct = async (id, input) => {
       netContent,
       review,
       discount,
-      variants, // Keep the reference or update variants properly
-      imageUrl,
       usp,
       mrp,
       price,
@@ -598,28 +504,65 @@ const updateProduct = async (id, input) => {
     };
 
     // Handle product-level image updates
-    if (newImages && Array.isArray(newImages) && newImages.length > 0) {
+    if (imageUrl && Array.isArray(imageUrl) && imageUrl.length > 0) {
       if (publicIds && Array.isArray(publicIds) && publicIds.length > 0) {
-        await Promise.all(publicIds.map((publicId) => deleteImageFromCloudinary(publicId)));
+        // Remove previous images using publicIds
+        await Promise.all(
+          publicIds.map(async (publicId) => {
+            try {
+              await deleteImageFromCloudinary(publicId);
+            } catch (error) {
+              console.error(`Failed to delete image with publicId: ${publicId}`, error);
+            }
+          })
+        );
       }
-      const uploadedImages = await Promise.all(newImages.map((image) => uploadImageToCloudinary(image)));
-      productData.imageUrl = uploadedImages; // Update product images
+
+      // Upload new images to Cloudinary
+      const uploadedImages = await Promise.all(
+        imageUrl.map(async (image) => {
+          try {
+            const uploadResult = await uploadImageToCloudinary(image);
+            if (uploadResult && uploadResult.public_id && uploadResult.secure_url) {
+              return uploadResult; // Return the full result
+            } else {
+              console.error("Incomplete response from Cloudinary:", uploadResult);
+              return null;
+            }
+          } catch (error) {
+            console.error("Error uploading image to Cloudinary:", error);
+            return null;
+          }
+        })
+      );
+
+      // Filter valid uploads and extract URLs and publicIds
+      const validUploads = uploadedImages.filter((result) => result !== null);
+      productData.imageUrl = validUploads.map((upload) => upload.secure_url);
+      productData.publicIds = validUploads.map((upload) => upload.public_id);
     }
 
     // Handle variant updates
     if (variants && Array.isArray(variants)) {
       productData.variants = await Promise.all(
         variants.map(async (variant) => {
-          if (variant.newImages && Array.isArray(variant.newImages)) {
+          if (variant.imageUrl && Array.isArray(variant.imageUrl)) {
             if (variant.publicIds && Array.isArray(variant.publicIds)) {
               await Promise.all(
-                variant.publicIds.map((publicId) => deleteImageFromCloudinary(publicId))
+                variant.publicIds.map((publicId) =>
+                  deleteImageFromCloudinary(publicId)
+                )
               );
             }
-            const uploadedVariantImages = await Promise.all(variant.newImages.map((image) => uploadImageToCloudinary(image)));
+
+            const uploadedVariantImages = await Promise.all(
+              variant.imageUrl.map((image) => uploadImageToCloudinary(image))
+            );
+
             return {
               ...variant,
-              imageUrl: uploadedVariantImages, // Update variant images
+              imageUrl: uploadedVariantImages.map((upload) => upload.secure_url),
+              publicIds: uploadedVariantImages.map((upload) => upload.public_id),
             };
           }
           return variant; // Return unchanged variant if no new images
@@ -647,25 +590,35 @@ const updateProduct = async (id, input) => {
 };
 
 
-
 const deleteProduct = async (id) => {
   try {
-    const result = await Product.findByIdAndDelete(id);
+    const result = await Product.findByIdAndUpdate(
+      id,
+      { deletedAt: new Date() },
+      { new: true }
+    );
     return !!result;
   } catch (error) {
     throw new Error(`Error deleting product: ${error.message}`);
   }
 };
 // Function to fetch best seller products
-  async function getBestSellers() {
-    try {
-      return await Product.find({ isBestSeller: true })
-      .populate('variants');
-    } catch (err) {
-      console.error("Error fetching best sellers:", err);
-      throw err;
+async function getBestSellers(categoryId) {
+  try {
+    const query = { isBestSeller: true };
+    if (categoryId) {
+      query.category = categoryId;
     }
+
+    return await Product.find(query)
+      .populate("variants")
+      .populate("category")
+      .populate("subcategory");
+  } catch (err) {
+    console.error("Error fetching best sellers:", err);
+    throw err;
   }
+}
 // Function to update best seller status for all products
 async function updateBestSellers() {
   try {
@@ -707,7 +660,6 @@ const updateProductImage = async (productId, newImageUrl) => {
   }
 };
 
-
 module.exports = {
   getBestSellers,
   updateBestSellers,
@@ -720,8 +672,5 @@ module.exports = {
   uploadImageToCloudinary,
   updateProductImage,
   uploadImagesForVariants,
-  getProductByslugName
-  
-
-
+  getProductByslugName,
 };

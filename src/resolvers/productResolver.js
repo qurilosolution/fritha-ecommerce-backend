@@ -1,12 +1,13 @@
 const productService = require("../services/productService");
 const { GraphQLUpload } = require("graphql-upload");
+const uploadImageToCloudinary = require("../utils/fileUpload");
 const productResolvers = {
   Upload: GraphQLUpload, // Declare the Upload scalar
   Query: {
-    // Fetch all products
-    getProducts: async () => {
+    getProducts: async (_, { page, search, sort }) => {
       try {
-        return await productService.getProducts();
+        console.log(`Page received in resolver: ${page}, Search: ${search}, Sort: ${sort}`); // Debug log
+        return await productService.getProducts({ page, search, sort });
       } catch (error) {
         throw new Error(`Error fetching products: ${error.message}`);
       }
@@ -28,9 +29,9 @@ const productResolvers = {
     },
 
     // Fetch best sellers
-    getBestSellers: async () => {
+    getBestSellers: async (_, { categoryId }) => {
       try {
-        return await productService.getBestSellers();
+        return await productService.getBestSellers(categoryId);
       } catch (error) {
         throw new Error(`Error fetching best sellers: ${error.message}`);
       }
@@ -57,6 +58,28 @@ const productResolvers = {
       throw new Error(`Controller error while creating product: ${error.message}`);
     }
   },
+  
+  updateProduct: async (_, { id, input}, context) => {
+    if (!context.user) throw new Error("You must be logged in to update a product.");
+    if (!context.user.role.includes("admin")) throw new Error("Admin access required.");
+  
+    try {
+
+     
+      
+  
+      // Pass input and publicIds directly to the updateProduct service
+      const updatedProduct = await productService.updateProduct(id, {
+        ...input
+      });
+  
+      return updatedProduct;
+    } catch (error) {
+      console.error("Error updating product:", error);
+      throw new Error(`Error updating product: ${error.message}`);
+    }
+  },
+  
    
   // createProduct: async (_, args, context) => {
       
@@ -109,24 +132,7 @@ const productResolvers = {
   //   }
   // },
     
-    updateProduct: async (_, { id, input, publicIds, newImages }, context) => {
-      if (!context.user) throw new Error("You must be logged in to update a product.");
-      if (!context.user.role.includes("admin")) throw new Error("Admin access required.");
-    
-      try {
-        const updatedProduct = await productService.updateProduct(id, {
-          ...input,
-          publicIds,
-          newImages,
-        });
-    
-        return updatedProduct;
-      } catch (error) {
-        console.error("Error updating product:", error);
-        throw new Error(`Error updating product: ${error.message}`);
-      }
-    },
-    
+   
     // Delete a product
     deleteProduct: async (_, { id }, context) => {
       console.log(context.user);

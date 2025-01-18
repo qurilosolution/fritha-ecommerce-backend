@@ -1,15 +1,40 @@
 const razorpay = require("../config/RazorpayConfig"); // Razorpay instance
 const crypto = require("crypto");
 const Order = require("../models/Order"); // Order model
-
+require("dotenv").config();
 const OrderService = {
+
+
+  getOrdersByStatusAndPaymentStatus : async (status, paymentStatus, page = 1, limit = 10) => {
+    try {
+      const skip = (page - 1) * limit;
+  
+      // Find orders with the provided status and payment status
+      const orders = await Order.find({ status, paymentStatus })
+        .skip(skip)
+        .limit(limit)
+        .exec();
+  
+      // Count the total number of matching orders for pagination
+      const totalOrders = await Order.countDocuments({ status, paymentStatus });
+  
+      return {
+        orders,
+        totalPages: Math.ceil(totalOrders / limit),
+        currentPage: page,
+      };
+    } catch (error) {
+      throw new Error("Error retrieving orders: " + error.message);
+    }
+  },
+
   // Fetch all orders
   getOrdersByAdmin: async (page = 1) => {
     const limit = 10;
     const skip = (page - 1) * limit;
 
     try {
-      const orders = await Order.find()
+      const orders = await Order.find({ deletedAt: null })
         .skip(skip)
         .limit(limit)
         .populate("items.product")
@@ -27,11 +52,11 @@ const OrderService = {
       throw new Error("Failed to fetch orders for admin: " + error.message);
     }
   },
-  getOrdersByCustomer: async (page=1) => {
+  getOrdersByCustomer: async (page = 1) => {
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const orders = await Order.find()
+    const orders = await Order.find({ deletedAt: null })
       .skip(skip)
       .limit(limit)
       .populate("items.product")
@@ -50,14 +75,12 @@ const OrderService = {
   // Fetch a specific order by ID
   getOrderById: async (id) => {
     try {
-      const order = await Order.findById(id)
+      const order = await Order.findById({ _id: id, deletedAt: null })
         .populate({
-          path: "items.product"
-       
+          path: "items.product",
         })
         .populate({
-          path: "items.variant"
-         
+          path: "items.variant",
         });
       if (!order) {
         throw new Error(`Order with ID ${id} not found.`);
@@ -77,9 +100,14 @@ const OrderService = {
     status,
     paymentMode,
     paymentStatus,
-    shippingAddress
+    shippingAddress,
+    orderSummary
+    
   ) => {
     try {
+      console.log("Creating order...");
+      // Calculate subTotal and final total amount
+
       let orderData = {
         userId,
         items,
@@ -90,13 +118,16 @@ const OrderService = {
         shippingAddress,
         paymentStatus: paymentMode === "COD" ? "Unpaid" : "Processing",
         createdAt: new Date(),
+        orderSummary
       };
+
       // Create Razorpay order
       const options = {
         amount: totalAmount * 100, // Amount in paise
         currency: "INR",
         receipt: `receipt_${Date.now()}`, // Unique receipt ID
       };
+
       const razorpayOrder = await razorpay.orders.create(options);
       // Add Razorpay-specific details to the order
       orderData.orderId = razorpayOrder.id;
@@ -106,17 +137,86 @@ const OrderService = {
       ).populate("items.variant");
       console.log(order);
       return order;
-      return order;
     } catch (error) {
       console.error("Error creating order:", error);
       throw new Error("Failed to create order. Please try again.");
     }
   },
 
+  updateOrder: async (
+    orderId,
+    userId,
+    {
+      items,
+      status,
+      paymentMode,
+      paymentStatus,
+      shippingAddress,
+      orderSummary,
+      cancelledOrder,
+      orderShipped,
+      orderPaid,
+      orderUnpaid,
+      orderCompleted,
+      orderProgress,
+    }
+  ) => {
+    try {
+      // Find the existing order by ID
+      const existingOrder = await Order.findById(orderId);
+      if (!existingOrder) {
+        throw new Error("Order not found.");
+      }
+
+      // Ensure that the user is the owner of the order
+      if (existingOrder.userId.toString() !== userId) {
+        throw new Error("You do not have permission to update this order.");
+      }
+
+      // Prepare updated data
+      const updatedOrderData = {
+        status: status || existingOrder.status,
+        paymentMode: paymentMode || existingOrder.paymentMode,
+        paymentStatus: paymentStatus || existingOrder.paymentStatus,
+        shippingAddress: shippingAddress || existingOrder.shippingAddress,
+        orderSummary: orderSummary || existingOrder.orderSummary,
+        cancelledOrder: cancelledOrder || existingOrder.cancelledOrder,
+        orderShipped: orderShipped || existingOrder.orderShipped,
+        orderPaid: orderPaid || existingOrder.orderPaid,
+        orderUnpaid: orderUnpaid || existingOrder.orderUnpaid,
+        orderCompleted: orderCompleted || existingOrder.orderCompleted,
+        orderProgress: orderProgress || existingOrder.orderProgress,
+        items: items || existingOrder.items, 
+      };
+
+      // Update the order in the database
+      const updatedOrder = await Order.findByIdAndUpdate(
+        orderId,
+        updatedOrderData,
+        { new: true }
+      )
+        .populate("items.product")
+        .populate("items.variant");
+
+      return updatedOrder;
+    } catch (error) {
+      console.error("Error updating order:", error);
+      throw new Error("Failed to update order. Please try again.");
+    }
+  },
+
   updateOrderStatus: async (id, status) => {
     try {
       // Validate the status value
-      const validStatuses = ["Pending", "Placed", "Cancelled"];
+      const validStatuses = [
+        "Pending",
+        "Placed",
+        "Cancelled",
+        "Shipped",
+        "Packaging",
+        "In Progress",
+        "Completed",
+      ];
       if (!validStatuses.includes(status)) {
         throw new Error("Invalid status value.");
       }
@@ -225,20 +325,24 @@ const OrderService = {
     }
   },
 
-  // Delete an order
-  deleteOrder: async (id) => {
+  deleteOrder : async (id) => {
     try {
-      const deletedOrder = await Order.findByIdAndDelete(id);
-
+      const deletedOrder = await Order.findByIdAndUpdate(
+        id,
+        { deletedAt: new Date() },
+        { new: true }
+      );
+  
       if (!deletedOrder) {
         throw new Error(`Order with ID ${id} not found.`);
       }
-
-      return deletedOrder; // Return the deleted order
+  
+      return deletedOrder; // Return the updated order with deletedAt field set
     } catch (error) {
       throw new Error("Failed to delete order: " + error.message);
     }
   },
+  
 
   cancelOrder: async (id) => {
     try {

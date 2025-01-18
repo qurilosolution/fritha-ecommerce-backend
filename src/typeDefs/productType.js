@@ -1,17 +1,22 @@
-
-
 const { gql } = require("apollo-server-express");
 
 const productType = gql`
   scalar Date
   scalar Upload
-  
+
+  enum SortOption {
+    PRICE_HIGH_TO_LOW
+    PRICE_LOW_TO_HIGH
+    RATING
+  }
+
   type PaginatedProducts {
     products: [Product]
     currentPage: Int!
     totalPages: Int!
     totalProducts: Int!
   }
+
   type AdditionalDetails {
     genericName: String!
     dimensions: String!
@@ -22,10 +27,11 @@ const productType = gql`
     licenseNo: String!
     customerCareDetails: String!
   }
+
   type Product {
     id: ID!
     name: String!
-    title:String
+    title: String
     slugName: String!
     category: Category
     subcategory: Subcategory
@@ -38,7 +44,6 @@ const productType = gql`
     keyBenefits: [String]
     reviews: [Review!]!
     imageUrl: [String]
-    
     inclusiveOfTaxes: Boolean
     netContent: String
     variants: [Variant!]!
@@ -51,7 +56,6 @@ const productType = gql`
     averageRating: Float
     isBestSeller: Boolean
     publicIds: [String]
-    newImages: [String]
   }
 
   input AdditionalDetailsInput {
@@ -68,21 +72,20 @@ const productType = gql`
   input CreateProductInput {
     id: ID
     name: String!
-    title:String
+    title: String
     slugName: String
     category: ID!
     subcategory: ID!
     description: String
     keyBenefits: [String]
     reviews: ID
-    discount : Int
+    discount: Int
     price: Int
     mrp: Int
     imageUrl: [Upload]
     stock: Int
     isStock: Boolean
     netContent: String
-    
     variants: [VariantInput]
     usp: String
     ingredients: [String]
@@ -91,13 +94,14 @@ const productType = gql`
     totalReviews: Int
     averageRating: Float
     isBestSeller: Boolean
+    publicIds: [String]
   }
 
   extend type Query {
-    getProducts(page: Int, limit: Int): PaginatedProducts
+    getProducts(page: Int, search: String, sort: SortOption): PaginatedProducts
     getProductById(id: ID!): Product
     getProductByslugName(slugName: String!): Product
-    getBestSellers: [Product]
+    getBestSellers(categoryId: ID): [Product!]!
   }
 
   extend type Mutation {
@@ -105,8 +109,7 @@ const productType = gql`
     updateProduct(
       id: ID
       input: CreateProductInput!
-      publicIds: [String]
-      newImages: [Upload]
+      
     ): Product
     deleteProduct(id: ID!): DeletionResponse!
     refreshBestSellers: RefreshResponse

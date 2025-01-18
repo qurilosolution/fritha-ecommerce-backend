@@ -36,6 +36,16 @@ const categorySchema = new mongoose.Schema(
       type: [String], // Optional images for the category
       trim: true,
     },
+    cardPublicIds:{
+      type: [String]
+    },
+    bannerPublicIds:{
+      type: [String]
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
     meta: {
       title: {
         type: String,
@@ -49,6 +59,7 @@ const categorySchema = new mongoose.Schema(
         type: [String], // Array to store multiple keywords
         trim: true,
       },
+
     },
     
   },
