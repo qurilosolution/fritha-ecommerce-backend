@@ -6,10 +6,18 @@ const categoryResolver = {
   Query: {
     getCategories: categoryService.getCategories,
     getCategoryById: categoryService.getCategoryById,
-  },
+    getCategoryByName: async (_, { name }) => {
+              try {
+                return await categoryService.getCategoryByName(name);
+              } catch (error) {
+                throw new Error(`Error fetching product by name: ${error.message}`);
+              }
+            },
+      },
+
   Mutation: {
     
-    createCategory: async (_, { name, description, bannerImageUrl, cardImageUrl }, context) => {
+    createCategory: async (_, { name, description, bannerImageUrl, cardImageUrl , cardPublicIds, bannerPublicIds, meta }, context) => {
       console.log(context.user);
     
       // Ensure the user is logged in and has the "admin" role
@@ -19,6 +27,8 @@ const categoryResolver = {
       if (!context.user.role.includes("admin")) {
         throw new Error("You must be an admin to create a category");
       }
+
+      
     
       try {
         // Pass all data to the service layer
@@ -27,6 +37,9 @@ const categoryResolver = {
           description,
           bannerImageUrl,
           cardImageUrl,
+          cardPublicIds,
+          bannerPublicIds,
+          meta,
         });
     
         console.log("Category successfully created:", category);
@@ -52,7 +65,7 @@ const categoryResolver = {
       }
     
       try {
-        const { id, name, description, bannerImageUrl, cardImageUrl } = args;
+        const { id, name, description, bannerImageUrl, cardImageUrl , meta} = args;
     
         // Validate ID
         if (!id || typeof id !== "string") {
@@ -66,6 +79,7 @@ const categoryResolver = {
           description,
           bannerImageUrl,
           cardImageUrl,
+          meta
         });
     
         console.log("Category successfully updated:", updatedCategory);

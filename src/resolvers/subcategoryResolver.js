@@ -7,9 +7,16 @@ const subcategoryResolver = {
   Query: {
     getSubcategories: subcategoryService.getSubcategories,
     getSubcategoryById: subcategoryService.getSubcategoryById,
+    getSubcategoryByName: async (_, { name }) => {
+          try {
+            return await subcategoryService.getSubcategoryByName(name);
+          } catch (error) {
+            throw new Error(`Error fetching product by name: ${error.message}`);
+          }
+        },
   },
   Mutation: {
-    createSubcategory : async (_, { name, description, imageUrl, categoryId }, context) => {
+    createSubcategory: async (_, { name, description, bannerImageUrl, cardImageUrl,bannerPublicIds, cardPublicIds, categoryId, meta }, context) => {
       try {
         // Check user authentication and authorization
         if (!context.user) {
@@ -19,12 +26,20 @@ const subcategoryResolver = {
           throw new Error("You must be an admin to create a subcategory.");
         }
     
+        // Ensure bannerImageUrl and cardImageUrl are arrays
+        const formattedBannerImageUrl = Array.isArray(bannerImageUrl) ? bannerImageUrl : [bannerImageUrl].filter(Boolean);
+        const formattedCardImageUrl = Array.isArray(cardImageUrl) ? cardImageUrl : [cardImageUrl].filter(Boolean);
+    
         // Prepare the subcategory data
         const subcategoryData = {
           name,
           description,
-          imageUrl: Array.isArray(imageUrl) ? imageUrl : [imageUrl], // Ensure imageUrl is an array
+          cardPublicIds,
+          bannerPublicIds,
+          bannerImageUrl: formattedBannerImageUrl,
+          cardImageUrl: formattedCardImageUrl,
           categoryId,
+          meta,
         };
     
         // Call the service to create the subcategory
@@ -37,10 +52,10 @@ const subcategoryResolver = {
         throw new Error(`Failed to create subcategory: ${error.message}`);
       }
     },
-   
-    updateSubcategory : async (_, { id, name, description, imageUrl, categoryId }, context) => {
+    
+    updateSubcategory: async (_, { id, name, description, bannerImageUrl, cardImageUrl, meta, categoryId }, context) => {
       try {
-        console.log("Input args received in resolver:", { id, name, description, imageUrl, categoryId });
+        console.log("Input args received in resolver:", { id, name, description, bannerImageUrl, cardImageUrl, meta, categoryId });
     
         // Check user authentication and authorization
         if (!context.user) {
@@ -50,24 +65,14 @@ const subcategoryResolver = {
           throw new Error("You must be an admin to update a subcategory.");
         }
     
-        // Validate ID and categoryId
-        if (!id || typeof id !== "string") {
-          throw new Error("Subcategory ID must be a valid string.");
-        }
-        if (categoryId && typeof categoryId !== "string") {
-          throw new Error("Category ID must be a valid string.");
-        }
-    
-        console.log("Validated IDs:", { id, categoryId });
-    
-        // Handle image uploads
-        const uploadedImages = await subcategoryService.handleImageUploads(imageUrl);
-    
+       
         // Call the service to update the subcategory
         const updatedSubcategory = await subcategoryService.updateSubcategory(id, {
           name,
           description,
-          imageUrl: uploadedImages.length > 0 ? uploadedImages : undefined,
+          bannerImageUrl,
+          cardImageUrl,
+          meta,
           categoryId,
         });
     
@@ -78,6 +83,7 @@ const subcategoryResolver = {
         throw new Error(`Failed to update subcategory: ${error.message}`);
       }
     },
+    
     
     deleteSubcategory: async (_, { subcategoryId, categoryId } , context) => {
       // console.log("Input args received in resolver:", args);

@@ -23,8 +23,8 @@ const authMiddleware = async ({ req }) => {
     // Token verification logic
     const userInfo = jwt.verify(authToken, process.env.SECRET_KEY);
     console.log('Decoded User Info:', userInfo);
-
-    return { user:userInfo}; 
+     
+    return { user:userInfo }; 
     
   } catch (err) {
     console.log('Error verifying token:', err);

@@ -10,7 +10,6 @@ const { authMiddleware } = require('./src/middleware/authmiddleware');
 const connectDB = require('./src/config/db');
 const { updateBestSellers } = require('./src/services/productService');
 const Product = require('./src/models/Product');
-const { authentication } = require('./src/middleware/authmiddleware');
 
 const app = express();
 app.use(express.json()); 
@@ -47,10 +46,13 @@ cron.schedule('* * * * *', async () => {
   } catch (error) {
     console.error('Error managing product sales:', error);
   }
-});
+}); 
 
 const server = new ApolloServer({ typeDefs, resolvers ,uploads:true , context:authMiddleware,
 });  
+
+// const server = new ApolloServer({ typeDefs, resolvers ,uploads:true 
+// }); 
 
 // const server = new ApolloServer({ typeDefs, resolvers ,uploads:true
 // });  

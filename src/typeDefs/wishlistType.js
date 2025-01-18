@@ -15,7 +15,7 @@ const wishlistType = gql`
 
   input WishlistItemInput {
     product: ID!
-    variant: ID # variant is now optional
+    variant: ID #variant is now optional
   }
 
    type Query {

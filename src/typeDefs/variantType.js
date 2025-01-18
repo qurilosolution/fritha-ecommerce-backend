@@ -8,6 +8,7 @@ const variantType = gql`
     size: Int
     pack: Int
     price: Int
+    usp: String
     mrp: Float
     stock: Int
     discount: Float
@@ -22,7 +23,7 @@ const variantType = gql`
     saleEndDate: Date
     isOnSale: Boolean
     publicIds: [String]
-    newImages: [String]
+    
   }
 
   type VariantResponse {
@@ -41,6 +42,7 @@ const variantType = gql`
     id: ID
     size: Int
     pack: Int
+    usp: String
     price: Int
     mrp: Float
     stock: Int
@@ -56,7 +58,7 @@ const variantType = gql`
     saleEndDate: Date
     isOnSale: Boolean
     publicIds: [String]
-    newImages: [Upload]
+   
   }
 
   type Query {

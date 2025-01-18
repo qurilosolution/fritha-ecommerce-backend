@@ -7,6 +7,7 @@ const variantSchema = new mongoose.Schema({
     ref: 'Product', 
     required: true,
   },
+  
   size: {
     type: Number,
     required: false,
@@ -18,9 +19,12 @@ const variantSchema = new mongoose.Schema({
   price: {
     type: Number,
   },
+  usp:{
+    type: String,
+  },
   mrp: {
     type: Number,
-    required: true,
+  
   },
   stock: {
     type: Number,
@@ -64,8 +68,12 @@ const variantSchema = new mongoose.Schema({
   saleEndDate: {
     type: Date,
   },
-  publicIds: [{ type: String }],
-  newImages: [{ type: String }],
+  deletedAt: {
+    type: Date,
+    default: null,
+  },
+  publicIds: [{ type: String }]
+ 
 }, { timestamps: true });
 
 
