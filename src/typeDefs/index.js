@@ -1,19 +1,18 @@
-const { gql } = require('apollo-server-express');
-const baseType = require('./baseType');
-const categoryType = require('./categoryType');
-const subcategoryType = require('./subcategoryType');
-const productType = require('./productType');
-const variantType = require('./variantType');
-const authType = require("./authType")
+const { gql } = require("apollo-server-express");
+const baseType = require("./baseType");
+const categoryType = require("./categoryType");
+const subcategoryType = require("./subcategoryType");
+const productType = require("./productType");
+const variantType = require("./variantType");
+const authType = require("./authType");
 const reviewType = require("./reviewType");
-const wishlistType = require("./wishlistType")
-const paymentType = require("./paymentType")
-
-
+const wishlistType = require("./wishlistType");
+const paymentType = require("./paymentType");
+const orderType = require("./orderType");
+const couponType = require("./couponType");
 const cartType=require("./cartType");
 const addressType = require('./addressType');
 const orderType =require('./orderType')
-
 const typeDefs = gql`
   ${baseType}
  
@@ -28,7 +27,6 @@ const typeDefs = gql`
   ${paymentType}
   ${cartType}
   ${addressType}
-  
 `;
 
 module.exports = typeDefs;

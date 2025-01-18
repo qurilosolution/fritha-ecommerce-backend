@@ -4,95 +4,15 @@ const { CustomerModel } = require("../models/customerModel");
 const { genPassword, comparePassword } = require("../utils/auth");
 const { v4: uuidv4 } = require("uuid");
 const sendMail = require("../utils/mailer"); // Adjusted to use the sendMail function
-const { generateToken } = require("../utils/token");
+const { generateToken, generateOtp } = require("../utils/token");
 const { verifyToken } = require("../utils/token");
 const AuthService=require('../services/authService');
-const otpStore = {};
-const OTP_EXPIRY_TIME = 3 * 60 * 1000; // 1 minute expiry
+const { get } = require("mongoose");
+const forgotPasswordEmail = require("../services/emailService");
+const OTP_EXPIRY_TIME = 3 * 60 * 1000; // 3 minute expiry
 const authResolvers = {
   Query: {
-    // getUser: async (_, { email },context) => {
-    //   try {
-    //     console.log(context.user);
-    //     if(!context.user)
-    //       throw Error("You must be logged in to get user info");
-    //     if(!context.user.role.includes("admin"))
-    //       throw Error("You must be an admin to create a  user");
-        
-    //     const user = await CustomerModel.findOne({ email });
-    //     if (!user) {
-    //       throw new Error("User not found");
-    //     }
-    //     return user;
-    //   } catch (error) {
-    //     throw new Error(`Error fetching user: ${error.message}`);
-    //   }
-    // },
-
-
-    // getUser: async (_, __, context) => {
-    //   console.log(context, "Context received");
-
-    //   try {
-    //     // Check if the token exists in context (should be passed via the middleware)
-    //     if (!context.user) {
-    //       throw new Error("Authentication token is missing. Please log in.");
-    //     }
-
-    //     // Decode the token to get user information
-    //     const decoded = jwt.verify(context.user, process.env.JWT_SECRET);
-        
-    //     if (!decoded || !decoded.id) {
-    //       throw new Error("Invalid or expired user. Please log in again.");
-    //     }
-
-    //     // If we already have the user in context (via authMiddleware), use it
-    //     const user = context.user || await CustomerModel.findById(decoded.id);
-
-    //     if (!user) {
-    //       throw new Error("User not found");
-    //     }
-
-    //     // Return the user data
-    //     return user;
-    //   } catch (error) {
-    //     console.error("Error fetching user:", error.message);
-    //     throw new Error(`Error fetching user: ${error.message}`);
-    //   }
-    // },
-
-
-    // getUser: async (_, __, context) => {
-    //   console.log(context, "Context received"); // Check the entire context here
-    
-    //   try {
-    //     if (!context.user) {
-    //       throw new Error("Authentication token is missing. Please log in.");
-    //     }
-    
-    //     if (typeof context.user !== 'string') {
-    //       throw new Error("JWT must be a string, but received: " + typeof context.user);
-    //     }
-    
-    //     const decoded = jwt.verify(context.user, process.env.JWT_SECRET);
-    //     if (!decoded || !decoded.id) {
-    //       throw new Error("Invalid or expired user. Please log in again.");
-    //     }
-    
-    //     const user = context.user || await CustomerModel.findById(decoded.id);
-    
-    //     if (!user) {
-    //       throw new Error("User not found");
-    //     }
-    
-    //     return user;
-    //   } catch (error) {
-    //     console.error("Error fetching user:", error.message);
-    //     throw new Error(`Error fetching user: ${error.message}`);
-    //   }
-    // },
-    
-
+   
     getUser: async (_, __, context) => {
       console.log(context, "Context received");
     
@@ -125,13 +45,30 @@ const authResolvers = {
       }
     },
     
+    getProfile: async (_,{},context) => {
+      try {
+        if (!context.user) {
+          throw new Error("User not authenticated");
+        }
+        console.log(context.user);
+        const userId = context.user.id;
+        const profile = await CustomerModel.findById(userId).select("firstName lastName email phoneNumber gender birthDate");
 
+        return {
+          success: true,
+          message: "Profile fetched successfully",
+          profile,
+        };
+      } catch (error) {
+        throw new Error(`Error fetching profile: ${error.message}`);
+      }
+    },
 
   },
   Mutation: {
     signup: async (
       _,
-      { firstName, lastName, email, phoneNumber, password, gender, birthDate ,role }
+      { firstName, lastName, email, phoneNumber, password, gender, birthDate  }
     ) => {
       try {
         const existingUser = await CustomerModel.findOne({ email });
@@ -147,7 +84,7 @@ const authResolvers = {
           password: hashedPassword,
           gender,
           birthDate,
-          role,
+          
         });
         await newUser.save();
         return {
@@ -219,27 +156,54 @@ const authResolvers = {
         throw new Error(`Error during login:${error.message}`)
       }
     },
+    sendOtp: async (_, { email }, { res }) => {
+      try {
+        const user = await CustomerModel.findOne({ email });
+        if (!user) {
+          throw new Error("User not found");
+        }
+        const otp = generateOtp();
+        user.otp = otp;
+        user.expiry=Date.now() + OTP_EXPIRY_TIME;
+        await user.save();
+        await forgotPasswordEmail(email, otp);
+        return {
+          success: true,
+          message: "OTP sent successfully",
+        };
+      } catch (error) {
+        throw new Error(`Error sending OTP: ${error.message}`);
+    }
+  },
     verifyOtp: async (_, { email, otp }, { res }) => {
       try {
-        const storedOtp = otpStore[email];
-        if (!storedOtp || storedOtp.otp !== otp) {
+        const user=await CustomerModel.findOne({ email });
+        if (!user) {
+          throw new Error("User not found");  
+        } 
+        if (!user.otp || user.otp !== otp) {
           throw new Error("Invalid OTP");
         }
-        if (Date.now() > storedOtp.expiry) {
-          delete otpStore[email]; // Expired OTP, remove it from storage
+        if (Date.now() > user.expiry) {
+          user.otp = null; // Expired OTP, remove it from storage
+          user.expiry=null;
           throw new Error("OTP has expired");
         }
         // OTP is valid, generate a token
         const token = generateToken({ email }, "10m"); // Token valid for 10 minutes
         // Set the token in a secure, HTTP-only cookie
-        res.cookie("resetToken", token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production", // Use secure flag in production
-          maxAge: 10 * 60 * 1000, // 10 minutes
-        });
+        // res.cookie("resetToken", token, {
+        //   httpOnly: true,
+        //   secure: process.env.NODE_ENV === "production", // Use secure flag in production
+        //   maxAge: 10 * 60 * 1000, // 10 minutes
+        // });
+        user.otp = null; // OTP has been verified, remove it from storage
+        user.expiry=null;
+        await user.save();
         return {
           success: true,
           message: "OTP verified successfully",
+          token
         };
       } catch (error) {
         throw new Error(`Error verifying OTP: ${error.message}`);
@@ -247,10 +211,10 @@ const authResolvers = {
     },
 
     
-    resetPasswordWithOtp: async (_, { newPassword }, { req }) => {
+    resetPassword: async (_, { newPassword,token}, { req }) => {
       try {
         // Get the token from cookies
-        const token = req.cookies.resetToken;
+        
         if (!token) {
           throw new Error("Authorization token is missing");
         }
@@ -268,8 +232,7 @@ const authResolvers = {
         // Update the user's password
         user.password = hashedPassword;
         await user.save();
-        // Clear the reset token cookie
-        req.res.clearCookie("resetToken");
+       
         return {
           success: true,
           message: "Password updated successfully",
@@ -279,17 +242,13 @@ const authResolvers = {
         throw new Error(`Error resetting password: ${error.message}`);
       }
     },
-    resetPassword: async (_, { oldPassword, newPassword }, { req }) => {
+    changePassword: async (_, { oldPassword, newPassword },context) => {
       try {
         // Extract the token from cookies
-        const token = req.cookies.token;
-        if (!token) {
+        if (!context.user) {
           throw new Error("User not authenticated");
         }
-        // Verify the token
-        const decoded = jwt.verify(token, process.env.SECRET_KEY);
-        const userId = decoded.user_id;
-        // Find the user in the database
+        const userId = context.user.id;
         const user = await CustomerModel.findById(userId);
         if (!user) {
           throw new Error("User not found");
@@ -316,6 +275,27 @@ const authResolvers = {
         throw new Error(`Error resetting password: ${error.message}`);
       }
     },
+ 
+  updateProfile: async (_,{firstName,lastName,email,phoneNumber,gender,birthDate},context) => {
+    try {
+      if (!context.user) {
+        throw new Error("User not authenticated");
+      }
+      const userId = context.user.id;
+      const updatedProfile = await CustomerModel.findByIdAndUpdate(
+        userId,
+        { firstName, lastName, email, phoneNumber, gender, birthDate },
+        { new: true }
+      ).select("firstName lastName email phoneNumber gender birthDate");
+      return {
+        success: true,
+        message: "Profile updated successfully",
+        profile: updatedProfile,
+      };
+    } catch (error) {
+      throw new Error(`Error updating profile: ${error.message}`);
+    }
+  },
   },
 };
 module.exports = authResolvers;

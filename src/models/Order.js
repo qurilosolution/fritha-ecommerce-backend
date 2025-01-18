@@ -35,17 +35,7 @@ const OrderSchema = new mongoose.Schema(
     paymentId: { type: String },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
-    orderSummary: {
-      couponDiscount: { type: String, required: true },
-      subTotal: { type: Number, required: true },
-      discount: { type: Number, required: true },
-      deliveryCharge: { type: Number, required: true },
-      totalAmount: { type: Number, required: true },
-    },
-    deletedAt: {
-      type: Date,
-      default: null,
-    },
+
   },
   { timestamps: true }
 );

@@ -93,7 +93,6 @@ const paymentResolvers = {
           shippingAddress,
           orderSummary
         );
-
         return order;
       } catch (error) {
         console.error("Error creating order:", error);
