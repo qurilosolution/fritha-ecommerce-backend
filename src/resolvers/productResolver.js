@@ -59,7 +59,7 @@ const productResolvers = {
     }
   },
   
-  updateProduct: async (_, { id, input, publicIds }, context) => {
+  updateProduct: async (_, { id, input}, context) => {
     if (!context.user) throw new Error("You must be logged in to update a product.");
     if (!context.user.role.includes("admin")) throw new Error("Admin access required.");
   
@@ -70,8 +70,7 @@ const productResolvers = {
   
       // Pass input and publicIds directly to the updateProduct service
       const updatedProduct = await productService.updateProduct(id, {
-        ...input,
-        publicIds,
+        ...input
       });
   
       return updatedProduct;

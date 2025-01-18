@@ -72,8 +72,8 @@ const variantSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
-  publicIds: [{ type: String }],
-  newImages: [{ type: String }],
+  publicIds: [{ type: String }]
+ 
 }, { timestamps: true });
 
 

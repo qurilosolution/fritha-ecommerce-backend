@@ -14,6 +14,8 @@ scalar Upload
     products: [Product]
     bannerImageUrl:[String]
     cardImageUrl: [String]
+    cardPublicIds:[String]
+    bannerPublicIds: [String]
     meta: Meta
     
 
@@ -50,8 +52,10 @@ scalar Upload
   
   extend type Mutation {
 
-    createCategory(name: String!, description: String,  ,bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]! ,meta: MetaInput): Category
-    updateCategory(id: ID!, name: String, description: String , bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]! ,meta: MetaInput): Category
+    createCategory(name: String!, description: String,  bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]!, cardPublicIds:[String],
+    bannerPublicIds: [String], meta: MetaInput): Category
+    updateCategory(id: ID!, name: String, description: String , bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]! ,cardPublicIds:[String],
+    bannerPublicIds: [String], meta: MetaInput): Category
     deleteCategory(id: ID!): DeletionResponse!
 
   }

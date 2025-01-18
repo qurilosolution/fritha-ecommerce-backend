@@ -31,6 +31,12 @@ const subcategorySchema = new mongoose.Schema(
       type: [String], 
       trim: true,
     },
+    cardPublicIds:{
+      type: [String]
+    },
+    bannerPublicIds:{
+      type: [String]
+    },
     deletedAt: {
       type: Date,
       default: null,

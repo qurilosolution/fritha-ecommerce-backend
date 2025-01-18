@@ -16,7 +16,7 @@ const subcategoryResolver = {
         },
   },
   Mutation: {
-    createSubcategory: async (_, { name, description, bannerImageUrl, cardImageUrl, categoryId, meta }, context) => {
+    createSubcategory: async (_, { name, description, bannerImageUrl, cardImageUrl,bannerPublicIds, cardPublicIds, categoryId, meta }, context) => {
       try {
         // Check user authentication and authorization
         if (!context.user) {
@@ -34,6 +34,8 @@ const subcategoryResolver = {
         const subcategoryData = {
           name,
           description,
+          cardPublicIds,
+          bannerPublicIds,
           bannerImageUrl: formattedBannerImageUrl,
           cardImageUrl: formattedCardImageUrl,
           categoryId,
@@ -63,28 +65,13 @@ const subcategoryResolver = {
           throw new Error("You must be an admin to update a subcategory.");
         }
     
-        // Validate ID and categoryId
-        if (!id || typeof id !== "string") {
-          throw new Error("Subcategory ID must be a valid string.");
-        }
-        if (categoryId && typeof categoryId !== "string") {
-          throw new Error("Category ID must be a valid string.");
-        }
-    
-        console.log("Validated IDs:", { id, categoryId });
-    
-        // Handle banner image uploads
-        const uploadedBannerImages = await subcategoryService.handleImageUploads(bannerImageUrl);
-    
-        // Handle card image uploads
-        const uploadedCardImages = await subcategoryService.handleImageUploads(cardImageUrl);
-    
+       
         // Call the service to update the subcategory
         const updatedSubcategory = await subcategoryService.updateSubcategory(id, {
           name,
           description,
-          bannerImageUrl: uploadedBannerImages.length > 0 ? uploadedBannerImages : undefined,
-          cardImageUrl: uploadedCardImages.length > 0 ? uploadedCardImages : undefined,
+          bannerImageUrl,
+          cardImageUrl,
           meta,
           categoryId,
         });

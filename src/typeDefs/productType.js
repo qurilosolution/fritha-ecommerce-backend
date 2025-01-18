@@ -94,7 +94,7 @@ const productType = gql`
     totalReviews: Int
     averageRating: Float
     isBestSeller: Boolean
-    
+    publicIds: [String]
   }
 
   extend type Query {
@@ -109,7 +109,7 @@ const productType = gql`
     updateProduct(
       id: ID
       input: CreateProductInput!
-      publicIds: [String]
+      
     ): Product
     deleteProduct(id: ID!): DeletionResponse!
     refreshBestSellers: RefreshResponse

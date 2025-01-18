@@ -247,12 +247,17 @@ const createProduct = async (input) => {
       throw new Error("Name and Category are required fields.");
     }
 
+    const publicIds = [];
     // Process product images
     const processedImages = imageUrl
       ? await Promise.all(
           (Array.isArray(imageUrl) ? imageUrl : [imageUrl])
             .filter(Boolean)
-            .map((image) => uploadImageToCloudinary(image))
+            .map(async (image) => {
+              const uploadResponse = await uploadImageToCloudinary(image);
+              publicIds.push(uploadResponse.public_id); // Store the public_id
+              return uploadResponse.secure_url; // Return the URL for processed images
+            })
         )
       : [];
 
@@ -281,6 +286,7 @@ const createProduct = async (input) => {
       averageRating,
       isBestSeller,
       imageUrl: processedImages,
+      publicIds, // Include publicIds in the product data
     };
 
     // Create the product
@@ -291,21 +297,29 @@ const createProduct = async (input) => {
       const createdVariants = await Promise.all(
         variants.map(async (variant) => {
           // Process images for each variant
-          const variantImages = variant.imageUrl
-            ? await Promise.all(
-                (Array.isArray(variant.imageUrl)
-                  ? variant.imageUrl
-                  : [variant.imageUrl]
-                )
-                  .filter(Boolean)
-                  .map((image) => uploadImageToCloudinary(image))
-              )
-            : [];
+          const variantImages = [];
+          const variantPublicIds = [];
 
-          // Create new variant with processed image URLs
+          if (variant.imageUrl) {
+            await Promise.all(
+              (Array.isArray(variant.imageUrl)
+                ? variant.imageUrl
+                : [variant.imageUrl]
+              )
+                .filter(Boolean)
+                .map(async (image) => {
+                  const uploadResponse = await uploadImageToCloudinary(image);
+                  variantImages.push(uploadResponse.secure_url);
+                  variantPublicIds.push(uploadResponse.public_id); // Store variant public_id
+                })
+            );
+          }
+
+          // Create new variant with processed image URLs and public IDs
           const newVariant = new Variant({
             ...variant,
             imageUrl: variantImages,
+            publicIds: variantPublicIds, // Add variant public IDs
             productId: savedProduct._id,
           });
           return await newVariant.save();
@@ -333,6 +347,7 @@ const createProduct = async (input) => {
     throw new Error(`Service error while creating product: ${error.message}`);
   }
 };
+
 
 const uploadImagesForVariants = async (variants) => {
   return await Promise.all(
@@ -476,7 +491,6 @@ const updateProduct = async (id, input) => {
       netContent,
       review,
       discount,
-      variants, 
       usp,
       mrp,
       price,
@@ -486,13 +500,13 @@ const updateProduct = async (id, input) => {
       additionalDetails,
       totalReviews,
       averageRating,
-      isBestSeller  ,
-      publicIds 
+      isBestSeller,
     };
 
     // Handle product-level image updates
     if (imageUrl && Array.isArray(imageUrl) && imageUrl.length > 0) {
       if (publicIds && Array.isArray(publicIds) && publicIds.length > 0) {
+        // Remove previous images using publicIds
         await Promise.all(
           publicIds.map(async (publicId) => {
             try {
@@ -503,14 +517,14 @@ const updateProduct = async (id, input) => {
           })
         );
       }
-    
+
+      // Upload new images to Cloudinary
       const uploadedImages = await Promise.all(
         imageUrl.map(async (image) => {
           try {
             const uploadResult = await uploadImageToCloudinary(image);
             if (uploadResult && uploadResult.public_id && uploadResult.secure_url) {
-              publicIds.push(uploadResult.public_id);
-              return uploadResult.secure_url;
+              return uploadResult; // Return the full result
             } else {
               console.error("Incomplete response from Cloudinary:", uploadResult);
               return null;
@@ -521,20 +535,12 @@ const updateProduct = async (id, input) => {
           }
         })
       );
-    
-      productData.imageUrl = uploadedImages.filter((url) => url !== null); // Filter out null URLs
+
+      // Filter valid uploads and extract URLs and publicIds
+      const validUploads = uploadedImages.filter((result) => result !== null);
+      productData.imageUrl = validUploads.map((upload) => upload.secure_url);
+      productData.publicIds = validUploads.map((upload) => upload.public_id);
     }
-    
-  //   const uploadedImages = await Promise.all(
-  //     imageUrl.map((image) => uploadImageToCloudinary(image))
-      
-  //   );
-  //   productData.imageUrl = uploadedImages; // Update product images
-  // }
-
-
-  
- 
 
     // Handle variant updates
     if (variants && Array.isArray(variants)) {
@@ -548,12 +554,15 @@ const updateProduct = async (id, input) => {
                 )
               );
             }
+
             const uploadedVariantImages = await Promise.all(
               variant.imageUrl.map((image) => uploadImageToCloudinary(image))
             );
+
             return {
               ...variant,
-              imageUrl: uploadedVariantImages, // Update variant images
+              imageUrl: uploadedVariantImages.map((upload) => upload.secure_url),
+              publicIds: uploadedVariantImages.map((upload) => upload.public_id),
             };
           }
           return variant; // Return unchanged variant if no new images
@@ -579,7 +588,6 @@ const updateProduct = async (id, input) => {
     throw new Error(`Error updating product: ${error.message}`);
   }
 };
-
 
 
 const deleteProduct = async (id) => {

@@ -36,6 +36,12 @@ const categorySchema = new mongoose.Schema(
       type: [String], // Optional images for the category
       trim: true,
     },
+    cardPublicIds:{
+      type: [String]
+    },
+    bannerPublicIds:{
+      type: [String]
+    },
     deletedAt: {
       type: Date,
       default: null,
