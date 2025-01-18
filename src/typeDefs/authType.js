@@ -9,6 +9,8 @@ const authType = gql`
     phoneNumber: String
     gender: String
     birthDate: String
+    isAdmin: Boolean!
+     
   }
   type Response{
     success: Boolean
