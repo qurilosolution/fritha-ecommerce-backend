@@ -3,6 +3,31 @@ const crypto = require("crypto");
 const Order = require("../models/Order"); // Order model
 require("dotenv").config();
 const OrderService = {
+
+
+  getOrdersByStatusAndPaymentStatus : async (status, paymentStatus, page = 1, limit = 10) => {
+    try {
+      const skip = (page - 1) * limit;
+  
+      // Find orders with the provided status and payment status
+      const orders = await Order.find({ status, paymentStatus })
+        .skip(skip)
+        .limit(limit)
+        .exec();
+  
+      // Count the total number of matching orders for pagination
+      const totalOrders = await Order.countDocuments({ status, paymentStatus });
+  
+      return {
+        orders,
+        totalPages: Math.ceil(totalOrders / limit),
+        currentPage: page,
+      };
+    } catch (error) {
+      throw new Error("Error retrieving orders: " + error.message);
+    }
+  },
+
   // Fetch all orders
   getOrdersByAdmin: async (page = 1) => {
     const limit = 10;

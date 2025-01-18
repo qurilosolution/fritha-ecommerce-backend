@@ -5,6 +5,22 @@ require("dotenv").config();
 
 const paymentResolvers = {
   Query: {
+
+    async getOrders(_, { status, paymentStatus, page = 1 }) {
+      try {
+        // Call the service function to get orders with pagination
+        const ordersData = await OrderService.getOrdersByStatusAndPaymentStatus(status, paymentStatus, page);
+
+        // Return the paginated orders
+        return {
+          orders: ordersData.orders,
+          totalPages: ordersData.totalPages,
+          currentPage: ordersData.currentPage,
+        };
+      } catch (error) {
+        throw new Error("Error fetching orders: " + error.message);
+      }
+    },
     getOrdersByAdmin: async (_, { page = 1 }, { user }) => {
       try {
         // Check if the user is an admin

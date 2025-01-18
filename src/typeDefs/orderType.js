@@ -91,6 +91,7 @@ const razorpayType = gql`
     getOrdersByCustomer(page: Int): PaginatedOrders
     getOrdersByAdmin(page: Int): PaginatedOrders
     getOrderById(id: ID!): Order
+    getOrders(status: String!, paymentStatus: String! ,page: Int): PaginatedOrders
   }
 
   extend type Mutation {
