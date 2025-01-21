@@ -9,6 +9,7 @@ const AddressSchema = new mongoose.Schema({
   pincode: { type: String, required: true },
   phone: { type: String, required: true },
   email: { type: String, required: true },
+  
   isDefault: { type: Boolean, default: false },
   type: { type: String, required: true, enum: ['Home', 'Work', 'Other'] },
 });

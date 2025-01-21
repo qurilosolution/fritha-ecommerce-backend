@@ -430,7 +430,7 @@ const getProductById = async (id) => {
       .populate("variants")
       .populate("reviews");
   } catch (error) {
-    throw new Error(`Error fetching product by ID: ${error.message}`);
+    throw new Error(`Error fetching product by name: ${error.message}`);
   }
 };
 
@@ -672,5 +672,9 @@ module.exports = {
   uploadImageToCloudinary,
   updateProductImage,
   uploadImagesForVariants,
+  getProductByName
+  
+
+
   getProductByslugName,
 };

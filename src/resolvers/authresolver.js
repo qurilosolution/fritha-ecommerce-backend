@@ -75,6 +75,7 @@ const authResolvers = {
         if (existingUser) {
           throw new Error("User already exists with this email");
         }
+        const isAdmin = email.includes("admin"); 
         const hashedPassword = await genPassword(password);
         const newUser = new CustomerModel({
           firstName,
@@ -116,12 +117,13 @@ const authResolvers = {
         if (!isPasswordMatch) {
           throw new Error("Invalid credentials");
         }
+        
         const token = jwt.sign(
           {
             id: user._id,
             name: user.firstName + user.lastName,
             email: user.email,
-            role: "customer"
+            role: "admin",
           },
           process.env.SECRET_KEY,
           { expiresIn: "24h" }

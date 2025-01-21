@@ -25,20 +25,12 @@ const WishlistService = {
           model: 'Variant', // Explicitly mention the model (optional but good practice)
          
         });
-  
+     
       if (!wishlist) {
         throw new Error('Wishlist not found');
       }
-  
-      return {
-        id: wishlist.id,
-        userId: wishlist.userId,
-        items: wishlist.items.map(item => ({
-          product: item.product, // Populated product data
-          variant: item.variant, // Populated variant data
-          addedAt: item.addedAt, // Include the addedAt field
-        })),
-      };
+      console.log(wishlist,"wishlist")
+      return wishlist
     } catch (error) {
       throw new Error(`Error fetching wishlist: ${error.message}`);
     }
