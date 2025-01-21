@@ -41,6 +41,7 @@ const subcategorySchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    
     meta: {
       title: {
         type: String,
@@ -58,8 +59,10 @@ const subcategorySchema = new mongoose.Schema(
    
   },
   {
-    timestamps: true,
+
+    timestamps: true, 
   }
+  
 );
 
 module.exports = mongoose.model('Subcategory', subcategorySchema);

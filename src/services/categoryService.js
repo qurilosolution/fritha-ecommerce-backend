@@ -227,6 +227,7 @@ const createCategory = async (categoryData) => {
       cardPublicIds, // Ensure public_ids are assigned to the category
       meta,
       products,
+      
       subcategories,
     });
 
