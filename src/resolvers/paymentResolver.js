@@ -2,10 +2,6 @@ const OrderService = require("../services/orderService");
 const Order = require("../models/Order"); // Order model for database operations
 
 const paymentResolvers = {
-  Query: {
-    hello: () => "Welcome to Razorpay GraphQL Integration!",
-  },
-
   Mutation: {
     
     verifyPayment: async (_, { razorpayOrderId, razorpayPaymentId, razorpaySignature }) => {

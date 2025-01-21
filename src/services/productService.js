@@ -504,26 +504,70 @@ const updateProduct = async (id, input) => {
     };
 
     // Handle product-level image updates
-    if (imageUrl && Array.isArray(imageUrl) && imageUrl.length > 0) {
-      if (publicIds && Array.isArray(publicIds) && publicIds.length > 0) {
-        // Remove previous images using publicIds
-        await Promise.all(
-          publicIds.map(async (publicId) => {
-            try {
-              await deleteImageFromCloudinary(publicId);
-            } catch (error) {
-              console.error(`Failed to delete image with publicId: ${publicId}`, error);
-            }
-          })
-        );
-      }
+    // if (imageUrl && Array.isArray(imageUrl) && imageUrl.length > 0) {
+    //   if (publicIds && Array.isArray(publicIds) && publicIds.length > 0) {
+    //     // Remove previous images using publicIds
+    //     await Promise.all(
+    //       publicIds.map(async (publicId) => {
+    //         try {
+    //           await deleteImageFromCloudinary(publicId);
+    //         } catch (error) {
+    //           console.error(`Failed to delete image with publicId: ${publicId}`, error);
+    //         }
+    //       })
+    //     );
+    //   }
 
-      // Upload new images to Cloudinary
-      const uploadedImages = await Promise.all(
-        imageUrl.map(async (image) => {
+    //   // Upload new images to Cloudinary
+    //   const uploadedImages = await Promise.all(
+    //     imageUrl.map(async (image) => {
+    //       try {
+    //         const uploadResult = await uploadImageToCloudinary(image);
+    //         if (uploadResult && uploadResult.public_id && uploadResult.secure_url) {
+    //           return uploadResult; // Return the full result
+    //         } else {
+    //           console.error("Incomplete response from Cloudinary:", uploadResult);
+    //           return null;
+    //         }
+    //       } catch (error) {
+    //         console.error("Error uploading image to Cloudinary:", error);
+    //         return null;
+    //       }
+    //     })
+    //   );
+
+    //   // Filter valid uploads and extract URLs and publicIds
+    //   const validUploads = uploadedImages.filter((result) => result !== null);
+    //   productData.imageUrl = validUploads.map((upload) => upload.secure_url);
+    //   productData.publicIds = validUploads.map((upload) => upload.public_id);
+    // }
+    if (imageUrl && Array.isArray(imageUrl) && imageUrl.length > 0) {
+      // Ensure publicIds array matches the imageUrl array length
+      if (!publicIds || !Array.isArray(publicIds)) {
+        throw new Error("publicIds array is required and must be valid.");
+      }
+    
+      // Process each imageUrl with its corresponding publicId
+      const updatedImages = await Promise.all(
+        imageUrl.map(async (image, index) => {
+          if (!image) {
+            // If no new image provided, retain the existing one
+            return { secure_url: productData.imageUrl[index], public_id: publicIds[index] };
+          }
+    
+          if (publicIds[index]) {
+            // Delete the existing image at the current index
+            try {
+              await deleteImageFromCloudinary(publicIds[index]);
+            } catch (error) {
+              console.error(`Failed to delete image with publicId: ${publicIds[index]}`, error);
+            }
+          }
+    
+          // Upload the new image
           try {
             const uploadResult = await uploadImageToCloudinary(image);
-            if (uploadResult && uploadResult.public_id && uploadResult.secure_url) {
+            if (uploadResult && uploadResult.secure_url && uploadResult.public_id) {
               return uploadResult; // Return the full result
             } else {
               console.error("Incomplete response from Cloudinary:", uploadResult);
@@ -535,12 +579,13 @@ const updateProduct = async (id, input) => {
           }
         })
       );
-
+    
       // Filter valid uploads and extract URLs and publicIds
-      const validUploads = uploadedImages.filter((result) => result !== null);
+      const validUploads = updatedImages.filter((result) => result !== null);
       productData.imageUrl = validUploads.map((upload) => upload.secure_url);
       productData.publicIds = validUploads.map((upload) => upload.public_id);
     }
+    
 
     // Handle variant updates
     if (variants && Array.isArray(variants)) {
@@ -672,9 +717,5 @@ module.exports = {
   uploadImageToCloudinary,
   updateProductImage,
   uploadImagesForVariants,
-  getProductByName
-  
-
-
   getProductByslugName,
 };

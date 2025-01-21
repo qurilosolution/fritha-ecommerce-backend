@@ -3,28 +3,132 @@ const crypto = require("crypto");
 const Order = require("../models/Order"); // Order model
 require("dotenv").config();
 const OrderService = {
-
-
-  getOrdersByStatusAndPaymentStatus : async (status, paymentStatus, page = 1, limit = 10) => {
+  getOrdersByDateRange: async (
+    status = null,
+    paymentStatus = null,
+    startDate,
+    endDate,
+    page = 1,
+    limit = 10
+  ) => {
     try {
+      // Construct query object, only add filters if values are provided
+      let query = {};
+
+      if (status) {
+        query.status = status;
+      }
+
+      if (paymentStatus) {
+        query.paymentStatus = paymentStatus;
+      }
+
+      if (startDate && endDate) {
+        query.createdAt = {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        };
+      }
+
+      // Calculate pagination skip and limit
       const skip = (page - 1) * limit;
-  
-      // Find orders with the provided status and payment status
-      const orders = await Order.find({ status, paymentStatus })
+
+      // Fetch the orders based on the constructed query and pagination
+      const orders = await Order.find(query)
         .skip(skip)
         .limit(limit)
-        .exec();
-  
-      // Count the total number of matching orders for pagination
-      const totalOrders = await Order.countDocuments({ status, paymentStatus });
-  
-      return {
-        orders,
-        totalPages: Math.ceil(totalOrders / limit),
-        currentPage: page,
-      };
+        .sort({ createdAt: -1 }); // Sorting by createdAt in descending order (newest first)
+
+      // Count the total number of orders matching the query
+      const totalCount = await Order.countDocuments(query);
+
+      return { orders, totalCount };
     } catch (error) {
+      console.error("Error retrieving orders:", error.message);
       throw new Error("Error retrieving orders: " + error.message);
+    }
+  },
+
+  getOrderCountsByDateRange: async (startDate, endDate) => {
+    try {
+      // Prepare the filter object based on the provided date range
+      const dateFilter = {};
+      if (startDate && endDate) {
+        dateFilter.createdAt = {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        };
+      }
+
+      // Aggregate the order counts based on different statuses
+      const counts = await Order.aggregate([
+        { $match: dateFilter }, // Filter orders based on date range
+        {
+          $facet: {
+            cancelledOrder: [
+              { $match: { status: "Cancelled" } },
+              { $count: "count" },
+            ],
+            shippedOrder: [
+              { $match: { status: "Shipped" } },
+              { $count: "count" },
+            ],
+            deliveredOrder: [
+              { $match: { status: "Delivered" } },
+              { $count: "count" },
+            ],
+            paymentPaid: [
+              { $match: { paymentStatus: "Paid" } },
+              { $count: "count" },
+            ],
+            paymentUnpaid: [
+              { $match: { paymentStatus: "Unpaid" } },
+              { $count: "count" },
+            ],
+            progressOrder: [
+              { $match: { status: "In Progress" } },
+              { $count: "count" },
+            ],
+          },
+        },
+        {
+          $project: {
+            cancelledOrder: {
+              $ifNull: [{ $arrayElemAt: ["$cancelledOrder.count", 0] }, 0],
+            },
+            shippedOrder: {
+              $ifNull: [{ $arrayElemAt: ["$shippedOrder.count", 0] }, 0],
+            },
+            deliveredOrder: {
+              $ifNull: [{ $arrayElemAt: ["$deliveredOrder.count", 0] }, 0],
+            },
+            paymentPaid: {
+              $ifNull: [{ $arrayElemAt: ["$paymentPaid.count", 0] }, 0],
+            },
+            paymentUnpaid: {
+              $ifNull: [{ $arrayElemAt: ["$paymentUnpaid.count", 0] }, 0],
+            },
+            progressOrder: {
+              $ifNull: [{ $arrayElemAt: ["$progressOrder.count", 0] }, 0],
+            },
+          },
+        },
+      ]);
+
+      // If no results, return counts as 0
+      return counts.length > 0
+        ? counts[0]
+        : {
+            cancelledOrder: 0,
+            shippedOrder: 0,
+            deliveredOrder: 0,
+            paymentPaid: 0,
+            paymentUnpaid: 0,
+            progressOrder: 0,
+          };
+    } catch (error) {
+      console.error("Error fetching order counts:", error.message);
+      throw new Error("Error fetching order counts: " + error.message);
     }
   },
 
@@ -98,11 +202,10 @@ const OrderService = {
     orderId,
     totalAmount,
     status,
-    paymentMode,
+    paymentMode, 
     paymentStatus,
     shippingAddress,
     orderSummary
-    
   ) => {
     try {
       console.log("Creating order...");
@@ -118,7 +221,7 @@ const OrderService = {
         shippingAddress,
         paymentStatus: paymentMode === "COD" ? "Unpaid" : "Processing",
         createdAt: new Date(),
-        orderSummary
+        orderSummary,
       };
 
       // Create Razorpay order
@@ -186,7 +289,7 @@ const OrderService = {
         orderUnpaid: orderUnpaid || existingOrder.orderUnpaid,
         orderCompleted: orderCompleted || existingOrder.orderCompleted,
         orderProgress: orderProgress || existingOrder.orderProgress,
-        items: items || existingOrder.items, 
+        items: items || existingOrder.items,
       };
 
       // Update the order in the database
@@ -325,24 +428,23 @@ const OrderService = {
     }
   },
 
-  deleteOrder : async (id) => {
+  deleteOrder: async (id) => {
     try {
       const deletedOrder = await Order.findByIdAndUpdate(
         id,
         { deletedAt: new Date() },
         { new: true }
       );
-  
+
       if (!deletedOrder) {
         throw new Error(`Order with ID ${id} not found.`);
       }
-  
+
       return deletedOrder; // Return the updated order with deletedAt field set
     } catch (error) {
       throw new Error("Failed to delete order: " + error.message);
     }
   },
-  
 
   cancelOrder: async (id) => {
     try {

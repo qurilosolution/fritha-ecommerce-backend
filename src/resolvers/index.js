@@ -14,7 +14,7 @@ const couponResolver = require("./couponResolver");
 const addressResolver=require("./addressResolver")
 const orderResolver=require("./orderResolver")
 const bannerResolver=require("./bannerResolver")
-const couponResolver=require("./couponResolver");
+
 const resolvers = mergeResolvers([categoryResolver,addressResolver, subcategoryResolver, productResolver ,reviewResolver,variantResolver,authResolver,orderResolver,wishlistResolver,paymentResolver,cartResolver,couponResolver,bannerResolver ]);
 
 

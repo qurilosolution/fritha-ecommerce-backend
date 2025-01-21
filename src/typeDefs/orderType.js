@@ -6,6 +6,13 @@ const razorpayType = gql`
     message: String
   }
 
+  enum TimeRange {
+    TODAY
+    YESTERDAY
+    THIS_MONTH
+    THIS_YEAR
+  }
+
   type Order {
     id: ID!
     userId: String!
@@ -20,7 +27,6 @@ const razorpayType = gql`
     createdAt: String!
     updatedAt: String!
     orderSummary: OrderSummary
-    
   }
 
   type OrderSummary {
@@ -68,7 +74,6 @@ const razorpayType = gql`
     country: String!
   }
 
-
   type ShippingAddress {
     firstName: String!
     lastName: String!
@@ -86,12 +91,36 @@ const razorpayType = gql`
     totalPages: Int!
     currentPage: Int!
   }
+  type OrderResponse {
+    orders: [Order!]!
+    totalCount: Int!
+  }
+
+  type Query {
+    getOrderCounts(startDate: String, endDate: String): OrderCounts!
+  }
+
+  type OrderCounts {
+    cancelledOrder: Int!
+    shippedOrder: Int!
+    deliveredOrder: Int!
+    paymentPaid: Int!
+    paymentUnpaid: Int! 
+    progressOrder: Int!
+  }
 
   extend type Query {
     getOrdersByCustomer(page: Int): PaginatedOrders
     getOrdersByAdmin(page: Int): PaginatedOrders
     getOrderById(id: ID!): Order
-    getOrders(status: String!, paymentStatus: String! ,page: Int): PaginatedOrders
+    getOrders(
+      status: String
+      paymentStatus: String
+      startDate: String
+      endDate: String
+      page: Int = 1
+      limit: Int = 10
+    ): OrderResponse!
   }
 
   extend type Mutation {
@@ -104,23 +133,18 @@ const razorpayType = gql`
       paymentStatus: String!
       shippingAddress: ShippingAddressInput!
       orderSummary: OrderSummaryInput!
-     
-      
     ): Order
-    
-  
-  updateOrder(
-    orderId: ID!,
-    userId: String!,
-    items: [OrderProductInput!]!
-    status: String,
-    paymentMode: String!
-    paymentStatus: String!,
-    shippingAddress: ShippingAddressInput!
-    orderSummary: OrderSummaryInput!
-    
-  ): Order
 
+    updateOrder(
+      orderId: ID!
+      userId: String!
+      items: [OrderProductInput!]!
+      status: String
+      paymentMode: String!
+      paymentStatus: String!
+      shippingAddress: ShippingAddressInput!
+      orderSummary: OrderSummaryInput!
+    ): Order
 
     updateOrderStatus(id: ID!, status: String!): Order
     deleteOrder(id: ID!): DeletionResponse!

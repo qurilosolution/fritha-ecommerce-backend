@@ -6,21 +6,49 @@ require("dotenv").config();
 const paymentResolvers = {
   Query: {
 
-    async getOrders(_, { status, paymentStatus, page = 1 }) {
+    async getOrders(_, { status, paymentStatus, startDate, endDate, page = 1, limit = 10 }) {
       try {
-        // Call the service function to get orders with pagination
-        const ordersData = await OrderService.getOrdersByStatusAndPaymentStatus(status, paymentStatus, page);
+        // Call the service function with filters and pagination
+        const { orders, totalCount } = await OrderService.getOrdersByDateRange(
+          status, 
+          paymentStatus, 
+          startDate, 
+          endDate, 
+          page, 
+          limit
+        );
 
-        // Return the paginated orders
+        // Return both orders and total count
         return {
-          orders: ordersData.orders,
-          totalPages: ordersData.totalPages,
-          currentPage: ordersData.currentPage,
+          orders,
+          totalCount,
         };
       } catch (error) {
+        console.error("Error fetching orders:", error.message);
         throw new Error("Error fetching orders: " + error.message);
       }
     },
+
+    async getOrderCounts(_, { startDate, endDate }) {
+      try {
+        // Call the service function to fetch the order counts
+        const orderCounts = await OrderService.getOrderCountsByDateRange(startDate, endDate);
+        
+        // Return the order counts
+        return {
+          cancelledOrder: orderCounts.cancelledOrder,
+          shippedOrder: orderCounts.shippedOrder,
+          deliveredOrder: orderCounts.deliveredOrder,
+          paymentPaid: orderCounts.paymentPaid,
+          paymentUnpaid: orderCounts.paymentUnpaid,
+          progressOrder: orderCounts.progressOrder,
+        };
+      } catch (error) {
+        console.error("Error fetching order counts:", error.message);
+        throw new Error("Error fetching order counts: " + error.message);
+      }
+    },
+    
     getOrdersByAdmin: async (_, { page = 1 }, { user }) => {
       try {
         // Check if the user is an admin

@@ -5,9 +5,7 @@ const razorpayType = gql`
     message: String
   }
 
-  extend type Query {
-    hello : String
-  }
+  
 
   extend type Mutation { 
    
