@@ -90,7 +90,7 @@ const razorpayType = gql`
     orders: [Order!]!
     totalPages: Int!
     currentPage: Int!
-  }
+    }
   type OrderResponse {
     orders: [Order!]!
     totalCount: Int!
@@ -110,8 +110,20 @@ const razorpayType = gql`
   }
 
   extend type Query {
-    getOrdersByCustomer(page: Int): PaginatedOrders
-    getOrdersByAdmin(page: Int): PaginatedOrders
+    getOrdersByCustomer( 
+    page: Int = 1,
+    status: String,
+    paymentStatus: String,
+    startDate: String,
+    endDate: String
+    ): PaginatedOrders
+    getOrdersByAdmin(
+    page: Int = 1,
+    status: String,
+    paymentStatus: String,
+    startDate: String,
+    endDate: String
+  ): PaginatedOrders
     getOrderById(id: ID!): Order
     getOrders(
       status: String

@@ -133,20 +133,38 @@ const OrderService = {
   },
 
   // Fetch all orders
-  getOrdersByAdmin: async (page = 1) => {
+  getOrdersByAdmin: async ({ page = 1, status, paymentStatus, startDate, endDate }) => {
     const limit = 10;
     const skip = (page - 1) * limit;
-
+  
+    const query = { deletedAt: null };
+  
+    if (status) {
+      query.status = status;
+    }
+  
+    if (paymentStatus) {
+      query.paymentStatus = paymentStatus;
+    }
+  
+    if (startDate) {
+      query.createdAt = { $gte: new Date(startDate) }; 
+  
+    if (endDate) {
+      query.createdAt = { ...query.createdAt, $lte: new Date(endDate) }; 
+    }
+  
     try {
-      const orders = await Order.find({ deletedAt: null })
+      // Fetch orders based on the query and pagination
+      const orders = await Order.find(query)
         .skip(skip)
         .limit(limit)
         .populate("items.product")
         .populate("items.variant");
-
-      const totalOrders = await Order.countDocuments();
+  
+      const totalOrders = await Order.countDocuments(query); // Count documents based on query
       const totalPages = Math.ceil(totalOrders / limit);
-
+  
       return {
         orders,
         totalPages,
@@ -155,26 +173,53 @@ const OrderService = {
     } catch (error) {
       throw new Error("Failed to fetch orders for admin: " + error.message);
     }
+    }
   },
-  getOrdersByCustomer: async (page = 1) => {
+  
+  getOrdersByCustomer: async ({ page = 1, userId, status, paymentStatus, startDate, endDate }) => {
     const limit = 10;
     const skip = (page - 1) * limit;
-
-    const orders = await Order.find({ deletedAt: null })
-      .skip(skip)
-      .limit(limit)
-      .populate("items.product")
-      .populate("items.variant");
-
-    const totalOrders = await Order.countDocuments();
-    const totalPages = Math.ceil(totalOrders / limit);
-
-    return {
-      orders,
-      totalPages,
-      currentPage: page,
-    };
+  
+    const query = { deletedAt: null, customer: userId }; // Ensure it fetches orders for the logged-in customer
+  
+    if (status) {
+      query.status = status;
+    }
+  
+    if (paymentStatus) {
+      query.paymentStatus = paymentStatus;
+    }
+  
+    if (startDate) {
+      query.createdAt = { $gte: new Date(startDate) };
+    }
+  
+    if (endDate) {
+      query.createdAt = { ...query.createdAt, $lte: new Date(endDate) };
+    }
+  
+    try {
+      // Fetch orders based on the query and pagination
+      const orders = await Order.find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }) // Sort by latest orders first
+        .populate("items.product")
+        .populate("items.variant");
+  
+      const totalOrders = await Order.countDocuments(query); // Count documents based on query
+      const totalPages = Math.ceil(totalOrders / limit);
+  
+      return {
+        orders,
+        totalPages,
+        currentPage: page,
+      };
+    } catch (error) {
+      throw new Error("Failed to fetch orders for customer: " + error.message);
+    }
   },
+  
 
   // Fetch a specific order by ID
   getOrderById: async (id) => {
