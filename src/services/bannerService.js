@@ -111,6 +111,7 @@ async function createBanner({ title, imageUrl, description, position, type }) {
 
 
 
+
 async function updateBanner(id, { title, imageUrl, description, position, type }) {
   try {
     const banner = await Banner.findById(id);
@@ -124,28 +125,26 @@ async function updateBanner(id, { title, imageUrl, description, position, type }
     if (position) banner.position = position;
     if (type) banner.type = type;
 
-    // Handle image updates if new images are provided
+    // Handle image updates or redirectUrl updates
     if (imageUrl && imageUrl.length > 0) {
-      const updatedImages = await Promise.all(
-        imageUrl.map(async ({ image, redirectUrl }) => {
-          if (image) {
-            try {
-              // Upload the new image to Cloudinary
-              const uploadResult = await uploadImageToCloudinary(image);
-              // Only return the secure_url
-              return { url: uploadResult.secure_url, redirectUrl };
-            } catch (uploadError) {
-              console.error("Error uploading image:", uploadError.message);
-              throw new Error("Image upload failed");
-            }
-          } else {
-            return null;
-          }
-        })
-      );
+      const updatedImages = imageUrl.map(({ image, redirectUrl }, index) => {
+        // Retain the existing image URL if no new image is provided
+        if (!image) {
+          return {
+            url: banner.imageUrl[index]?.url || null, // Keep the existing image URL
+            redirectUrl: redirectUrl || banner.imageUrl[index]?.redirectUrl || null, // Update redirectUrl
+          };
+        } else {
+          // If a new image is provided, handle its upload
+          return {
+            image,
+            redirectUrl,
+          };
+        }
+      });
 
-      // Filter out null entries and replace the old imageUrl with the updated images
-      banner.imageUrl = updatedImages.filter((image) => image !== null);
+      // Filter out invalid entries (e.g., null images without URLs)
+      banner.imageUrl = updatedImages.filter((image) => image.url !== null);
     }
 
     // Save the updated banner
@@ -156,7 +155,6 @@ async function updateBanner(id, { title, imageUrl, description, position, type }
     throw new Error(`Failed to update banner: ${error.message}`);
   }
 };
-
 
   
 
