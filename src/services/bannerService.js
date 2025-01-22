@@ -19,6 +19,13 @@ const getBannerById = async (id) => {
     throw new Error("Error fetching banner");
   }
 };
+const getBannerByTitle = async (title) => {
+  try {
+    return await Banner.findOne({ title });
+  } catch (error) {
+    throw new Error("Error fetching banner by title");
+  }
+};
 
 // async function createBanner({ title, imageUrl, description, position, type }) {
 //   try {
@@ -180,5 +187,6 @@ module.exports = {
   createBanner,
   updateBanner,
   deleteBanner,
+  getBannerByTitle
   
 };

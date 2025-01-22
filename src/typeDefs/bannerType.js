@@ -34,6 +34,7 @@ const bannerType = gql`
   type Query {
     banners: [Banner]
     banner(id: ID!): Banner
+    bannerByTitle(title: String!): Banner
   }
 
   type Mutation {

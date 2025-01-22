@@ -14,6 +14,10 @@ const resolvers = {
     banner: async (_, { id }) => {
       return await bannerService.getBannerById(id);
     },
+    bannerByTitle: async (_, { title }) => {
+      return await bannerService.getBannerByTitle(title);
+    },
+    
   },
   Mutation: {
     async createBanner(_, { title, imageUrl, description, position, type }, context) {
