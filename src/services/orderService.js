@@ -133,20 +133,45 @@ const OrderService = {
   },
 
   // Fetch all orders
-  getOrdersByAdmin: async (page = 1) => {
-    const limit = 10;
-    const skip = (page - 1) * limit;
-
+  getOrdersByAdmin: async ({ page = 1, status, paymentStatus, startDate, endDate }) => {
+    const limit = 10; // Number of orders per page
+    const skip = (page - 1) * limit; // Calculate how many orders to skip
+  
+    const query = { deletedAt: null }; // Default query to exclude soft-deleted orders
+  
+    // Apply status filter if provided
+    if (status) {
+      query.status = status;
+    }
+  
+    // Apply paymentStatus filter if provided
+    if (paymentStatus) {
+      query.paymentStatus = paymentStatus;
+    }
+  
+    // Apply date range filter if provided
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) {
+        query.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        query.createdAt.$lte = new Date(endDate);
+      }
+    }
+  
     try {
-      const orders = await Order.find({ deletedAt: null })
+      // Fetch orders based on the query and apply pagination
+      const orders = await Order.find(query)
         .skip(skip)
         .limit(limit)
         .populate("items.product")
         .populate("items.variant");
-
-      const totalOrders = await Order.countDocuments();
+  
+      // Count total orders matching the query (for pagination calculation)
+      const totalOrders = await Order.countDocuments(query);
       const totalPages = Math.ceil(totalOrders / limit);
-
+  
       return {
         orders,
         totalPages,
@@ -156,25 +181,55 @@ const OrderService = {
       throw new Error("Failed to fetch orders for admin: " + error.message);
     }
   },
-  getOrdersByCustomer: async (page = 1) => {
+  
+    
+  getOrdersByCustomer: async ({ page = 1, userId, status, paymentStatus, startDate, endDate }) => {
     const limit = 10;
     const skip = (page - 1) * limit;
-
-    const orders = await Order.find({ deletedAt: null })
-      .skip(skip)
-      .limit(limit)
-      .populate("items.product")
-      .populate("items.variant");
-
-    const totalOrders = await Order.countDocuments();
-    const totalPages = Math.ceil(totalOrders / limit);
-
-    return {
-      orders,
-      totalPages,
-      currentPage: page,
-    };
+  
+    const query = { deletedAt: null, customer: userId }; // Ensure it fetches orders for the logged-in customer
+  
+    if (status) {
+      query.status = status;
+    }
+  
+    if (paymentStatus) {
+      query.paymentStatus = paymentStatus;
+    }
+  
+   // Apply date range filter if provided
+   if (startDate || endDate) {
+    query.createdAt = {};
+    if (startDate) {
+      query.createdAt.$gte = new Date(startDate);
+    }
+    if (endDate) {
+      query.createdAt.$lte = new Date(endDate);
+    }
+  }
+  
+    try {
+      // Fetch orders based on the query and pagination
+      const orders = await Order.find(query)
+        .skip(skip)
+        .limit(limit)
+       
+        .populate("items.product")
+        .populate("items.variant");
+  
+      const totalOrders = await Order.countDocuments(query); // Count documents based on query
+      const totalPages = Math.ceil(totalOrders / limit);
+  
+      return {
+        orders,
+        totalPages,
+        currentPage: page,
+      };
+    } catch (error) {
+      throw new Error("Failed to fetch orders for customer: " + error.message);
+    }
   },
+  
 
   // Fetch a specific order by ID
   getOrderById: async (id) => {

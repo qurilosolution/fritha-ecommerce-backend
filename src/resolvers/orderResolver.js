@@ -49,39 +49,56 @@ const paymentResolvers = {
       }
     },
     
-    getOrdersByAdmin: async (_, { page = 1 }, { user }) => {
+    getOrdersByAdmin: async (_, { page = 1, status, paymentStatus, startDate, endDate }, { user }) => {
       try {
         // Check if the user is an admin
         if (user.role !== "admin") {
           throw new Error("Access denied. Only admins can view all orders.");
         }
-
-        // Fetch orders for admin
-        const orderData = await OrderService.getOrdersByAdmin(page);
+    
+        // Fetch orders for admin using the service method
+        const orderData = await OrderService.getOrdersByAdmin({
+          page,
+          status,
+          paymentStatus,
+          startDate,
+          endDate
+        });
         return orderData;
       } catch (error) {
         throw new Error("Failed to fetch orders for admin: " + error.message);
       }
     },
+    
 
-    getOrdersByCustomer: async (_, { page = 1 }, { user }) => {
+    getOrdersByCustomer: async (
+      _,
+      { page = 1, status, paymentStatus, startDate, endDate },
+      { user }
+    ) => {
       try {
-        // Check if the user is a customer
+        // Ensure the user has a "customer" role
         if (user.role !== "customer") {
-          throw new Error(
-            "Access denied. Only customers can view their orders."
-          );
+          throw new Error("Access denied. Only customers can view their orders.");
         }
-
-        // Fetch orders for the logged-in customer
-        const orderData = await OrderService.getOrdersByCustomer(page);
+    
+        // Fetch orders for customer using the service method
+        const orderData = await OrderService.getOrdersByCustomer({
+          page,
+          userId: user._id,
+          status,
+          paymentStatus,
+          startDate,
+          endDate,
+        });
+    
         return orderData;
       } catch (error) {
-        throw new Error(
-          "Failed to fetch orders for customer: " + error.message
-        );
+        throw new Error("Failed to fetch orders for customer: " + error.message);
       }
     },
+    
+    
 
     // Fetch order by ID
     getOrderById: async (_, { id }) => {
