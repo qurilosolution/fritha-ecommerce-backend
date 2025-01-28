@@ -102,18 +102,20 @@ const productType = gql`
     getProductById(id: ID!): Product
     getProductByslugName(slugName: String!): Product
     getBestSellers(categoryId: ID): [Product!]!
+    getProductCount: Int!
   }
 
+  
   extend type Mutation {
     createProduct(input: CreateProductInput!): Product
     updateProduct(
       id: ID
       input: CreateProductInput!
-      
     ): Product
+    deleteImageByIndex( id: ID!, index: Int!): Product
     deleteProduct(id: ID!): DeletionResponse!
     refreshBestSellers: RefreshResponse
-  }
+    }
 
   type DeletionResponse {
     success: Boolean!

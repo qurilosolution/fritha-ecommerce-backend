@@ -36,6 +36,14 @@ const productResolvers = {
         throw new Error(`Error fetching best sellers: ${error.message}`);
       }
     },
+    async getProductCount() {
+      try {
+        const count = await productService.getProductCountService(); // Call the service
+        return count;
+      } catch (error) {
+        throw new Error("Error in getProductCount resolver: " + error.message);
+      }
+    },
   },
   Mutation: {
   
@@ -74,6 +82,24 @@ const productResolvers = {
     } catch (error) {
       console.error("Error updating product:", error);
       throw new Error(`Error updating product: ${error.message}`);
+    }
+  },
+
+  async deleteImageByIndex(_, { id, index } ,context) {
+    try {
+      if (!context.user) {
+        throw new Error("You must be logged in to delete an image.");
+      }
+  
+      // Authorization
+      if (!context.user.role.includes("admin")) {
+        throw new Error("You must be an admin to delete an image.");
+      }
+      const updatedProduct = await productService.deleteImageByIndex( id, index);
+      return updatedProduct;
+    } catch (error) {
+      console.error("Error in resolver:", error.message);
+      throw new Error(error.message);
     }
   },
   

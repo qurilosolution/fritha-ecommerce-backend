@@ -348,6 +348,15 @@ const createProduct = async (input) => {
   }
 };
 
+const getProductCountService = async () => {
+  try {
+    const count = await Product.countDocuments(); // Fetch the total count of products
+    return count;
+  } catch (error) {
+    throw new Error("Error in getProductCountService: " + error.message);
+  }
+};
+
 
 const uploadImagesForVariants = async (variants) => {
   return await Promise.all(
@@ -447,6 +456,7 @@ const getProductByslugName = async (slugName) => {
 };
 
 
+
 const updateProduct = async (id, input) => {
   try {
     if (!id || !input) {
@@ -456,25 +466,9 @@ const updateProduct = async (id, input) => {
     const {
       name,
       category,
-      subcategory,
-      description,
-      keyBenefits,
-      netContent,
-      discount,
-      variants,
-      review,
-      usp,
-      mrp,
-      price,
-      stock,
-      imageUrl,
-      ingredients,
-      keyFeatures,
-      additionalDetails,
-      totalReviews,
-      averageRating,
-      isBestSeller,
+      imageUrl = [],
       publicIds = [],
+      ...otherFields
     } = input;
 
     // Validate required fields
@@ -482,137 +476,74 @@ const updateProduct = async (id, input) => {
       throw new Error("Name and Category are required fields.");
     }
 
-    const productData = {
-      name,
-      category,
-      subcategory,
-      description,
-      keyBenefits,
-      netContent,
-      review,
-      discount,
-      usp,
-      mrp,
-      price,
-      stock,
-      ingredients,
-      keyFeatures,
-      additionalDetails,
-      totalReviews,
-      averageRating,
-      isBestSeller,
-    };
+    // Fetch the existing product
+    const product = await Product.findById(id);
+    if (!product) {
+      throw new Error("Product not found.");
+    }
 
-   //  Handle product-level image updates
-    if (imageUrl && Array.isArray(imageUrl) && imageUrl.length > 0) {
-      if (publicIds && Array.isArray(publicIds) && publicIds.length > 0) {
-        // Remove previous images using publicIds
-        await Promise.all(
-          publicIds.map(async (publicId) => {
+    const productData = { ...otherFields };
+
+    // Validate that both arrays have the same length
+    if (imageUrl.length < publicIds.length) {
+      throw new Error("imageUrl can't be less than publicIds arrays length.");
+    }
+
+    
+     
+    const updatedImages = await Promise.all(
+      imageUrl.map(async (image, index) => {
+        if (image === null) {
+          // If the image is null, keep the existing image URL
+          return {
+            secure_url: product.imageUrl[index],  // Use the existing image
+            public_id: product.publicIds[index],  // Use the existing public ID
+          };
+        }
+    
+        if (image === "") {
+          // Replace the existing image at this index
+          if (publicIds[index]) {
             try {
-              await deleteImageFromCloudinary(publicId);
+              await deleteImageFromCloudinary(publicIds[index]); // Delete the old image
             } catch (error) {
-              console.error(`Failed to delete image with publicId: ${publicId}`, error);
+              console.error(`Failed to delete image with publicId: ${publicIds[index]}`, error);
             }
-          })
-        );
-      }
-
-      // Upload new images to Cloudinary
-      const uploadedImages = await Promise.all(
-        imageUrl.map(async (image) => {
+          }
+          // Upload the new image
           try {
-            const uploadResult = await uploadImageToCloudinary(image);
-            if (uploadResult && uploadResult.public_id && uploadResult.secure_url) {
-              return uploadResult; // Return the full result
-            } else {
-              console.error("Incomplete response from Cloudinary:", uploadResult);
-              return null;
-            }
+            const uploadResult = await uploadImageToCloudinary(image); // Upload new image
+            return uploadResult
+              ? { secure_url: uploadResult.secure_url, public_id: uploadResult.public_id }
+              : null;
           } catch (error) {
-            console.error("Error uploading image to Cloudinary:", error);
+            console.error("Error uploading image:", error);
             return null;
           }
-        })
-      );
+        }
+    
+        // Handle other cases (e.g., updating with a new URL)
+        try {
+          const uploadResult = await uploadImageToCloudinary(image);
+          return uploadResult
+            ? { secure_url: uploadResult.secure_url, public_id: uploadResult.public_id }
+            : null;
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          return null;
+        }
+      })
+    );
+    
+    // Filter out null values and assign the updated image URLs and public IDs to the product data
+    const validImages = updatedImages.filter((result) => result !== null);
 
-      // Filter valid uploads and extract URLs and publicIds
-      const validUploads = uploadedImages.filter((result) => result !== null);
-      productData.imageUrl = validUploads.map((upload) => upload.secure_url);
-      productData.publicIds = validUploads.map((upload) => upload.public_id);
-    }
-    // if (imageUrl && Array.isArray(imageUrl) && imageUrl.length > 0) {
-    //   // Ensure publicIds array matches the imageUrl array length
-    //   if (!publicIds || !Array.isArray(publicIds)) {
-    //     throw new Error("publicIds array is required and must be valid.");
-    //   }
-    
-    //   // Process each imageUrl with its corresponding publicId
-    //   const updatedImages = await Promise.all(
-    //     imageUrl.map(async (image, index) => {
-    //       if (!image) {
-    //         // If no new image provided, retain the existing one
-    //         return { secure_url: productData.imageUrl[index], public_id: publicIds[index] };
-    //       }
-    
-    //       if (publicIds[index]) {
-    //         // Delete the existing image at the current index
-    //         try {
-    //           await deleteImageFromCloudinary(publicIds[index]);
-    //         } catch (error) {
-    //           console.error(`Failed to delete image with publicId: ${publicIds[index]}`, error);
-    //         }
-    //       }
-    
-    //       // Upload the new image
-    //       try {
-    //         const uploadResult = await uploadImageToCloudinary(image);
-    //         if (uploadResult && uploadResult.secure_url && uploadResult.public_id) {
-    //           return uploadResult; // Return the full result
-    //         } else {
-    //           console.error("Incomplete response from Cloudinary:", uploadResult);
-    //           return null;
-    //         }
-    //       } catch (error) {
-    //         console.error("Error uploading image to Cloudinary:", error);
-    //         return null;
-    //       }
-    //     })
-    //   );
-    
-    //   // Filter valid uploads and extract URLs and publicIds
-    //   const validUploads = updatedImages.filter((result) => result !== null);
-    //   productData.imageUrl = validUploads.map((upload) => upload.secure_url);
-    //   productData.publicIds = validUploads.map((upload) => upload.public_id);
-    // }
-    
-
-    // Handle variant updates
-    if (variants && Array.isArray(variants)) {
-      productData.variants = await Promise.all(
-        variants.map(async (variant) => {
-          if (variant.imageUrl && Array.isArray(variant.imageUrl)) {
-            if (variant.publicIds && Array.isArray(variant.publicIds)) {
-              await Promise.all(
-                variant.publicIds.map((publicId) =>
-                  deleteImageFromCloudinary(publicId)
-                )
-              );
-            }
-
-            const uploadedVariantImages = await Promise.all(
-              variant.imageUrl.map((image) => uploadImageToCloudinary(image))
-            );
-
-            return {
-              ...variant,
-              imageUrl: uploadedVariantImages.map((upload) => upload.secure_url),
-              publicIds: uploadedVariantImages.map((upload) => upload.public_id),
-            };
-          }
-          return variant; // Return unchanged variant if no new images
-        })
-      );
+    if (validImages.length > 0) {
+      productData.imageUrl = validImages.map((upload) => upload.secure_url);
+      productData.publicIds = validImages.map((upload) => upload.public_id);
+    } else {
+      productData.imageUrl = []; // Clear images if all were deleted
+      productData.publicIds = [];
     }
 
     // Update the product in the database
@@ -624,7 +555,7 @@ const updateProduct = async (id, input) => {
       .populate("subcategory");
 
     if (!updatedProduct) {
-      throw new Error("Product not found or update failed.");
+      throw new Error("Product update failed.");
     }
 
     return updatedProduct;
@@ -633,6 +564,56 @@ const updateProduct = async (id, input) => {
     throw new Error(`Error updating product: ${error.message}`);
   }
 };
+
+const deleteImageByIndex = async ( id, index) => {
+  try {
+    if (!id|| index === undefined || index === null) {
+      throw new Error("Product ID and index are required.");
+    }
+
+    // Fetch the existing product
+    const product = await Product.findById(id);
+    if (!product) {
+      throw new Error("Product not found.");
+    }
+
+    const { imageUrl, publicIds } = product;
+
+    // Validate the index
+    if (index < 0 || index >= imageUrl.length) {
+      throw new Error("Invalid index provided.");
+    }
+
+    // Delete the image from Cloudinary
+    try {
+      await deleteImageFromCloudinary(publicIds[index]);
+    } catch (error) {
+      console.error(`Failed to delete image with publicId: ${publicIds[index]}`, error);
+      throw new Error("Failed to delete the image from Cloudinary.");
+    }
+
+    // Remove the image and public ID from the product arrays
+    imageUrl.splice(index, 1);
+    publicIds.splice(index, 1);
+
+    // Update the product in the database
+    product.imageUrl = imageUrl;
+    product.publicIds = publicIds;
+
+    const updatedProduct = await product.save();
+
+    if (!updatedProduct) {
+      throw new Error("Failed to update product after deleting image.");
+    }
+
+    return updatedProduct;
+  } catch (error) {
+    console.error("Error deleting image:", error.message);
+    throw new Error(`Error deleting image: ${error.message}`);
+  }
+};
+
+
 
 
 const deleteProduct = async (id) => {
@@ -718,4 +699,6 @@ module.exports = {
   updateProductImage,
   uploadImagesForVariants,
   getProductByslugName,
+  getProductCountService,
+  deleteImageByIndex
 };

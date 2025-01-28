@@ -71,15 +71,17 @@ const getBannerByTitle = async (title) => {
 // }
 async function createBanner({ title, imageUrl, description, position, type }) {
   try {
+    
     // Process each image and upload it
     const uploadedImages = await Promise.all(
       imageUrl.map(async ({ image, redirectUrl }) => {
         if (!image) {
           throw new Error("Image is required for each entry in imageUrl");
         }
-
+        
         // Upload the image to Cloudinary or your file storage service
         const uploadedImage = await uploadImageToCloudinary(image);
+        
 
         // Extract and return the formatted object
         return {
@@ -107,7 +109,7 @@ async function createBanner({ title, imageUrl, description, position, type }) {
     console.error("Error creating banner:", error.message);
     throw new Error(`Failed to create banner: ${error.message}`);
   }
-}
+};
 
 
 
@@ -119,35 +121,64 @@ async function updateBanner(id, { title, imageUrl, description, position, type }
       throw new Error("Banner not found");
     }
 
-    // Update title, description, position, and type if provided
     if (title) banner.title = title;
     if (description) banner.description = description;
     if (position) banner.position = position;
     if (type) banner.type = type;
+    console.log(imageUrl);
+    
+    if (imageUrl && Array.isArray(imageUrl)) {
+  const resolvedImageUrl = await Promise.all(
+    imageUrl.map(async (item, index) => {
+      try {
+        const resolvedImage = await Promise.resolve(item.image); // Resolve the promise
+        return {
+          image: resolvedImage, // Resolved image object
+          redirectUrl: item.redirectUrl,
+        };
+      } catch (error) {
+        throw new Error(`Failed to resolve image at index ${index}: ${error.message}`);
+      }
+    })
+  );
 
-    // Handle image updates or redirectUrl updates
-    if (imageUrl && imageUrl.length > 0) {
-      const updatedImages = imageUrl.map(({ image, redirectUrl }, index) => {
-        // Retain the existing image URL if no new image is provided
-        if (!image) {
+  // Validate and process resolvedImageUrl
+  const updatedImages = await Promise.all(
+    resolvedImageUrl.map(async ({ image, redirectUrl }, index) => {
+      if (image === null) {
+        return {
+          url: banner.imageUrl[index]?.url || null,
+          redirectUrl: redirectUrl || banner.imageUrl[index]?.redirectUrl || null,
+        };
+      } else if (image.filename) {
+        if (!redirectUrl) {
+          throw new Error(`Redirect URL is required for new images at index ${index}`);
+        }
+        try {
+          
+          const uploadResult = await uploadImageToCloudinary(image); 
           return {
-            url: banner.imageUrl[index]?.url || null, // Keep the existing image URL
-            redirectUrl: redirectUrl || banner.imageUrl[index]?.redirectUrl || null, // Update redirectUrl
-          };
-        } else {
-          // If a new image is provided, handle its upload
-          return {
-            image,
+            url: uploadResult.secure_url,
             redirectUrl,
           };
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError.message);
+          throw new Error(`Image upload failed at index ${index}`);
         }
-      });
+      } else {
+        throw new Error(`Invalid image data at index ${index}: ${JSON.stringify(image)}`);
+      }
+    })
+  );
 
-      // Filter out invalid entries (e.g., null images without URLs)
-      banner.imageUrl = updatedImages.filter((image) => image.url !== null);
+  banner.imageUrl = updatedImages;
+}
+
+
+     else if (imageUrl) {
+      throw new Error("imageUrl must be an array");
     }
 
-    // Save the updated banner
     await banner.save();
     return banner;
   } catch (error) {
@@ -155,6 +186,7 @@ async function updateBanner(id, { title, imageUrl, description, position, type }
     throw new Error(`Failed to update banner: ${error.message}`);
   }
 };
+
 
   
 

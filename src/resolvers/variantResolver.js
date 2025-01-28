@@ -94,6 +94,47 @@ module.exports = {
         };
       }
     },
+
+    deleteVariantImageByIndex: async (_, { variantId, index }, context) => {
+      try {
+        // Authentication
+        if (!context.user) {
+          throw new Error("You must be logged in to delete an image.");
+        }
+    
+        // Authorization
+        if (!context.user.role.includes("admin")) {
+          throw new Error("You must be an admin to delete an image.");
+        }
+    
+        // Input validation
+        if (!variantId || typeof index !== "number") {
+          throw new Error("Variant ID and a valid index are required.");
+        }
+    
+        // Call the service to delete the image
+        const updatedVariant = await variantService.deleteVariantImageByIndex(variantId, index);
+    
+        return {
+          success: true,
+          message: `Image at index ${index} successfully deleted.`,
+          variants: [updatedVariant],
+        };
+      } catch (error) {
+        console.error("Error deleting image by index:", {
+          message: error.message,
+          variantId,
+          userId: context.user?.id,
+        });
+    
+        return {
+          success: false,
+          message: "An error occurred while deleting the image.",
+          variants: null,
+        };
+      }
+    },
+    
     
     deleteVariant: async (_, { variantId }, context) => {
       try {

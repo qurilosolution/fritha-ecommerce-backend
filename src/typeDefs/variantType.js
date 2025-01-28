@@ -69,6 +69,7 @@ const variantType = gql`
     addVariant(productId: ID!, variantData: VariantInput!): VariantResponse 
     addMultipleVariants(productId: ID!, variantsData: [VariantInput]!): VariantResponse
     updateVariant(variantId: ID!, updateData: VariantInput!): VariantResponse
+    deleteVariantImageByIndex( variantId: ID!, index: Int!): VariantResponse
     deleteVariant(variantId: ID!): VariantResponseDelete 
    
   }
