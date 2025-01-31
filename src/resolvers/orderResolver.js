@@ -70,6 +70,14 @@ const paymentResolvers = {
       }
     },
     
+    async getOrderCount() {
+      try {
+        const count = await OrderService.getOrderCountService(); // Call the service
+        return count;
+      } catch (error) {
+        throw new Error("Error in getOrderCount resolver: " + error.message);
+      }
+    },
 
     getOrdersByCustomer: async (
       _,

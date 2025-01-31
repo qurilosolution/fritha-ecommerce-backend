@@ -32,6 +32,12 @@ const subcategoryType = gql`
     description: String
     keywords: [String]
   }
+  
+  type DeleteSubcategoryResponse {
+  success: Boolean!
+  message: String!
+  subcategories: Subcategory
+  }
   type DeletionResponse { 
     success: Boolean!
     message: String
@@ -46,8 +52,9 @@ const subcategoryType = gql`
   extend type Mutation {  
     createSubcategory(name: String!, description: String,  bannerImageUrl: [Upload!]! , cardImageUrl: [Upload!]!,cardPublicIds:[String],
     bannerPublicIds: [String], categoryId: ID!, meta:MetaInput): Subcategory
-    updateSubcategory(id: ID!, name: String, description: String, bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]!,cardPublicIds:[String], bannerPublicIds: [String], categoryId: ID! , meta:MetaInput): Subcategory
+    updateSubcategory(id: ID!, name: String, description: String, bannerImageUrl: [Upload] ,cardImageUrl: [Upload],cardPublicIds:[String], bannerPublicIds: [String], categoryId: ID! , meta:MetaInput): Subcategory
     deleteSubcategory(subcategoryId: ID!, categoryId: ID!): DeletionResponse!
+    deleteSubcategoryImageByIndex(subcategoryId: ID!, index: Int! ,isBanner: Boolean!): DeleteSubcategoryResponse
 
   }
 `;  

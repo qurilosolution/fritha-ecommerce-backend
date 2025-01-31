@@ -83,6 +83,47 @@ const subcategoryResolver = {
         throw new Error(`Failed to update subcategory: ${error.message}`);
       }
     },
+
+    deleteSubcategoryImageByIndex: async (_, { subcategoryId, index, isBanner }, context) => {
+      try {
+        // Authentication
+        if (!context.user) {
+          throw new Error("You must be logged in to delete an image.");
+        }
+    
+        // Authorization
+        if (!context.user.role.includes("admin")) {
+          throw new Error("You must be an admin to delete an image.");
+        }
+    
+        // Input validation
+        if (!subcategoryId || typeof index !== "number") {
+          throw new Error("Subcategory ID and a valid index are required.");
+        }
+    
+        // Call the service to delete the image
+        const updatedSubcategory = await subcategoryService.deleteSubcategoryImageByIndex(subcategoryId, index, isBanner);
+    
+        return {
+          success: true,
+          message: `Image at index ${index} successfully deleted from subcategory.`,
+          subcategories: updatedSubcategory,
+        };
+      } catch (error) {
+        console.error("Error deleting image from subcategory:", {
+          message: error.message,
+          subcategoryId,
+          userId: context.user?.id,
+        });
+    
+        return {
+          success: false,
+          message: "An error occurred while deleting the image from subcategory.",
+          subcategories: null,
+        };
+      }
+    },
+    
     
     
     deleteSubcategory: async (_, { subcategoryId, categoryId } , context) => {

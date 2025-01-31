@@ -327,79 +327,236 @@ const deleteImageFromCloudinary = async (publicId) => {
   }
 };
 
-const updateCategory = async (id, data) => {
-  const { name, description, bannerImageUrl, cardImageUrl, meta } = data;
+// const updateCategory = async (id, data) => {
+//   const { name, description, bannerImageUrl, cardImageUrl, meta } = data;
 
-  try {
-    console.log("Received inputs for update:", {
-      id,
-      name,
-      description,
-      bannerImageUrl,
-      cardImageUrl,
-      meta,
-    });
+//   try {
+//     console.log("Received inputs for update:", {
+//       id,
+//       name,
+//       description,
+//       bannerImageUrl,
+//       cardImageUrl,
+//       meta,
+//     });
 
-    if (!id) throw new Error("Category ID is required to update.");
+//     if (!id) throw new Error("Category ID is required to update.");
 
-    // Find the existing category
-    const existingCategory = await Category.findById(id);
-    if (!existingCategory) throw new Error("Category not found");
+//     // Find the existing category
+//     const existingCategory = await Category.findById(id);
+//     if (!existingCategory) throw new Error("Category not found");
 
-    // Ensure old public IDs are arrays, even if not set in the database
-    const oldBannerPublicIds = existingCategory.bannerPublicIds || [];
-    const oldCardPublicIds = existingCategory.cardPublicIds || [];
+//     // Ensure old public IDs are arrays, even if not set in the database
+//     const oldBannerPublicIds = existingCategory.bannerPublicIds || [];
+//     const oldCardPublicIds = existingCategory.cardPublicIds || [];
 
     
-    // Handle image uploads (assuming uploadedBannerImages is an array of image objects)
-    const uploadedBannerImages = await handleImageUpload(bannerImageUrl);
-    const uploadedCardImages = await handleImageUpload(cardImageUrl);
+//     // Handle image uploads (assuming uploadedBannerImages is an array of image objects)
+//     const uploadedBannerImages = await handleImageUpload(bannerImageUrl);
+//     const uploadedCardImages = await handleImageUpload(cardImageUrl);
 
-    // Extract the URLs (secure_url) from the uploaded images
-    const bannerUrls = uploadedBannerImages.map((image) => image.secure_url);
-    const cardUrls = uploadedCardImages.map((image) => image.secure_url);
+//     // Extract the URLs (secure_url) from the uploaded images
+//     const bannerUrls = uploadedBannerImages.map((image) => image.secure_url);
+//     const cardUrls = uploadedCardImages.map((image) => image.secure_url);
 
-    // Deleting old images from Cloudinary (if necessary)
-    if (oldBannerPublicIds.length > 0) {
-      for (const publicId of oldBannerPublicIds) {
-        await deleteImageFromCloudinary(publicId); // Define this function to delete images from Cloudinary
-      }
+//     // Deleting old images from Cloudinary (if necessary)
+//     if (oldBannerPublicIds.length > 0) {
+//       for (const publicId of oldBannerPublicIds) {
+//         await deleteImageFromCloudinary(publicId); // Define this function to delete images from Cloudinary
+//       }
+//     }
+
+//     if (oldCardPublicIds.length > 0) {
+//       for (const publicId of oldCardPublicIds) {
+//         await deleteImageFromCloudinary(publicId); // Define this function to delete images from Cloudinary
+//       }
+//     }
+
+//     // Prepare updated data
+//     const updatedData = {
+//       name: name || existingCategory.name,
+//       description: description || existingCategory.description,
+//       bannerImageUrl:
+//         bannerUrls.length > 0 ? bannerUrls : existingCategory.bannerImageUrl,
+//       cardImageUrl:
+//         cardUrls.length > 0 ? cardUrls : existingCategory.cardImageUrl,
+//       bannerPublicIds:
+//         uploadedBannerImages.length > 0
+//           ? uploadedBannerImages.map((image) => image.public_id)
+//           : existingCategory.bannerPublicIds,
+//       cardPublicIds:
+//         uploadedCardImages.length > 0
+//           ? uploadedCardImages.map((image) => image.public_id)
+//           : existingCategory.cardPublicIds,
+//       meta: meta || existingCategory.meta,
+//     };
+//     // Update the category
+//     const updatedCategory = await Category.findByIdAndUpdate(id, updatedData, {
+//       new: true,
+//     });
+
+//     console.log("Category successfully updated:", updatedCategory);
+//     return updatedCategory;
+//   } catch (error) {
+//     console.error("Error updating category:", error.message);
+//     throw new Error(`Failed to update category: ${error.message}`);
+//   }
+// };
+const updateCategory = async (categoryId, input) => {
+  try {
+    if (!categoryId || !input) {
+      throw new Error("Category ID and update data are required.");
     }
 
-    if (oldCardPublicIds.length > 0) {
-      for (const publicId of oldCardPublicIds) {
-        await deleteImageFromCloudinary(publicId); // Define this function to delete images from Cloudinary
-      }
+    const {
+      bannerImageUrl = [],
+      bannerPublicIds = [],
+      cardImageUrl = [],
+      cardPublicIds = [],
+      ...otherFields
+    } = input;
+
+    // Fetch the existing category
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      throw new Error("Category not found.");
     }
 
-    // Prepare updated data
-    const updatedData = {
-      name: name || existingCategory.name,
-      description: description || existingCategory.description,
-      bannerImageUrl:
-        bannerUrls.length > 0 ? bannerUrls : existingCategory.bannerImageUrl,
-      cardImageUrl:
-        cardUrls.length > 0 ? cardUrls : existingCategory.cardImageUrl,
-      bannerPublicIds:
-        uploadedBannerImages.length > 0
-          ? uploadedBannerImages.map((image) => image.public_id)
-          : existingCategory.bannerPublicIds,
-      cardPublicIds:
-        uploadedCardImages.length > 0
-          ? uploadedCardImages.map((image) => image.public_id)
-          : existingCategory.cardPublicIds,
-      meta: meta || existingCategory.meta,
-    };
-    // Update the category
-    const updatedCategory = await Category.findByIdAndUpdate(id, updatedData, {
+    // Validate that both arrays for banner and card images have the same length
+    if (bannerImageUrl.length < bannerPublicIds.length) {
+      throw new Error("bannerImageUrl can't be less than bannerPublicIds arrays length.");
+    }
+    if (cardImageUrl.length < cardPublicIds.length) {
+      throw new Error("cardImageUrl can't be less than cardPublicIds arrays length.");
+    }
+
+    // Handle banner image updates
+    const updatedBannerImages = await Promise.all(
+      bannerImageUrl.map(async (image, index) => {
+        if (image === null) {
+          // Retain the existing image URL and public ID
+          return {
+            secure_url: category.bannerImageUrl[index],
+            public_id: category.bannerPublicIds[index],
+          };
+        }
+
+        if (image === "") {
+          // Replace the existing image at this index
+          if (bannerPublicIds[index]) {
+            try {
+              await deleteImageFromCloudinary(bannerPublicIds[index]); // Delete old image
+            } catch (error) {
+              console.error(`Failed to delete banner image with publicId: ${bannerPublicIds[index]}`, error);
+            }
+          }
+
+          // Upload the new image
+          try {
+            const uploadResult = await uploadImageToCloudinary(image);
+            return uploadResult
+              ? { secure_url: uploadResult.secure_url, public_id: uploadResult.public_id }
+              : null;
+          } catch (error) {
+            console.error("Error uploading banner image:", error);
+            return null;
+          }
+        }
+
+        // For new images, upload to Cloudinary
+        try {
+          const uploadResult = await uploadImageToCloudinary(image);
+          return uploadResult
+            ? { secure_url: uploadResult.secure_url, public_id: uploadResult.public_id }
+            : null;
+        } catch (error) {
+          console.error("Error uploading banner image:", error);
+          return null;
+        }
+      })
+    );
+
+    // Handle card image updates
+    const updatedCardImages = await Promise.all(
+      cardImageUrl.map(async (image, index) => {
+        if (image === null) {
+          // Retain the existing image URL and public ID
+          return {
+            secure_url: category.cardImageUrl[index],
+            public_id: category.cardPublicIds[index],
+          };
+        }
+
+        if (image === "") {
+          // Replace the existing image at this index
+          if (cardPublicIds[index]) {
+            try {
+              await deleteImageFromCloudinary(cardPublicIds[index]); // Delete old image
+            } catch (error) {
+              console.error(`Failed to delete card image with publicId: ${cardPublicIds[index]}`, error);
+            }
+          }
+
+          // Upload the new image
+          try {
+            const uploadResult = await uploadImageToCloudinary(image);
+            return uploadResult
+              ? { secure_url: uploadResult.secure_url, public_id: uploadResult.public_id }
+              : null;
+          } catch (error) {
+            console.error("Error uploading card image:", error);
+            return null;
+          }
+        }
+
+        // For new images, upload to Cloudinary
+        try {
+          const uploadResult = await uploadImageToCloudinary(image);
+          return uploadResult
+            ? { secure_url: uploadResult.secure_url, public_id: uploadResult.public_id }
+            : null;
+        } catch (error) {
+          console.error("Error uploading card image:", error);
+          return null;
+        }
+      })
+    );
+
+    // Filter out null values and assign the updated image URLs and public IDs
+    const validBannerImages = updatedBannerImages.filter((result) => result !== null);
+    const validCardImages = updatedCardImages.filter((result) => result !== null);
+
+    const categoryData = { ...otherFields };
+    if (validBannerImages.length > 0) {
+      categoryData.bannerImageUrl = validBannerImages.map((upload) => upload.secure_url);
+      categoryData.bannerPublicIds = validBannerImages.map((upload) => upload.public_id);
+    } else {
+      categoryData.bannerImageUrl = []; // Clear images if all were deleted
+      categoryData.bannerPublicIds = [];
+    }
+
+    if (validCardImages.length > 0) {
+      categoryData.cardImageUrl = validCardImages.map((upload) => upload.secure_url);
+      categoryData.cardPublicIds = validCardImages.map((upload) => upload.public_id);
+    } else {
+      categoryData.cardImageUrl = []; // Clear images if all were deleted
+      categoryData.cardPublicIds = [];
+    }
+
+    // Update the category in the database
+    const updatedCategory = await Category.findByIdAndUpdate(categoryId, categoryData, {
       new: true,
+      runValidators: true,
     });
 
-    console.log("Category successfully updated:", updatedCategory);
+    if (!updatedCategory) {
+      throw new Error("Category update failed.");
+    }
+
     return updatedCategory;
   } catch (error) {
     console.error("Error updating category:", error.message);
-    throw new Error(`Failed to update category: ${error.message}`);
+    throw new Error(`Error updating category: ${error.message}`);
   }
 };
 
@@ -428,6 +585,56 @@ const changeSubcategoryCategory = async (
     throw new Error("Failed to update category relationships.");
   }
 };
+
+const deleteCategoryImageByIndex = async (categoryId, index, isBanner = true) => {
+  try {
+    if (!categoryId || typeof index !== "number") {
+      throw new Error("Category ID and valid index are required.");
+    }
+
+    // Fetch the category
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      throw new Error("Category not found.");
+    }
+
+    // Destructure the appropriate arrays based on isBanner flag
+    const imageUrls = isBanner ? category.bannerImageUrl : category.cardImageUrl;
+    const publicIds = isBanner ? category.bannerPublicIds : category.cardPublicIds;
+
+    // Validate index
+    if (index < 0 || index >= imageUrls.length) {
+      throw new Error("Invalid index provided.");
+    }
+
+    // Delete the image from Cloudinary
+    const publicIdToDelete = publicIds[index];
+    if (publicIdToDelete) {
+      await deleteImageFromCloudinary(publicIdToDelete);
+    }
+
+    // Remove the image URL and public ID from their respective arrays
+    imageUrls.splice(index, 1);
+    publicIds.splice(index, 1);
+
+    // Save the updated category
+    if (isBanner) {
+      category.bannerImageUrl = imageUrls;
+      category.bannerPublicIds = publicIds;
+    } else {
+      category.cardImageUrl = imageUrls;
+      category.cardPublicIds = publicIds;
+    }
+    await category.save();
+
+    return category;
+  } catch (error) {
+    console.error("Error deleting image by category index:", error.message);
+    throw new Error(`Failed to delete image: ${error.message}`);
+  }
+};
+
+
 const deleteCategory = async (id) => {
   try {
     await Subcategory.updateMany({ category: id }, { deletedAt: new Date() });
@@ -453,4 +660,5 @@ module.exports = {
   addProductToCategory,
   handleImageUpload,
   getCategoryByName,
+  deleteCategoryImageByIndex
 };

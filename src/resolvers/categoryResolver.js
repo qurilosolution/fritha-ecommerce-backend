@@ -90,6 +90,47 @@ const categoryResolver = {
         throw new Error(`Failed to update category: ${error.message}`);
       }
     },
+
+    deleteCategoryImageByIndex: async (_, { categoryId, index ,isBanner }, context) => {
+      try {
+        // Authentication
+        if (!context.user) {
+          throw new Error("You must be logged in to delete an image.");
+        }
+    
+        // Authorization
+        if (!context.user.role.includes("admin")) {
+          throw new Error("You must be an admin to delete an image.");
+        }
+    
+        // Input validation
+        if (!categoryId || typeof index !== "number") {
+          throw new Error("Category ID and a valid index are required.");
+        }
+    
+        // Call the service to delete the image
+        const updatedCategory = await categoryService.deleteCategoryImageByIndex(categoryId, index ,isBanner);
+    
+        return {
+          success: true,
+          message: `Image at index ${index} successfully deleted from category.`,
+          category: updatedCategory,
+        };
+      } catch (error) {
+        console.error("Error deleting image by category index:", {
+          message: error.message,
+          categoryId,
+          userId: context.user?.id,
+        });
+    
+        return {
+          success: false,
+          message: "An error occurred while deleting the image.",
+          category: null,
+        };
+      }
+    },
+    
     
 
     deleteCategory: async (_, { id }, context) => {

@@ -44,6 +44,40 @@ const authResolvers = {
         throw new Error(`Error fetching user: ${error.message}`);
       }
     },
+
+    getUsers: async (_, { page = 1, limit = 10 }) => {
+      try {
+        
+    
+        // Fetch the total count of users (for pagination)
+        const totalUsers = await CustomerModel.countDocuments();
+    
+        // Calculate how many users to skip (for pagination)
+        const skip = (page - 1) * limit;
+    
+        // Fetch users with pagination (skip and limit)
+        const users = await CustomerModel.find()
+          .skip(skip)
+          .limit(limit)
+          .sort({ lastLogin: -1 });  // Optional: Sort by lastLogin or other field
+    
+        // Calculate total pages
+        const totalPages = Math.ceil(totalUsers / limit);
+    
+        // Return users along with pagination data
+        return {
+          users,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalUsers
+          }
+        };
+      } catch (error) {
+        console.error("Error fetching users:", error.message);
+        throw new Error(`Error fetching users: ${error.message}`);
+      }
+    },    
     
     getProfile: async (_,{},context) => {
       try {
@@ -68,7 +102,7 @@ const authResolvers = {
   Mutation: {
     signup: async (
       _,
-      { firstName, lastName, email, phoneNumber, password, gender, birthDate  }
+      { firstName, lastName, email, phoneNumber, password, gender, birthDate }
     ) => {
       try {
         const existingUser = await CustomerModel.findOne({ email });
@@ -85,6 +119,7 @@ const authResolvers = {
           password: hashedPassword,
           gender,
           birthDate,
+          lastLogin: new Date(),
           
         });
         await newUser.save();
@@ -117,13 +152,18 @@ const authResolvers = {
         if (!isPasswordMatch) {
           throw new Error("Invalid credentials");
         }
+
+        // Update lastLogin each time a user logs in
+        user.lastLogin = new Date();
+        await user.save();
+
         
         const token = jwt.sign(
           {
             id: user._id,
             name: user.firstName + user.lastName,
             email: user.email,
-            role: "admin",
+            role: "customer",
           },
           process.env.SECRET_KEY,
           { expiresIn: "24h" }
@@ -140,6 +180,7 @@ const authResolvers = {
             phoneNumber: user.phoneNumber,
             gender: user.gender,
             birthDate: user.birthDate,
+            lastLogin:user.lastLogin,
           },  
           token,
           
@@ -278,17 +319,28 @@ const authResolvers = {
       }
     },
  
-  updateProfile: async (_,{firstName,lastName,email,phoneNumber,gender,birthDate},context) => {
+  updateProfile: async (_,{firstName,lastName,email,phoneNumber,gender,birthDate , lastLogin},context) => {
     try {
       if (!context.user) {
         throw new Error("User not authenticated");
       }
       const userId = context.user.id;
-      const updatedProfile = await CustomerModel.findByIdAndUpdate(
-        userId,
-        { firstName, lastName, email, phoneNumber, gender, birthDate },
-        { new: true }
-      ).select("firstName lastName email phoneNumber gender birthDate");
+      // const updatedProfile = await CustomerModel.findByIdAndUpdate(
+      //   userId,
+      //   { firstName, lastName, email, phoneNumber, gender, birthDate ,lastLogin },
+      //   { new: true }
+      // ).select("firstName lastName email phoneNumber gender birthDate lastLogin");
+      // If lastLogin is provided in the update, use the new date (or set it as null)
+    const updatedData = { firstName, lastName, email, phoneNumber, gender, birthDate };
+    if (lastLogin !== undefined) {
+      updatedData.lastLogin = lastLogin ? new Date(lastLogin) : new Date();  // Use new Date() if lastLogin is empty or null
+    }
+
+    const updatedProfile = await CustomerModel.findByIdAndUpdate(
+      userId,
+      updatedData,
+      { new: true }
+    ).select("firstName lastName email phoneNumber gender birthDate lastLogin")
       return {
         success: true,
         message: "Profile updated successfully",

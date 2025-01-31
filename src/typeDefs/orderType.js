@@ -133,6 +133,7 @@ const razorpayType = gql`
       page: Int = 1
       limit: Int = 10
     ): OrderResponse!
+    getOrderCount: Int!
   }
 
   extend type Mutation {

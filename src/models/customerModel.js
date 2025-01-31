@@ -37,9 +37,15 @@ const customerSchema = new mongoose.Schema({
   gender: { type: String , required:false },
   birthDate: { type: Date  , required:false},
   otp:{type:String,required:false},
+  lastLogin: { type: Date, default: null },
   expiry:{type:Date,required:false},
   addresses:[{type:AddressSchema}]
-});
+},
+{
+
+  timestamps: true, // Automatically add createdAt and updatedAt
+}
+);
 
 const CustomerModel = mongoose.model('Customer', customerSchema);
 module.exports = { CustomerModel };

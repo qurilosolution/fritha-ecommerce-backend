@@ -15,7 +15,7 @@ scalar Upload
     bannerImageUrl:[String]
     cardImageUrl: [String]
     cardPublicIds:[String]
-    bannerPublicIds: [String]
+    bannerPublicIds: [String] 
     meta: Meta
     
 
@@ -43,6 +43,12 @@ scalar Upload
     description: String
     keywords: [String]
   }
+
+  type DeleteCategoryResponse {
+  success: Boolean!
+  message: String!
+  category: Category
+  }
   
   extend type Query {
     getCategories(page: Int, limit: Int): PaginatedCategories
@@ -52,10 +58,11 @@ scalar Upload
   
   extend type Mutation {
 
-    createCategory(name: String!, description: String,  bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]!, cardPublicIds:[String],
+    createCategory(name: String!, description: String,  bannerImageUrl: [Upload] ,cardImageUrl: [Upload], cardPublicIds:[String],
     bannerPublicIds: [String], meta: MetaInput): Category
-    updateCategory(id: ID!, name: String, description: String , bannerImageUrl: [Upload!]! ,cardImageUrl: [Upload!]! ,cardPublicIds:[String],
+    updateCategory(id: ID!, name: String, description: String , bannerImageUrl: [Upload] ,cardImageUrl: [Upload] ,cardPublicIds:[String],
     bannerPublicIds: [String], meta: MetaInput): Category
+    deleteCategoryImageByIndex(categoryId: ID!, index: Int! ,isBanner: Boolean!): DeleteCategoryResponse
     deleteCategory(id: ID!): DeletionResponse!
 
   }

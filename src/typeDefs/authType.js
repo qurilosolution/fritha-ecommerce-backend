@@ -1,4 +1,4 @@
-const { gql } = require('apollo-server-express');
+const { gql } = require("apollo-server-express");
 
 const authType = gql`
   type User {
@@ -8,15 +8,16 @@ const authType = gql`
     email: String!
     phoneNumber: String
     gender: String
+    createdAt: String
     birthDate: String
+    lastLogin: Date
     isAdmin: Boolean!
-     
   }
-  type Response{
+  type Response {
     success: Boolean
     message: String
   }
-  type OtpResponse{
+  type OtpResponse {
     success: Boolean
     message: String
     token: String
@@ -25,16 +26,27 @@ const authType = gql`
     success: Boolean
     message: String
     user: User
-    token: String   
+    token: String
   }
-  type ProfileResponse{
+  type ProfileResponse {
     success: Boolean
     message: String
-    profile:User
-  } 
+    profile: User
+  }
+  type Pagination {
+    currentPage: Int
+    totalPages: Int
+    totalUsers: Int
+  }
+
+  type UserListResponse {
+    users: [User]
+    pagination: Pagination
+  }
   type Query {
-     getUser: User
-     getProfile: ProfileResponse
+    getUser: User
+    getUsers(page: Int, limit: Int): UserListResponse
+    getProfile: ProfileResponse
   }
 
   type Mutation {
@@ -48,13 +60,15 @@ const authType = gql`
       birthDate: String
     ): AuthResponse
 
-    adminSignup(firstName:String!,lastName:String,aemail:String!,password:String!): AuthResponse
+    adminSignup(
+      firstName: String!
+      lastName: String
+      email: String!
+      password: String!
+    ): AuthResponse
     adminLogin(email: String!, password: String!): AuthResponse
     login(email: String!, password: String!): AuthResponse
-    changePassword(
-      oldPassword: String!
-      newPassword: String!
-    ): Response
+    changePassword(oldPassword: String!, newPassword: String!): Response
 
     updateProfile(
       firstName: String
@@ -63,16 +77,14 @@ const authType = gql`
       phoneNumber: String
       gender: String
       birthDate: Date
-      ):ProfileResponse
-
-   
+      lastLogin: Date
+    ): ProfileResponse
 
     sendOtp(email: String!): Response
 
     verifyOtp(email: String!, otp: String!): OtpResponse
 
-    resetPassword(newPassword: String!,token: String):  Response
-    
+    resetPassword(newPassword: String!, token: String): Response
   }
 `;
 

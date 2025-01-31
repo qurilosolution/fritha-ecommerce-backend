@@ -182,6 +182,14 @@ const OrderService = {
     }
   },
   
+  getOrderCountService : async () => {
+    try {
+      const count = await Order.countDocuments(); // Fetch the total count of orders
+      return count;
+    } catch (error) {
+      throw new Error("Error in getOrderCountService: " + error.message);
+    }
+  },
     
   getOrdersByCustomer: async ({ page = 1, userId, status, paymentStatus, startDate, endDate }) => {
     const limit = 10;
