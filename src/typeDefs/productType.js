@@ -77,7 +77,7 @@ const productType = gql`
     category: ID!
     subcategory: ID!
     description: String
-    keyBenefits: [String]
+    keyBenefits: [String] 
     reviews: ID
     discount: Int
     price: Int
@@ -112,7 +112,7 @@ const productType = gql`
       id: ID
       input: CreateProductInput!
     ): Product
-    deleteImageByIndex( id: ID!, index: Int!): Product
+    deleteImageByIndex(id: ID!, index: Int!): Product
     deleteProduct(id: ID!): DeletionResponse!
     refreshBestSellers: RefreshResponse
     }

@@ -23,7 +23,7 @@ const cloudinary = require("cloudinary").v2;
 
 const getSubcategories = async (page = 1) => {
   try {
-    const limit = 10;
+    const limit = 10; 
     const skip = (page - 1) * limit;
 
     const subcategories = await Subcategory.find({ deletedAt: null })
@@ -80,7 +80,7 @@ const getSubcategoryById = async (parent, { id }) => {
       .populate({
         path: "category",
         populate: {
-          path: "products",
+          path: "products",  
           populate: [
             {
               path: "variants",

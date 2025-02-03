@@ -149,7 +149,6 @@ const createCategory = async (categoryData) => {
       description,
       bannerImageUrl,
       cardImageUrl,
-
       meta,
       products,
       subcategories,
@@ -293,7 +292,7 @@ const addProductToCategory = async (category, productsId) => {
 //         const uploadedImage = await uploadImageToCloudinary(image);
 //         if (!uploadedImage) {
 //           throw new Error("Uploaded image does not contain a URL.");
-//         }
+//         } 
 //         uploadedImages.push(uploadedImage);
 //       }
 //     }
