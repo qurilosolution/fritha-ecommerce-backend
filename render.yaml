@@ -1,13 +1,14 @@
 services:
   - type: web
-    name: node-backend
+    name: fritha-ecommerce-backend
     env: node
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: "npm install --legacy-peer-deps && npm run build"
+    startCommand: "npm start"
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 4000
+
