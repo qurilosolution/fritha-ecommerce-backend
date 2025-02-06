@@ -17,8 +17,6 @@ scalar Upload
     cardPublicIds:[String]
     bannerPublicIds: [String] 
     meta: Meta
-    
-
   }
 
   type Meta {
