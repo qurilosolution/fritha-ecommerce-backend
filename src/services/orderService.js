@@ -133,22 +133,95 @@ const OrderService = {
   },
 
   // Fetch all orders
-  getOrdersByAdmin: async ({ page = 1, status, paymentStatus, startDate, endDate }) => {
+  getOrdersByAdmin: async ({
+    page = 1,
+    status,
+    paymentStatus,
+    startDate,
+    endDate,
+  }) => {
     const limit = 10; // Number of orders per page
     const skip = (page - 1) * limit; // Calculate how many orders to skip
-  
+
     const query = { deletedAt: null }; // Default query to exclude soft-deleted orders
-  
+
     // Apply status filter if provided
     if (status) {
       query.status = status;
     }
-  
+
     // Apply paymentStatus filter if provided
     if (paymentStatus) {
       query.paymentStatus = paymentStatus;
     }
-  
+
+    // Apply date range filter correctly
+    if (startDate && endDate) {
+      query.createdAt = {
+        $gte: new Date(startDate), // start date
+        $lte: new Date(endDate)    // end date
+      };
+    } else if (startDate) {
+      query.createdAt = { $gte: new Date(startDate) }; 
+    } else if (endDate) {
+      query.createdAt = { $lte: new Date(endDate) }; 
+    }
+    
+    
+    console.log("Query:", JSON.stringify(query, null, 2));
+
+    try {
+      // Fetch orders based on the query and apply pagination
+      const orders = await Order.find(query)
+        .skip(skip)
+        .limit(limit)
+        .populate("items.product")
+        .populate("items.variant");
+
+      // Count total orders matching the query (for pagination calculation)
+      const totalOrders = await Order.countDocuments(query);
+      const totalPages = Math.ceil(totalOrders / limit);
+
+      return {
+        orders,
+        totalPages,
+        currentPage: page,
+      };
+    } catch (error) {
+      throw new Error("Failed to fetch orders for admin: " + error.message);
+    }
+  },
+
+  getOrderCountService: async () => {
+    try {
+      const count = await Order.countDocuments(); // Fetch the total count of orders
+      return count;
+    } catch (error) {
+      throw new Error("Error in getOrderCountService: " + error.message);
+    }
+  },
+
+  getOrdersByCustomer: async ({
+    page = 1,
+    userId,
+    status,
+    paymentStatus,
+    startDate,
+    endDate,
+  }) => {
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const query = { deletedAt: null, customer: userId }; // Ensure it fetches orders for the logged-in customer
+
+    if (status) {
+      query.status = status;
+    }
+
+    if (paymentStatus) {
+      query.paymentStatus = paymentStatus;
+    }
+
     // Apply date range filter if provided
     if (startDate || endDate) {
       query.createdAt = {};
@@ -159,75 +232,19 @@ const OrderService = {
         query.createdAt.$lte = new Date(endDate);
       }
     }
-  
-    try {
-      // Fetch orders based on the query and apply pagination
-      const orders = await Order.find(query)
-        .skip(skip)
-        .limit(limit)
-        .populate("items.product")
-        .populate("items.variant");
-  
-      // Count total orders matching the query (for pagination calculation)
-      const totalOrders = await Order.countDocuments(query);
-      const totalPages = Math.ceil(totalOrders / limit);
-  
-      return {
-        orders,
-        totalPages,
-        currentPage: page,
-      };
-    } catch (error) {
-      throw new Error("Failed to fetch orders for admin: " + error.message);
-    }
-  },
-  
-  getOrderCountService : async () => {
-    try {
-      const count = await Order.countDocuments(); // Fetch the total count of orders
-      return count;
-    } catch (error) {
-      throw new Error("Error in getOrderCountService: " + error.message);
-    }
-  },
-    
-  getOrdersByCustomer: async ({ page = 1, userId, status, paymentStatus, startDate, endDate }) => {
-    const limit = 10;
-    const skip = (page - 1) * limit;
-  
-    const query = { deletedAt: null, customer: userId }; // Ensure it fetches orders for the logged-in customer
-  
-    if (status) {
-      query.status = status;
-    }
-  
-    if (paymentStatus) {
-      query.paymentStatus = paymentStatus;
-    }
-  
-   // Apply date range filter if provided
-   if (startDate || endDate) {
-    query.createdAt = {};
-    if (startDate) {
-      query.createdAt.$gte = new Date(startDate);
-    }
-    if (endDate) {
-      query.createdAt.$lte = new Date(endDate);
-    }
-  }
-  
+
     try {
       // Fetch orders based on the query and pagination
       const orders = await Order.find(query)
         .skip(skip)
         .limit(limit)
-       
+
         .populate("items.product")
         .populate("items.variant");
-  
+
       const totalOrders = await Order.countDocuments(query); // Count documents based on query
       const totalPages = Math.ceil(totalOrders / limit);
-  
+
       return {
         orders,
         totalPages,
@@ -237,7 +254,6 @@ const OrderService = {
       throw new Error("Failed to fetch orders for customer: " + error.message);
     }
   },
-  
 
   // Fetch a specific order by ID
   getOrderById: async (id) => {
@@ -265,7 +281,7 @@ const OrderService = {
     orderId,
     totalAmount,
     status,
-    paymentMode, 
+    paymentMode,
     paymentStatus,
     shippingAddress,
     orderSummary
@@ -318,13 +334,7 @@ const OrderService = {
       paymentMode,
       paymentStatus,
       shippingAddress,
-      orderSummary,
-      cancelledOrder,
-      orderShipped,
-      orderPaid,
-      orderUnpaid,
-      orderCompleted,
-      orderProgress,
+      orderSummary
     }
   ) => {
     try {
@@ -346,13 +356,7 @@ const OrderService = {
         paymentStatus: paymentStatus || existingOrder.paymentStatus,
         shippingAddress: shippingAddress || existingOrder.shippingAddress,
         orderSummary: orderSummary || existingOrder.orderSummary,
-        cancelledOrder: cancelledOrder || existingOrder.cancelledOrder,
-        orderShipped: orderShipped || existingOrder.orderShipped,
-        orderPaid: orderPaid || existingOrder.orderPaid,
-        orderUnpaid: orderUnpaid || existingOrder.orderUnpaid,
-        orderCompleted: orderCompleted || existingOrder.orderCompleted,
-        orderProgress: orderProgress || existingOrder.orderProgress,
-        items: items || existingOrder.items,
+       items: items || existingOrder.items,
       };
 
       // Update the order in the database
@@ -502,7 +506,7 @@ const OrderService = {
       if (!deletedOrder) {
         throw new Error(`Order with ID ${id} not found.`);
       }
-
+      console.log('Deleted Order:', deletedOrder);
       return deletedOrder; // Return the updated order with deletedAt field set
     } catch (error) {
       throw new Error("Failed to delete order: " + error.message);

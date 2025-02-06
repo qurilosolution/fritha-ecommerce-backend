@@ -51,7 +51,8 @@ scalar Upload
   }
   
   extend type Query {
-    getCategories(page: Int, limit: Int): PaginatedCategories
+    getCategories(page: Int,limit: Int, search: String, sort: String): PaginatedCategories
+    
     getCategoryById(id: ID!): Category
     getCategoryByName(name: String!):Category
   }

@@ -5,13 +5,14 @@ const { GraphQLUpload } = require('graphql-upload');
 const subcategoryResolver = {
   Upload: GraphQLUpload,
   Query: {
-    getSubcategories:async (_, { page }) =>{
-    try {
-      return await subcategoryService.getSubcategories(page);
-    } catch (error) {
-      throw new Error(`Error fetching product by name: ${error.message}`);
-    }
-  },
+    getSubcategories: async (_, { page = 1, limit = 10, search, sort }) => {
+      try {
+        return await subcategoryService.getSubcategories({ page, limit, search, sort });
+      } catch (error) {
+        throw new Error(`Error fetching subcategories: ${error.message}`);
+      }
+    },
+    
 
     // getSubcategories: subcategoryService.getSubcategories,
     getSubcategoryById: subcategoryService.getSubcategoryById,

@@ -106,8 +106,6 @@ const paymentResolvers = {
       }
     },
     
-    
-
     // Fetch order by ID
     getOrderById: async (_, { id }) => {
       try {
@@ -205,13 +203,7 @@ const paymentResolvers = {
             paymentMode, 
             paymentStatus, 
             shippingAddress, 
-            orderSummary, 
-            cancelledOrder, 
-            orderShipped, 
-            orderPaid, 
-            orderUnpaid, 
-            orderCompleted, 
-            orderProgress 
+            orderSummary
           }
         );
     
