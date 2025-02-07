@@ -4,7 +4,24 @@ const { GraphQLUpload } = require("graphql-upload");
 const categoryResolver = {
   Upload: GraphQLUpload,
   Query: {
-    getCategories: categoryService.getCategories,
+    getCategories: async (_, args) => {  // Use 'args' to capture the input
+      try {
+        const { page = 1, limit = 10, search, sort } = args;  // Destructure safely
+        return await categoryService.getCategories({ page, limit, search, sort });
+      } catch (error) {
+        throw new Error(`Error fetching categories: ${error.message}`);
+      }
+    },
+    
+    
+    // getCategories: async (_, { page }) => {
+    //   try {
+    //     return await categoryService.getCategories(page);
+    //   } catch (error) {
+    //     throw new Error(`Error fetching product by name: ${error.message}`);
+    //   } 
+    // },
+    // getCategories: categoryService.getCategories,
     getCategoryById: categoryService.getCategoryById,
     getCategoryByName: async (_, { name }) => {
               try {

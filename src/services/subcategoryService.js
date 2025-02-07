@@ -21,44 +21,52 @@ const cloudinary = require("cloudinary").v2;
 //   });
 // };
 
-const getSubcategories = async (page = 1) => {
+const getSubcategories = async ({ page = 1, limit = 10, search, sort }) => {
   try {
-    const limit = 10;
     const skip = (page - 1) * limit;
+    
 
-    const subcategories = await Subcategory.find({ deletedAt: null })
+
+    // Search Filter
+    const query = { deletedAt: null };
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { "meta.title": { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Sorting Logic
+    let sortOptions = {};
+    if (sort === "NAME_ASC") {
+      sortOptions.name = 1;
+    } else if (sort === "NAME_DESC") {
+      sortOptions.name = -1;
+    } else if (sort === "DATE_NEWEST") {
+      sortOptions.createdAt = -1;
+    } else if (sort === "DATE_OLDEST") {
+      sortOptions.createdAt = 1;
+    }
+
+    const subcategories = await Subcategory.find(query)
       .skip(skip)
       .limit(limit)
+      .sort(sortOptions)
       .populate("category")
       .populate({
         path: "category",
         populate: {
           path: "products",
-          populate: [
-            {
-              path: "variants",
-            },
-            {
-              path: "reviews",
-            },
-          ],
+          populate: [{ path: "variants" }, { path: "reviews" }],
         },
       })
       .populate({
         path: "products",
-        populate: [
-          {
-            path: "variants",
-          },
-          {
-            path: "reviews",
-          },
-        ],
+        populate: [{ path: "variants" }, { path: "reviews" }],
       });
 
-    const totalSubcategories = await Subcategory.countDocuments({
-      deletedAt: null,
-    }); // Count total subcategories
+    const totalSubcategories = await Subcategory.countDocuments(query);
     const totalPages = Math.ceil(totalSubcategories / limit);
 
     return {
@@ -72,6 +80,7 @@ const getSubcategories = async (page = 1) => {
   }
 };
 
+
 const getSubcategoryById = async (parent, { id }) => {
   console.log("Fetching subcategory", id);
   try {
@@ -80,7 +89,7 @@ const getSubcategoryById = async (parent, { id }) => {
       .populate({
         path: "category",
         populate: {
-          path: "products",
+          path: "products",  
           populate: [
             {
               path: "variants",

@@ -23,54 +23,102 @@ const cloudinary = require("cloudinary").v2;
 //   }
 // };
 
-const getCategories = async (parent, args) => {
-  const { page } = args;
-  const limit = 10; // Fixed limit
-  const skip = (page - 1) * limit;
 
+// const getCategories = async (parent, args) => {
+//   const { page } = args;
+//   const limit = 10; // Fixed limit
+//   const skip = (page - 1) * limit;
+
+//   try {
+//     const categories = await Category.find({ deletedAt: null })
+//       .skip(skip)
+//       .limit(limit)
+//       .populate("subcategories")
+//       .populate({
+//         path: "subcategories",
+//         populate: {
+//           path: "products",
+//           populate: [
+//             {
+//               path: "variants",
+//             },
+//             {
+//               path: "reviews",
+//             },
+//           ],
+//         },
+//       })
+//       .populate({
+//         path: "products",
+//         populate: [
+//           {
+//             path: "variants",
+//           },
+//           {
+//             path: "reviews",
+//           },
+//         ],
+//       });
+
+//     const totalCategories = await Category.countDocuments();
+
+//     return {
+//       categories,
+//       currentPage: page,
+//       totalPages: Math.ceil(totalCategories / limit),
+//       totalCategories,
+//     };
+//   } catch (error) {
+//     throw new Error("Failed to fetch categories: " + error.message);
+//   }
+// };
+const getCategories = async ({ page = 1, limit = 10, search, sort }) => {
   try {
-    const categories = await Category.find({ deletedAt: null })
-      .skip(skip)
-      .limit(limit)
-      .populate("subcategories")
-      .populate({
-        path: "subcategories",
-        populate: {
-          path: "products",
-          populate: [
-            {
-              path: "variants",
-            },
-            {
-              path: "reviews",
-            },
-          ],
-        },
-      })
-      .populate({
-        path: "products",
-        populate: [
-          {
-            path: "variants",
-          },
-          {
-            path: "reviews",
-          },
-        ],
-      });
+    const skip = (page - 1) * limit;
+    const query = { deletedAt: null }; 
 
-    const totalCategories = await Category.countDocuments();
+    // Add search filter
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { "meta.title": { $regex: search, $options: "i" } }
+      ];
+    }
+
+    // Sorting logic
+    let sortOptions = {};
+    if (sort === "NAME_ASC") {
+      sortOptions.name = 1;
+    } else if (sort === "NAME_DESC") {
+      sortOptions.name = -1;
+    } else if (sort === "DATE_NEWEST") {
+      sortOptions.createdAt = -1;
+    } else if (sort === "DATE_OLDEST") {
+      sortOptions.createdAt = 1;
+    }
+
+    const categories = await Category.find(query)
+      .populate("subcategories")
+      .populate("products")
+      .limit(limit)
+      .skip(skip)
+      .sort(sortOptions);
+
+    const totalCategories = await Category.countDocuments(query);
+    const totalPages = Math.ceil(totalCategories / limit);
 
     return {
       categories,
       currentPage: page,
-      totalPages: Math.ceil(totalCategories / limit),
+      totalPages,
       totalCategories,
     };
   } catch (error) {
-    throw new Error("Failed to fetch categories: " + error.message);
+    throw new Error(`Error fetching categories: ${error.message}`);
   }
 };
+
 
 const getCategoryById = async (parent, { id }) => {
   try {
@@ -149,7 +197,6 @@ const createCategory = async (categoryData) => {
       description,
       bannerImageUrl,
       cardImageUrl,
-
       meta,
       products,
       subcategories,
@@ -293,7 +340,7 @@ const addProductToCategory = async (category, productsId) => {
 //         const uploadedImage = await uploadImageToCloudinary(image);
 //         if (!uploadedImage) {
 //           throw new Error("Uploaded image does not contain a URL.");
-//         }
+//         } 
 //         uploadedImages.push(uploadedImage);
 //       }
 //     }
@@ -659,6 +706,7 @@ module.exports = {
   changeSubcategoryCategory,
   addProductToCategory,
   handleImageUpload,
+
   getCategoryByName,
   deleteCategoryImageByIndex
 };

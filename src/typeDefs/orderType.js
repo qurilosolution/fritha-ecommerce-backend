@@ -24,6 +24,8 @@ const razorpayType = gql`
     paymentStatus: String!
     shippingAddress: ShippingAddress
     paymentId: String
+    startDate: String
+    endDate: String
     createdAt: String!
     updatedAt: String!
     orderSummary: OrderSummary
@@ -111,18 +113,22 @@ const razorpayType = gql`
 
   extend type Query {
     getOrdersByCustomer( 
-    page: Int = 1,
-    status: String,
-    paymentStatus: String,
-    startDate: String,
+    page: Int = 1
+    startDate: String
     endDate: String
+    status: String
+    paymentStatus: String
+
+    
+    
     ): PaginatedOrders
     getOrdersByAdmin(
-    page: Int = 1,
-    status: String,
-    paymentStatus: String,
-    startDate: String,
+    page: Int = 1
+    startDate: String
     endDate: String
+    status: String
+    paymentStatus: String
+    
   ): PaginatedOrders
     getOrderById(id: ID!): Order
     getOrders(
@@ -146,6 +152,8 @@ const razorpayType = gql`
       paymentStatus: String!
       shippingAddress: ShippingAddressInput!
       orderSummary: OrderSummaryInput!
+      startDate: String
+      endDate: String
     ): Order
 
     updateOrder(

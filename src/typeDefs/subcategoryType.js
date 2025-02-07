@@ -43,7 +43,7 @@ const subcategoryType = gql`
     message: String
   }
   extend type Query {
-    getSubcategories(page: Int, limit: Int): PaginatedSubcategories
+    getSubcategories(page: Int, limit: Int , search: String, sort: String): PaginatedSubcategories
     getSubcategoryById(id: ID!): Subcategory
     getSubcategoryByName(name: String!): Subcategory
   }
