@@ -87,62 +87,6 @@ const addVariant = async (productId, variantData) => {
 };
 
 
-// const updateVariant = async (variantId, updateData) => {
-//   try {
-//     if (!variantId || !updateData) {
-//       throw new Error("Variant ID and update data are required.");
-//     }
-
-//     const { imageUrl, ...otherData } = updateData;
-    
-//     if (imageUrl && Array.isArray(imageUrl) && imageUrl.length > 0) {
-//       console.log("New images received for variant:", imageUrl);
-    
-//       const uploadedImages = await Promise.all(
-//         imageUrl.map(async (imagePromise) => {
-//           try {
-//             const image = await imagePromise; // Resolve Promise if necessary
-//             console.log("Uploading file:", image);
-//             const result = await uploadImageToCloudinary(image);
-//             console.log("Cloudinary upload result:", result);
-            
-//             // Ensure that secure_url is available in the result
-//             if (!result.secure_url || !result.public_id) {
-//               throw new Error("Invalid upload response from Cloudinary.");
-//             }
-            
-//             return result.secure_url; // Return only the secure_url
-//           } catch (error) {
-//             console.error("Error uploading image:", error.message);
-//             throw new Error("Image upload failed.");
-//           }
-//         })
-//       );
-    
-//       // Directly store the uploaded image URLs in the imageUrl field
-//       otherData.imageUrl = uploadedImages;
-//     } else {
-//       console.log("No new images provided or invalid imageUrl array.");
-//     }
-
-//     // Find and update the variant
-//     const updatedVariant = await Variant.findByIdAndUpdate(
-//       variantId,
-//       { $set: otherData },
-//       { new: true, runValidators: true } // Return the updated document
-//     );
-
-//     if (!updatedVariant) {
-//       throw new Error("Variant not found or update failed.");
-//     }
-
-//     console.log("Updated variant:", updatedVariant);
-//     return updatedVariant;
-//   } catch (error) {
-//     console.error("Error updating variant:", error.message);
-//     throw new Error(`Failed to update variant: ${error.message}`);
-//   }
-// };
 
 const updateVariant = async (variantId, input) => {
   try {

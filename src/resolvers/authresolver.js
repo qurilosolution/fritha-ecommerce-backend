@@ -234,12 +234,7 @@ const authResolvers = {
         }
         // OTP is valid, generate a token
         const token = generateToken({ email }, "10m"); // Token valid for 10 minutes
-        // Set the token in a secure, HTTP-only cookie
-        // res.cookie("resetToken", token, {
-        //   httpOnly: true,
-        //   secure: process.env.NODE_ENV === "production", // Use secure flag in production
-        //   maxAge: 10 * 60 * 1000, // 10 minutes
-        // });
+       
         user.otp = null; // OTP has been verified, remove it from storage
         user.expiry=null;
         await user.save();
@@ -325,12 +320,7 @@ const authResolvers = {
         throw new Error("User not authenticated");
       }
       const userId = context.user.id;
-      // const updatedProfile = await CustomerModel.findByIdAndUpdate(
-      //   userId,
-      //   { firstName, lastName, email, phoneNumber, gender, birthDate ,lastLogin },
-      //   { new: true }
-      // ).select("firstName lastName email phoneNumber gender birthDate lastLogin");
-      // If lastLogin is provided in the update, use the new date (or set it as null)
+     
     const updatedData = { firstName, lastName, email, phoneNumber, gender, birthDate };
     if (lastLogin !== undefined) {
       updatedData.lastLogin = lastLogin ? new Date(lastLogin) : new Date();  // Use new Date() if lastLogin is empty or null

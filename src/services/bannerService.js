@@ -27,48 +27,7 @@ const getBannerByTitle = async (title) => {
   }
 };
 
-// async function createBanner({ title, imageUrl, description, position, type }) {
-//   try {
-//     // Upload the images and their redirect URLs
-//     const uploadedImages = await Promise.all(
-//       imageUrl.map(async ({ image, redirectUrl }) => {
-//         if (image) {
-//           try {
-//             // Assuming you are using a file upload handler like Cloudinary or similar
-//             const uploadedImageUrl = await uploadImageToCloudinary(image);  // Uploading the file
-//             return { url: uploadedImageUrl, redirectUrl };
-//           } catch (uploadError) {
-//             console.error("Error uploading image:", uploadError.message);
-//             throw new Error("Image upload failed");
-//           }
-//         } else {
-//           console.log("No image found in the input");
-//           return null; // If no image is found, return null
-//         }
-//       })
-//     );
 
-//     // Create the banner data
-//     const bannerData = {
-//       title,
-//       imageUrl: uploadedImages,
-//       description,
-//       position,
-//       type,
-//     };
-
-//     // Log for debugging
-//     console.log("Uploaded image URLs:", uploadedImages);
-
-//     // Create and save the banner
-//     const newBanner = new Banner(bannerData);
-//     await newBanner.save();
-//     return newBanner;
-//   } catch (error) {
-//     console.error("Error creating banner:", error.message);
-//     throw new Error(`Failed to create banner: ${error.message}`);
-//   }
-// }
 async function createBanner({ title, imageUrl, description, position, type }) {
   try {
     

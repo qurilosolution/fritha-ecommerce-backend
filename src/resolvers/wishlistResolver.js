@@ -29,10 +29,7 @@ const wishlistResolver = {
 
 
 
-    // removeFromWishlist: (_, { userId, productId, variantId },) => {
-    //   return WishlistService.removeFromWishlist(userId, productId, variantId);
-    // },
-
+    
 
     removeFromWishlist: async (_, { productId, variantId }, context) => {
       const userId = context.user?.id; // Extract `id` from the `user` object in context

@@ -14,14 +14,6 @@ const categoryResolver = {
     },
     
     
-    // getCategories: async (_, { page }) => {
-    //   try {
-    //     return await categoryService.getCategories(page);
-    //   } catch (error) {
-    //     throw new Error(`Error fetching product by name: ${error.message}`);
-    //   } 
-    // },
-    // getCategories: categoryService.getCategories,
     getCategoryById: categoryService.getCategoryById,
     getCategoryByName: async (_, { name }) => {
               try {
