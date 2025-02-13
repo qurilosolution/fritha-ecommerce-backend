@@ -45,6 +45,19 @@ const authResolvers = {
       }
     },
 
+    getAdminProfile: async (_, __, { user }) => {
+      console.log("User Context:", user); // Debugging
+  
+      if (!user || !user.id) {
+          throw new Error("Unauthorized Access: Admin only");
+      }
+  
+      const profile = await AuthService.getAdminProfile(user.id);
+      console.log("aewgfgh" , profile);    
+      return profile
+     },
+  
+
     getUsers: async (_, { page = 1, limit = 10 }) => {
       try {
         
@@ -87,7 +100,7 @@ const authResolvers = {
         console.log(context.user);
         const userId = context.user.id;
         const profile = await CustomerModel.findById(userId).select("firstName lastName email phoneNumber gender birthDate");
-
+        
         return {
           success: true,
           message: "Profile fetched successfully",
@@ -197,6 +210,30 @@ const authResolvers = {
       }
       catch(error){
         throw new Error(`Error during login:${error.message}`)
+      }
+    },
+    updateAdminProfile: async (_, { firstName, lastName, email }, { user }) => {
+      try {
+        if (!user || user.role !== "admin") {
+          throw new Error("Unauthorized access");
+        }
+
+        return await   AuthService.updateAdminProfile(user.id, { firstName, lastName, email });
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+
+    
+    changeAdminPassword: async (_, { currentPassword, newPassword, confirmPassword }, { user }) => {
+      try {
+        if (!user || user.role !== "admin") {
+          throw new Error("Unauthorized access");
+        }
+
+        return await AuthService.changeAdminPassword(user.id, currentPassword, newPassword, confirmPassword);
+      } catch (error) {
+        throw new Error(error.message);
       }
     },
     sendOtp: async (_, { email }, { res }) => {

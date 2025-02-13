@@ -13,6 +13,13 @@ const authType = gql`
     lastLogin: Date
     isAdmin: Boolean!
   }
+   type Admin{
+    id: ID!
+    firstName: String!
+    lastName: String
+    email: String!
+    password: String!
+   }
   type Response {
     success: Boolean
     message: String
@@ -27,6 +34,11 @@ const authType = gql`
     message: String
     user: User
     token: String
+  }
+    type adminProfileResponse {
+    success: Boolean
+    message: String
+    profile: Admin
   }
   type ProfileResponse {
     success: Boolean
@@ -47,6 +59,8 @@ const authType = gql`
     getUser: User
     getUsers(page: Int, limit: Int): UserListResponse
     getProfile: ProfileResponse
+    getAdminProfile : adminProfileResponse
+  
   }
 
   type Mutation {
@@ -66,6 +80,18 @@ const authType = gql`
       email: String!
       password: String!
     ): AuthResponse
+
+    updateAdminProfile(
+    firstName: String
+    lastName: String
+    email: String
+  ): ProfileResponse
+  
+  changeAdminPassword(
+    currentPassword: String!
+    newPassword: String!
+    confirmPassword: String!
+  ): Response
     adminLogin(email: String!, password: String!): AuthResponse
     login(email: String!, password: String!): AuthResponse
     changePassword(oldPassword: String!, newPassword: String!): Response

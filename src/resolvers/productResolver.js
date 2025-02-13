@@ -4,14 +4,15 @@ const uploadImageToCloudinary = require("../utils/fileUpload");
 const productResolvers = {
   Upload: GraphQLUpload, // Declare the Upload scalar
   Query: {
-    getProducts: async (_, { page, search, sort }) => {
+    getProducts: async (_, { page, search, sort, categoryId, subcategoryId, minPrice, maxPrice }) => {
       try {
-        console.log(`Page received in resolver: ${page}, Search: ${search}, Sort: ${sort}`); // Debug log
-        return await productService.getProducts({ page, search, sort });
+        console.log(`Page received in resolver: ${page}, Search: ${search}, Sort: ${sort}, Category: ${categoryId}, Subcategory: ${subcategoryId}, Min Price: ${minPrice}, Max Price: ${maxPrice}`); // Debug log
+        return await productService.getProducts({ page, search, sort, categoryId, subcategoryId, minPrice, maxPrice });
       } catch (error) {
         throw new Error(`Error fetching products: ${error.message}`);
       }
     },
+    
     // Fetch a single product by ID
     getProductById: async (_, { id }) => {
       try {
@@ -43,6 +44,16 @@ const productResolvers = {
       } catch (error) {
         throw new Error("Error in getProductCount resolver: " + error.message);
       }
+    },
+    getProductsByCategorySlugName: async (_, { categorySlugName, subcategoryId, sort, page = 1, limit = 10 }) => {
+      console.log(`Fetching products for category: ${categorySlugName}, Subcategory: ${subcategoryId}, Sort: ${sort}, Page: ${page}, Limit: ${limit}`);
+      return await productService.getProductsByCategorySlugName(categorySlugName, subcategoryId, sort, page, limit);
+    },
+    
+
+    getBestSellersByCategorySlugName: async (_, { categorySlugName }) => {
+      console.log(categorySlugName);
+      return await productService.getBestSellersByCategorySlugName(categorySlugName);
     },
   },
   Mutation: {

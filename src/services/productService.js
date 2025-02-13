@@ -8,6 +8,7 @@ const Category = require("../models/category");
 const variantService = require("../services/variantService");
 const categoryService = require("../services/categoryService");
 const subcategoryService = require("../services/subcategoryService");
+const Subcategory = require("../models/Subcategory");
 
 
 const createProduct = async (input) => {
@@ -170,7 +171,7 @@ const uploadImagesForVariants = async (variants) => {
   );
 };
 
-const getProducts = async ({ page = 1, search, sort }) => {
+const getProducts = async ({ page = 1, search, sort, categoryId, subcategoryId, minPrice, maxPrice }) => {
   try {
     const limit = 10;
     const skip = (page - 1) * limit;
@@ -181,9 +182,20 @@ const getProducts = async ({ page = 1, search, sort }) => {
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
-        { slugName: { $regex: search, $options: 'i' } },
+        { slugName: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
       ];
+    }
+
+    // Apply category and subcategory filters
+    if (categoryId) query.category = categoryId;
+    if (subcategoryId) query.subcategory = subcategoryId;
+
+    // Apply price range filter
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      query.price = {};
+      if (minPrice !== undefined) query.price.$gte = minPrice;
+      if (maxPrice !== undefined) query.price.$lte = maxPrice;
     }
 
     // Sorting logic
@@ -197,8 +209,9 @@ const getProducts = async ({ page = 1, search, sort }) => {
     }
 
     console.log(
-      `Fetching page ${page} with limit ${limit} and skip ${skip}, Search: ${search}, Sort: ${sort}`
+      `Fetching page ${page} with limit ${limit} and skip ${skip}, Search: ${search}, Sort: ${sort}, Category: ${categoryId}, Subcategory: ${subcategoryId}, Min Price: ${minPrice}, Max Price: ${maxPrice}`
     );
+    
     const products = await Product.find(query)
       .populate("category")
       .populate("subcategory")
@@ -220,6 +233,91 @@ const getProducts = async ({ page = 1, search, sort }) => {
   } catch (error) {
     throw new Error(`Error fetching products: ${error.message}`);
   }
+};
+
+const getProductsByCategorySlugName = async (categorySlugName, subcategoryId = null, sort = null, page = 1, limit = 10) => {
+  try {
+    // Find the category by slugName
+    const category = await Category.findOne({ categorySlugName });
+    if (!category) {
+      throw new Error("Category not found");
+    }
+
+    // Construct the query
+    const query = {
+      category: category._id,
+      deletedAt: null, // Ensuring only active products are fetched
+    };
+
+    // If a subcategoryId is provided, filter products based on it
+    if (subcategoryId) {
+      const subcategory = await Subcategory.findById(subcategoryId);
+      if (!subcategory) {
+        throw new Error("Subcategory not found");
+      }
+      query.subcategory = subcategory._id; 
+    }
+
+    // Sorting logic
+    const sortOptions = {};
+    if (sort === "PRICE_HIGH_TO_LOW") {
+      sortOptions.price = -1;
+    } else if (sort === "PRICE_LOW_TO_HIGH") {
+      sortOptions.price = 1;
+    } else if (sort === "RATING") {
+      sortOptions.rating = -1;
+    }
+
+    // Pagination
+    const skip = (page - 1) * limit;
+
+    // Fetch paginated products
+    const products = await Product.find(query)
+      .populate("category")
+      .populate("subcategory")
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit);
+
+    // Count total products
+    const totalProducts = await Product.countDocuments(query);
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    console.log(`Found ${products.length} products for category ${category._id}`);
+
+    return {
+      products,
+      currentPage: page,
+      totalPages,
+      totalProducts,
+    };
+  } catch (error) {
+    console.error("Error fetching products:", error.message);
+    throw new Error(`Error fetching products: ${error.message}`);
+  }
+};
+
+// Fetch best seller products by category slugName
+
+const getBestSellersByCategorySlugName = async (categorySlugName) => {
+  const category = await Category.findOne({ categorySlugName });
+  if (!category) {
+    console.log("No category found for slug:", categorySlugName);
+    return [];
+  }
+
+  console.log("Found Category:", category._id);
+
+  const products = await Product.find({
+    category: category._id,
+    isBestSeller: true, 
+  })
+    .populate("category")
+    .populate("subcategory");
+
+  console.log("Found Best Sellers:", products);
+  
+  return products;
 };
 
 const getProductById = async (id) => {
@@ -485,6 +583,8 @@ module.exports = {
   getProductById,
   updateProduct,
   deleteProduct,
+  getProductsByCategorySlugName,
+  getBestSellersByCategorySlugName,
   deleteImageFromCloudinary,
   uploadImageToCloudinary,
   updateProductImage,

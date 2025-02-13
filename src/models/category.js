@@ -8,6 +8,10 @@ const categorySchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    categorySlugName: {
+      type: String,
+      unique: true,
+    },
     description: {
       type: String, 
       trim: true,
@@ -15,21 +19,20 @@ const categorySchema = new mongoose.Schema(
     subcategories: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Subcategory', // Links to the Subcategory schema
+        ref: 'Subcategory', 
       },
     ],
     products: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product', // Links products to this category
-      },
+        ref: 'Product',       },
     ],
     variants:[{
         type: mongoose.Schema.Types.ObjectId,
         ref:'Variant',
     }],
     bannerImageUrl: {
-      type: [String], // Optional images for the category
+      type: [String],
       trim: true,
     },
     cardImageUrl: {
@@ -68,5 +71,17 @@ const categorySchema = new mongoose.Schema(
     timestamps: true, // Automatically add createdAt and updatedAt
   }
 );
+
+categorySchema.pre("save", function (next) {
+  // Generate slugName based on name
+  if (this.isModified("name")) {
+    this.categorySlugName = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-") // Replace non-alphanumeric characters with '-'
+      .replace(/^-+|-+$/g, ""); // Remove leading or trailing '-'
+  }
+  next();
+});
+
 
 module.exports = mongoose.model('Category', categorySchema);

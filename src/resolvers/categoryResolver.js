@@ -13,6 +13,9 @@ const categoryResolver = {
       }
     },
     
+    getCategoryBySlugName: async (_, { categorySlugName }) => {
+      return await categoryService.getCategoryBySlugName(categorySlugName);
+    },
     
     getCategoryById: categoryService.getCategoryById,
     getCategoryByName: async (_, { name }) => {
@@ -26,7 +29,7 @@ const categoryResolver = {
 
   Mutation: {
     
-    createCategory: async (_, { name, description, bannerImageUrl, cardImageUrl , cardPublicIds, bannerPublicIds, meta}, context) => {
+    createCategory: async (_, { name, slugName , description, bannerImageUrl, cardImageUrl , cardPublicIds, bannerPublicIds, meta}, context) => {
       console.log(context.user);
     
       // Ensure the user is logged in and has the "admin" role
@@ -43,6 +46,7 @@ const categoryResolver = {
         // Pass all data to the service layer
         const category = await categoryService.createCategory({
           name,
+          slugName,
           description,
           bannerImageUrl,
           cardImageUrl,

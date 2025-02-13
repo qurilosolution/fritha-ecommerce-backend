@@ -77,7 +77,7 @@ const productType = gql`
     category: ID!
     subcategory: ID!
     description: String
-    keyBenefits: [String] 
+    keyBenefits: [String]
     reviews: ID
     discount: Int
     price: Int
@@ -98,24 +98,36 @@ const productType = gql`
   }
 
   extend type Query {
-    getProducts(page: Int, search: String, sort: SortOption): PaginatedProducts
+    getProducts(
+      page: Int
+      search: String
+      sort: SortOption
+      categoryId: ID
+      subcategoryId: ID
+      minPrice: Int
+      maxPrice: Int
+    ): PaginatedProducts
     getProductById(id: ID!): Product
     getProductByslugName(slugName: String!): Product
     getBestSellers(categoryId: ID): [Product!]!
+    getProductsByCategorySlugName(
+      categorySlugName: String!
+      subcategoryId: ID
+      sort: SortOption
+      page: Int
+      limit: Int
+    ): PaginatedProducts
+    getBestSellersByCategorySlugName(categorySlugName: String!): [Product]
     getProductCount: Int!
   }
 
-  
   extend type Mutation {
     createProduct(input: CreateProductInput!): Product
-    updateProduct(
-      id: ID
-      input: CreateProductInput!
-    ): Product
+    updateProduct(id: ID, input: CreateProductInput!): Product
     deleteImageByIndex(id: ID!, index: Int!): Product
     deleteProduct(id: ID!): DeletionResponse!
     refreshBestSellers: RefreshResponse
-    }
+  }
 
   type DeletionResponse {
     success: Boolean!
