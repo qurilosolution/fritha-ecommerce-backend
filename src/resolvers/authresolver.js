@@ -57,13 +57,11 @@ const authResolvers = {
       return profile
      },
   
-
+  
     getUsers: async (_, { page = 1, limit = 10 }) => {
       try {
-        
-    
-        // Fetch the total count of users (for pagination)
-        const totalUsers = await CustomerModel.countDocuments();
+      // Fetch the total count of users (for pagination)
+      const totalUsers = await CustomerModel.countDocuments();
     
         // Calculate how many users to skip (for pagination)
         const skip = (page - 1) * limit;
@@ -72,7 +70,7 @@ const authResolvers = {
         const users = await CustomerModel.find()
           .skip(skip)
           .limit(limit)
-          .sort({ lastLogin: -1 });  // Optional: Sort by lastLogin or other field
+          .sort({ lastLogin: -1 });  // Optional: Sort by lastLogin or other field 
     
         // Calculate total pages
         const totalPages = Math.ceil(totalUsers / limit);
@@ -91,7 +89,7 @@ const authResolvers = {
         throw new Error(`Error fetching users: ${error.message}`);
       }
     },    
-    
+
     getProfile: async (_,{},context) => {
       try {
         if (!context.user) {

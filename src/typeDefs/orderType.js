@@ -22,12 +22,14 @@ const razorpayType = gql`
     paymentMode: String!
     orderId: String!
     paymentStatus: String!
+    billingAddress : BillingAddress
     shippingAddress: ShippingAddress
     paymentId: String
     startDate: String
     endDate: String
     createdAt: String!
     updatedAt: String!
+    invoiceUrl: String
     orderSummary: OrderSummary
   }
 
@@ -88,6 +90,30 @@ const razorpayType = gql`
     country: String!
   }
 
+  input BillingAddressInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    phoneNumber: String!
+    address: String!
+    city: String!
+    state: String!
+    zip: String!
+    country: String!
+  }
+
+  type BillingAddress {
+    firstName: String!
+    lastName: String!
+    email: String!
+    phoneNumber: String!
+    address: String!
+    city: String!
+    state: String!
+    zip: String!
+    country: String!
+  }
+
   type PaginatedOrders {
     orders: [Order!]!
     totalPages: Int!
@@ -100,6 +126,7 @@ const razorpayType = gql`
 
   type Query {
     getOrderCounts(startDate: String, endDate: String): OrderCounts!
+    getInvoice(orderId: ID!): String
   }
 
   type OrderCounts {
@@ -131,6 +158,7 @@ const razorpayType = gql`
     
   ): PaginatedOrders
     getOrderById(id: ID!): Order
+    
     getOrders(
       status: String
       paymentStatus: String
@@ -151,6 +179,7 @@ const razorpayType = gql`
       paymentMode: String!
       paymentStatus: String!
       shippingAddress: ShippingAddressInput!
+      billingAddress: BillingAddressInput!
       orderSummary: OrderSummaryInput!
       startDate: String
       endDate: String
@@ -164,10 +193,12 @@ const razorpayType = gql`
       paymentMode: String!
       paymentStatus: String!
       shippingAddress: ShippingAddressInput!
+      billingAddress: BillingAddressInput!
       orderSummary: OrderSummaryInput!
     ): Order
 
     updateOrderStatus(id: ID!, status: String!): Order
+    
     deleteOrder(id: ID!): DeletionResponse!
     verifyPayment(
       razorpayOrderId: String!

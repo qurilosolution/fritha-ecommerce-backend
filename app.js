@@ -8,11 +8,14 @@ const typeDefs = require('./src/typeDefs');
 const resolvers = require('./src/resolvers');
 const { authMiddleware } = require('./src/middleware/authmiddleware');
 const connectDB = require('./src/config/db');
+
 const { updateBestSellers } = require('./src/services/productService');
 const Product = require('./src/models/Product');  
 
 const app = express();
 app.use(express.json()); 
+
+
 
 require('dotenv').config();
 
