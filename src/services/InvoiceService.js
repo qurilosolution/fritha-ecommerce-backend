@@ -220,7 +220,7 @@ const InvoiceService = {
             (sum, item) => sum + item.quantity,
             0
           )}`,
-          40, // X position (left padding)
+          40,  
           doc.y+ yOffset, // Y position (continue from the last text)
           { width: pageWidth, align: "left" }
         );
