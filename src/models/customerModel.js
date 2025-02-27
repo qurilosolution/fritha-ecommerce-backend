@@ -44,7 +44,7 @@ const customerSchema = new mongoose.Schema({
 {
 
   timestamps: true, // Automatically add createdAt and updatedAt
-}
+} 
 );
 
 const CustomerModel = mongoose.model('Customer', customerSchema);

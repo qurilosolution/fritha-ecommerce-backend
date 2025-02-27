@@ -51,36 +51,7 @@ const WishlistService = {
 
 
 
-  // addToWishlist: async (userId, item) => {
-  //   try {
-  //     // Check if variant is provided and if it's a valid ObjectId
-  //     let variantObjectId = null;
-  //     if (item.variant) {
-  //       if (!mongoose.Types.ObjectId.isValid(item.variant)) {
-  //         throw new Error('Invalid variant ID');
-  //       }
-  //       // Convert variant to ObjectId if valid
-  //       variantObjectId = new mongoose.Types.ObjectId(item.variant);
-  //     }
-  
-  //     // Find the user's wishlist
-  //     let wishlist = await WishlistItem.findOne({ userId });
-  
-  //     // If no wishlist exists, create one
-  //     if (!wishlist) {
-  //       wishlist = await WishlistItem.create({ userId, items: [] });
-  //     }
-  
-  //     // Add the new item to the wishlist with variant or null if no variant
-  //     wishlist.items.push({ ...item, variant: variantObjectId });
-  //     await wishlist.save();
-  
-  //     return wishlist;
-  //   } catch (error) {
-  //     throw new Error(`Error adding item to wishlist: ${error.message}`);
-  //   }
-  // },
-  
+ 
 
 
 

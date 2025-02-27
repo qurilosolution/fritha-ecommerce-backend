@@ -8,11 +8,14 @@ const typeDefs = require('./src/typeDefs');
 const resolvers = require('./src/resolvers');
 const { authMiddleware } = require('./src/middleware/authmiddleware');
 const connectDB = require('./src/config/db');
+
 const { updateBestSellers } = require('./src/services/productService');
-const Product = require('./src/models/Product');
+const Product = require('./src/models/Product');  
 
 const app = express();
 app.use(express.json()); 
+
+
 
 require('dotenv').config();
 
@@ -51,11 +54,6 @@ cron.schedule('* * * * *', async () => {
 const server = new ApolloServer({ typeDefs, resolvers ,uploads:true , context:authMiddleware,
 });  
 
-// const server = new ApolloServer({ typeDefs, resolvers ,uploads:true 
-// }); 
-
-// const server = new ApolloServer({ typeDefs, resolvers ,uploads:true
-// });  
 
 const startServer = async () => {
   await server.start();

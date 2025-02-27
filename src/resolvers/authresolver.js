@@ -45,12 +45,23 @@ const authResolvers = {
       }
     },
 
+    getAdminProfile: async (_, __, { user }) => {
+      console.log("User Context:", user); // Debugging
+  
+      if (!user || !user.id) {
+          throw new Error("Unauthorized Access: Admin only");
+      }
+  
+      const profile = await AuthService.getAdminProfile(user.id);
+      console.log("aewgfgh" , profile);    
+      return profile
+     },
+  
+  
     getUsers: async (_, { page = 1, limit = 10 }) => {
       try {
-        
-    
-        // Fetch the total count of users (for pagination)
-        const totalUsers = await CustomerModel.countDocuments();
+      // Fetch the total count of users (for pagination)
+      const totalUsers = await CustomerModel.countDocuments();
     
         // Calculate how many users to skip (for pagination)
         const skip = (page - 1) * limit;
@@ -59,7 +70,7 @@ const authResolvers = {
         const users = await CustomerModel.find()
           .skip(skip)
           .limit(limit)
-          .sort({ lastLogin: -1 });  // Optional: Sort by lastLogin or other field
+          .sort({ lastLogin: -1 });  // Optional: Sort by lastLogin or other field 
     
         // Calculate total pages
         const totalPages = Math.ceil(totalUsers / limit);
@@ -78,7 +89,7 @@ const authResolvers = {
         throw new Error(`Error fetching users: ${error.message}`);
       }
     },    
-    
+
     getProfile: async (_,{},context) => {
       try {
         if (!context.user) {
@@ -87,7 +98,7 @@ const authResolvers = {
         console.log(context.user);
         const userId = context.user.id;
         const profile = await CustomerModel.findById(userId).select("firstName lastName email phoneNumber gender birthDate");
-
+        
         return {
           success: true,
           message: "Profile fetched successfully",
@@ -199,6 +210,30 @@ const authResolvers = {
         throw new Error(`Error during login:${error.message}`)
       }
     },
+    updateAdminProfile: async (_, { firstName, lastName, email }, { user }) => {
+      try {
+        if (!user || user.role !== "admin") {
+          throw new Error("Unauthorized access");
+        }
+
+        return await   AuthService.updateAdminProfile(user.id, { firstName, lastName, email });
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+
+    
+    changeAdminPassword: async (_, { currentPassword, newPassword, confirmPassword }, { user }) => {
+      try {
+        if (!user || user.role !== "admin") {
+          throw new Error("Unauthorized access");
+        }
+
+        return await AuthService.changeAdminPassword(user.id, currentPassword, newPassword, confirmPassword);
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
     sendOtp: async (_, { email }, { res }) => {
       try {
         const user = await CustomerModel.findOne({ email });
@@ -234,12 +269,7 @@ const authResolvers = {
         }
         // OTP is valid, generate a token
         const token = generateToken({ email }, "10m"); // Token valid for 10 minutes
-        // Set the token in a secure, HTTP-only cookie
-        // res.cookie("resetToken", token, {
-        //   httpOnly: true,
-        //   secure: process.env.NODE_ENV === "production", // Use secure flag in production
-        //   maxAge: 10 * 60 * 1000, // 10 minutes
-        // });
+       
         user.otp = null; // OTP has been verified, remove it from storage
         user.expiry=null;
         await user.save();
@@ -325,12 +355,7 @@ const authResolvers = {
         throw new Error("User not authenticated");
       }
       const userId = context.user.id;
-      // const updatedProfile = await CustomerModel.findByIdAndUpdate(
-      //   userId,
-      //   { firstName, lastName, email, phoneNumber, gender, birthDate ,lastLogin },
-      //   { new: true }
-      // ).select("firstName lastName email phoneNumber gender birthDate lastLogin");
-      // If lastLogin is provided in the update, use the new date (or set it as null)
+     
     const updatedData = { firstName, lastName, email, phoneNumber, gender, birthDate };
     if (lastLogin !== undefined) {
       updatedData.lastLogin = lastLogin ? new Date(lastLogin) : new Date();  // Use new Date() if lastLogin is empty or null

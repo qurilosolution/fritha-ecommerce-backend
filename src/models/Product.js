@@ -152,6 +152,7 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+
 // Middleware to calculate dynamic values before saving a product
 productSchema.pre("save", function (next) {
   // Generate slugName based on name

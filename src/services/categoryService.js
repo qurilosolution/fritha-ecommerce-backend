@@ -3,75 +3,6 @@ const Subcategory = require("../models/Subcategory");
 const uploadImageToCloudinary = require("../utils/fileUpload");
 const cloudinary = require("cloudinary").v2;
 
-// const getCategories = async () => {
-//   try {
-//     return await Category.find()
-//       .populate("subcategories")
-//       .populate({
-//         path: "products",
-//         populate: [
-//         {
-//           path: "variants",
-//         },
-//         {
-//           path: "reviews",
-//         },
-//       ],
-//       });
-//   } catch (error) {
-//     throw new Error("Failed to fetch categories: " + error.message);
-//   }
-// };
-
-
-// const getCategories = async (parent, args) => {
-//   const { page } = args;
-//   const limit = 10; // Fixed limit
-//   const skip = (page - 1) * limit;
-
-//   try {
-//     const categories = await Category.find({ deletedAt: null })
-//       .skip(skip)
-//       .limit(limit)
-//       .populate("subcategories")
-//       .populate({
-//         path: "subcategories",
-//         populate: {
-//           path: "products",
-//           populate: [
-//             {
-//               path: "variants",
-//             },
-//             {
-//               path: "reviews",
-//             },
-//           ],
-//         },
-//       })
-//       .populate({
-//         path: "products",
-//         populate: [
-//           {
-//             path: "variants",
-//           },
-//           {
-//             path: "reviews",
-//           },
-//         ],
-//       });
-
-//     const totalCategories = await Category.countDocuments();
-
-//     return {
-//       categories,
-//       currentPage: page,
-//       totalPages: Math.ceil(totalCategories / limit),
-//       totalCategories,
-//     };
-//   } catch (error) {
-//     throw new Error("Failed to fetch categories: " + error.message);
-//   }
-// };
 const getCategories = async ({ page = 1, limit = 10, search, sort }) => {
   try {
     const skip = (page - 1) * limit;
@@ -189,11 +120,32 @@ const getCategoryByName = async (name) => {
     throw new Error(`Error fetching product by name: ${error.message}`);
   }
 };
+const getCategoryBySlugName = async (categorySlugName) => {
+  try {
+    const category = await Category.findOne({ categorySlugName }).populate("subcategories");
+    if (!category) {
+      throw new Error("Category not found");
+    }
+    
+    return {
+      id: category.id,
+      name: category.name,
+      categorySlugName: category.categorySlugName,
+      bannerImageUrl: category.bannerImageUrl || [],
+      subcategories: category.subcategories || [],
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+
 
 const createCategory = async (categoryData) => {
   try {
     const {
       name,
+      slugName,
       description,
       bannerImageUrl,
       cardImageUrl,
@@ -267,6 +219,7 @@ const createCategory = async (categoryData) => {
     // Create the category document with populated publicIds
     const newCategory = new Category({
       name,
+      slugName,
       description,
       bannerImageUrl: uploadedBannerImages,
       cardImageUrl: uploadedCardImages,
@@ -331,25 +284,6 @@ const addProductToCategory = async (category, productsId) => {
   }
 };
 
-// const uploadImages = async (imageUrls) => {
-//   try {
-//     const uploadedImages = [];
-//     if (imageUrls && imageUrls.length > 0) {
-//       const images = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
-//       for (const image of images) {
-//         const uploadedImage = await uploadImageToCloudinary(image);
-//         if (!uploadedImage) {
-//           throw new Error("Uploaded image does not contain a URL.");
-//         } 
-//         uploadedImages.push(uploadedImage);
-//       }
-//     }
-//     return uploadedImages;
-//   } catch (error) {
-//     console.error("Error uploading images:", error.message);
-//     throw new Error("Image upload failed.");
-//   }
-// };
 
 const handleImageUpload = async (imageUrls) => {
   const uploadedImages = [];
@@ -374,82 +308,7 @@ const deleteImageFromCloudinary = async (publicId) => {
   }
 };
 
-// const updateCategory = async (id, data) => {
-//   const { name, description, bannerImageUrl, cardImageUrl, meta } = data;
-
-//   try {
-//     console.log("Received inputs for update:", {
-//       id,
-//       name,
-//       description,
-//       bannerImageUrl,
-//       cardImageUrl,
-//       meta,
-//     });
-
-//     if (!id) throw new Error("Category ID is required to update.");
-
-//     // Find the existing category
-//     const existingCategory = await Category.findById(id);
-//     if (!existingCategory) throw new Error("Category not found");
-
-//     // Ensure old public IDs are arrays, even if not set in the database
-//     const oldBannerPublicIds = existingCategory.bannerPublicIds || [];
-//     const oldCardPublicIds = existingCategory.cardPublicIds || [];
-
-    
-//     // Handle image uploads (assuming uploadedBannerImages is an array of image objects)
-//     const uploadedBannerImages = await handleImageUpload(bannerImageUrl);
-//     const uploadedCardImages = await handleImageUpload(cardImageUrl);
-
-//     // Extract the URLs (secure_url) from the uploaded images
-//     const bannerUrls = uploadedBannerImages.map((image) => image.secure_url);
-//     const cardUrls = uploadedCardImages.map((image) => image.secure_url);
-
-//     // Deleting old images from Cloudinary (if necessary)
-//     if (oldBannerPublicIds.length > 0) {
-//       for (const publicId of oldBannerPublicIds) {
-//         await deleteImageFromCloudinary(publicId); // Define this function to delete images from Cloudinary
-//       }
-//     }
-
-//     if (oldCardPublicIds.length > 0) {
-//       for (const publicId of oldCardPublicIds) {
-//         await deleteImageFromCloudinary(publicId); // Define this function to delete images from Cloudinary
-//       }
-//     }
-
-//     // Prepare updated data
-//     const updatedData = {
-//       name: name || existingCategory.name,
-//       description: description || existingCategory.description,
-//       bannerImageUrl:
-//         bannerUrls.length > 0 ? bannerUrls : existingCategory.bannerImageUrl,
-//       cardImageUrl:
-//         cardUrls.length > 0 ? cardUrls : existingCategory.cardImageUrl,
-//       bannerPublicIds:
-//         uploadedBannerImages.length > 0
-//           ? uploadedBannerImages.map((image) => image.public_id)
-//           : existingCategory.bannerPublicIds,
-//       cardPublicIds:
-//         uploadedCardImages.length > 0
-//           ? uploadedCardImages.map((image) => image.public_id)
-//           : existingCategory.cardPublicIds,
-//       meta: meta || existingCategory.meta,
-//     };
-//     // Update the category
-//     const updatedCategory = await Category.findByIdAndUpdate(id, updatedData, {
-//       new: true,
-//     });
-
-//     console.log("Category successfully updated:", updatedCategory);
-//     return updatedCategory;
-//   } catch (error) {
-//     console.error("Error updating category:", error.message);
-//     throw new Error(`Failed to update category: ${error.message}`);
-//   }
-// };
-const updateCategory = async (categoryId, input) => {
+ const updateCategory = async (categoryId, input) => {
   try {
     if (!categoryId || !input) {
       throw new Error("Category ID and update data are required.");
@@ -706,7 +565,8 @@ module.exports = {
   changeSubcategoryCategory,
   addProductToCategory,
   handleImageUpload,
-
+  
+  getCategoryBySlugName,
   getCategoryByName,
   deleteCategoryImageByIndex
 };

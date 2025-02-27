@@ -2,6 +2,9 @@ const razorpay = require("../config/RazorpayConfig"); // Razorpay instance
 const crypto = require("crypto");
 const Order = require("../models/Order"); // Order model
 require("dotenv").config();
+const WebhookService = require("./webhookService");
+
+const InvoiceService = require("./InvoiceService");
 const OrderService = {
   getOrdersByDateRange: async (
     status = null,
@@ -284,6 +287,7 @@ const OrderService = {
     paymentMode,
     paymentStatus,
     shippingAddress,
+    billingAddress,
     orderSummary
   ) => {
     try {
@@ -298,6 +302,7 @@ const OrderService = {
         orderId,
         status: status || "Pending",
         shippingAddress,
+        billingAddress,
         paymentStatus: paymentMode === "COD" ? "Unpaid" : "Processing",
         createdAt: new Date(),
         orderSummary,
@@ -334,6 +339,7 @@ const OrderService = {
       paymentMode,
       paymentStatus,
       shippingAddress,
+      billingAddress,
       orderSummary
     }
   ) => {
@@ -355,6 +361,7 @@ const OrderService = {
         paymentMode: paymentMode || existingOrder.paymentMode,
         paymentStatus: paymentStatus || existingOrder.paymentStatus,
         shippingAddress: shippingAddress || existingOrder.shippingAddress,
+        billingAddress: billingAddress || existingOrder.billingAddress,
         orderSummary: orderSummary || existingOrder.orderSummary,
        items: items || existingOrder.items,
       };
@@ -377,7 +384,7 @@ const OrderService = {
 
   updateOrderStatus: async (id, status) => {
     try {
-      // Validate the status value
+      // Allowed status values
       const validStatuses = [
         "Pending",
         "Placed",
@@ -386,21 +393,32 @@ const OrderService = {
         "Packaging",
         "In Progress",
         "Completed",
+        "Delivered",
       ];
+
       if (!validStatuses.includes(status)) {
-        throw new Error("Invalid status value.");
+        throw new Error(`Invalid status value: ${status}`);
       }
 
-      // Find the order by id and update the status
+      // Update the order status
       const updatedOrder = await Order.findByIdAndUpdate(
         id,
-        { status }, // Update the status field
-        { new: true } // Return the updated document
+        { status },
+        { new: true }
       );
 
-      // If no order found, throw an error
       if (!updatedOrder) {
         throw new Error("Order not found.");
+      }
+
+      // If order is completed, generate invoice, upload to Cloudinary, and save
+      if (status === "Delivered") {
+        const invoiceUrl = await InvoiceService.generateAndUploadInvoice(updatedOrder);
+
+        updatedOrder.invoiceUrl = invoiceUrl; // Save invoice URL in DB
+        await updatedOrder.save();
+
+        // await WebhookService.sendOrderCompletedWebhook(updatedOrder);
       }
 
       return updatedOrder;
@@ -410,6 +428,17 @@ const OrderService = {
     }
   },
 
+  getInvoice: async (id) => {
+    try {
+      const order = await Order.findById(id);
+      if (!order) throw new Error("Order not found.");
+      if (!order.invoiceUrl) throw new Error("Invoice not generated.");
+      return order.invoiceUrl; // Return Cloudinary invoice URL
+    } catch (error) {
+      console.error("Error fetching invoice:", error.message);
+      throw new Error(error.message);
+    }
+  },
   updatePaymentStatus: async (orderId, paymentStatus) => {
     try {
       // Find the order by ID

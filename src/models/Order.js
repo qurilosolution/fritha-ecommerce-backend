@@ -12,6 +12,25 @@ const ShippingAddressSchema = new mongoose.Schema({
   zip: { type: String, required: true },
   country: { type: String, required: true, default: 'India' },
 });
+const billingAddressSchema = new mongoose.Schema({
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true },
+  phoneNumber: { type: String, required: true },
+  address: { type: String, required: true },
+  city: { type: String, required: true },
+  state: { type: String, required: true },
+  zip: { type: String, required: true },
+  country: { type: String, required: true, default: 'India' },
+});
+
+function generateInvoiceNo() {
+  const prefix = 'FRITHA';
+  const randomString = Math.random().toString(36).substring(2, 7).toUpperCase(); // Random 5 chars
+  const timestamp = Date.now().toString().slice(-5); // Last 5 digits of the timestamp
+
+  return `${prefix}${randomString}${timestamp}`;
+}
 
 const OrderSchema = new mongoose.Schema(
   {
@@ -27,12 +46,15 @@ const OrderSchema = new mongoose.Schema(
       },
     ],
     totalAmount: { type: Number, required: true },
-    paymentMode: { type: String, enum: ['COD', 'Online'], required: true },
+    paymentMode: { type: String, enum: ['COD', 'Online' ,'Card'], required: true },
     paymentStatus: { type: String, enum: ['Unpaid', 'Processing', 'Paid', 'Refund', 'Failed'], default: 'Unpaid' },
-    status: { type: String, enum: ['Pending', 'Placed', 'Cancelled', 'Shipped', 'Packaging', 'In Progress', 'Completed'], default: 'Pending' },
+    status: { type: String, enum: ['Pending', 'Placed', 'Cancelled', 'Shipped', 'Packaging', 'In Progress', 'Completed' ,'Delivered'], default: 'Pending' },
     shippingAddress: { type: ShippingAddressSchema, required: true },
+    billingAddress: { type: billingAddressSchema, required: true },
     orderId: { type: String, default: uuidv4 },
     paymentId: { type: String },
+    invoiceNo: { type: String, default: generateInvoiceNo },
+    invoiceUrl: { type :String},
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     deletedAt: {

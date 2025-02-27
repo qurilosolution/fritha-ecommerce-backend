@@ -2,9 +2,6 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-// Log the email and password (be cautious with logging sensitive data in production)
-// console.log("GMAIL_USER:", process.env.GMAIL_USER);
-// console.log("GMAIL_PASSWORD:", process.env.GMAIL_PASSWORD);
 
 const transporter = nodemailer.createTransport({
   service: "gmail",

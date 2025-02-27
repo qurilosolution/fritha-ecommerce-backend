@@ -7,6 +7,7 @@ scalar Upload
   type Category {
     id: ID!
     name: String!
+    categorySlugName: String!
     description: String
     createdAt: String
     updatedAt:String
@@ -50,9 +51,9 @@ scalar Upload
   
   extend type Query {
     getCategories(page: Int,limit: Int, search: String, sort: String): PaginatedCategories
-    
     getCategoryById(id: ID!): Category
     getCategoryByName(name: String!):Category
+    getCategoryBySlugName(categorySlugName: String!): Category
   }
   
   extend type Mutation {

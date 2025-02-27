@@ -48,6 +48,8 @@ const paymentResolvers = {
         throw new Error("Error fetching order counts: " + error.message);
       }
     },
+
+    
     
     getOrdersByAdmin: async (_, { page = 1, status, paymentStatus, startDate, endDate }, { user }) => {
       try {
@@ -114,6 +116,11 @@ const paymentResolvers = {
         throw new Error(error.message);
       }
     },
+
+    getInvoice: async (_, { orderId }) => {
+      return await OrderService.getInvoice(orderId);
+    },
+  
   },
 
   Mutation: {
@@ -127,6 +134,7 @@ const paymentResolvers = {
         paymentMode,
         paymentStatus,
         shippingAddress,
+        billingAddress,
         orderSummary
       },
       context
@@ -158,6 +166,7 @@ const paymentResolvers = {
           paymentMode,
           paymentStatus,
           shippingAddress,
+          billingAddress,
           orderSummary
         );
         return order;
@@ -176,14 +185,10 @@ const paymentResolvers = {
         status, 
         paymentMode, 
         paymentStatus, 
-        shippingAddress, 
+        shippingAddress,
+        billingAddress, 
         orderSummary, 
-        cancelledOrder, 
-        orderShipped, 
-        orderPaid, 
-        orderUnpaid, 
-        orderCompleted, 
-        orderProgress 
+       
       },
       context
     ) => {
@@ -203,6 +208,7 @@ const paymentResolvers = {
             paymentMode, 
             paymentStatus, 
             shippingAddress, 
+            billingAddress,
             orderSummary
           }
         );
@@ -248,6 +254,8 @@ const paymentResolvers = {
         throw new Error(error.message);
       }
     },
+
+    
 
     // Delete an order
     deleteOrder: async (_, { id }) => {
