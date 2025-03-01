@@ -55,8 +55,6 @@ const server = new ApolloServer({ typeDefs, resolvers ,uploads:true , context:au
 });  
 
 
-
-
 const startServer = async () => {
   await server.start();
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
