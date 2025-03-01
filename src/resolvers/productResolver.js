@@ -54,7 +54,7 @@ const productResolvers = {
     getBestSellersByCategorySlugName: async (_, { categorySlugName }) => {
       console.log(categorySlugName);
       return await productService.getBestSellersByCategorySlugName(categorySlugName);
-    },
+    },  
   },
   Mutation: {
   

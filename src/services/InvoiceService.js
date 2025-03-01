@@ -5,6 +5,7 @@ const path = require("path");
 const Order = require("../models/Order");
 
 const InvoiceService = {
+  
   generateAndUploadInvoice: async (order) => {
     try {
       const invoicesDir = path.join(__dirname, "..", "invoices");
@@ -13,7 +14,7 @@ const InvoiceService = {
       }
 
       const filePath = path.join(invoicesDir, `invoice_${order._id}.pdf`);
-
+ 
       const populatedOrder = await Order.findById(order._id).populate({
         path: "items.product",
         select: "name",
@@ -99,9 +100,9 @@ const InvoiceService = {
           margin + columnWidth + columnGap
         );
 
-        doc.moveDown(2); // Move down after the columns
+        doc.moveDown(2); 
 
-        // Table Headers
+        
 
         const colWidths = [130, 50, 80, 80, 90, 80, 90];
 

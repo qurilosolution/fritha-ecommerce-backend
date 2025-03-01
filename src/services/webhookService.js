@@ -4,6 +4,7 @@ const WebhookService = {
   sendOrderCompletedWebhook: async (order) => {
     try {
       const webhookUrl = process.env.WEBHOOK_URL; 
+      console.log("webhookUrl" , webhookUrl);
 
       if (!webhookUrl) {
         console.warn("Webhook URL is not defined in environment variables.");
@@ -22,11 +23,11 @@ const WebhookService = {
         headers: { "Content-Type": "application/json" },
       });
 
-      console.log("Webhook sent successfully:", response.data);
+      console.log("Webhook sent successfully:", response.data); 
     } catch (error) {
       console.error("Error sending webhook:", error.message);
     }
   },
-};
+}; 
 
 module.exports = WebhookService;
